@@ -1,0 +1,11 @@
+import 'package:drift/drift.dart';
+import 'rangers.dart';
+import 'equipment.dart';
+
+class RangerEquipment extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get rangerId => integer().references(Rangers, #id)();
+  IntColumn get equipmentId => integer().references(Equipment, #id)();
+  IntColumn get currentUses => integer().nullable()();
+  TextColumn get equippedBy => text().withDefault(const Constant('ranger'))(); // 'ranger' or companion_id as string
+}

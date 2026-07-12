@@ -1,0 +1,157 @@
+# Miscellaneous
+*.log
+*.tmp
+*.cache
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build directories
+build/
+.cache/
+.packages/
+
+# Gradle files for Android
+/android/.gradle/
+/android/build/
+
+# iOS files for iOS (if applicable)
+/ios/Pods/
+/ios/build/
+/ios/.symlinks/
+ios/*.xcworkspace/
+ios/xcuserdata/
+
+# Xcode files
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xccheckout
+*.xcuserdata
+*.xcstategraph
+*.xcore
+*.xcscheme
+
+# CocoaPods artifacts
+/ios/Pods/
+*.xcworkspacedata
+
+# Dart/Flutter generated files
+.dart_tool/
+.flutter-plugins/
+.flutter-plugins-build/
+.dart_tool/
+build/
+/.dart_tool/
+.pub-cache/
+
+# Test coverage
+coverage/
+.lcov
+coverage.json
+coverage.html
+
+# IntelliJ IDEA
+.idea/
+.ideaWorkspace
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Obfuscation
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.xcuserdata
+*.xcstategraph
+*.xcore
+*.xcscheme
+
+# Environment specific
+.env
+.env.local
+.env.*.local
+*.local
+
+# References (as requested)
+references/
+references/**
+
+# Lock file (optional - some prefer to commit this)
+pubspec.lock
+
+# Android
+*.apk
+*.aab
+*.keystore
+
+# iOS
+*.ipa
+
+# Carthage
+Carthage/Build/
+
+# Code coverage
+*.lcov
+coverage/
+
+# Flutter-generated files
+.linux/flutter
+.linux/flutter_config
+.linux/flutter_temp
+.linux/flutter_tool
+.linux/flutter_tool.d
+
+# Build outputs
+linux/build/
+macos/build/
+web-build/
+dist/
+build/
+
+# Windows build
+windows/build/
+windows/flutter/Debug/
+windows/flutter/Release/
+
+# macOS build artifacts
+*.pem
+*.p12
+*.p8
+*.p12p
+
+# Crash logs
+*.crash
+
+# Profiling logs
+*.xcprofile
+
+# Xcode build directory
+DerivedData/
+
+# Fastlane
+*.gatekeeper_assistant
+
+# Codecov
+.codecov.yml
+.jaam.yml
+
+# Log files (optional)
+*.log
+*.pgpass
+
+# Build artifacts
+*.hprof
+
+# Ranges
+.history/
