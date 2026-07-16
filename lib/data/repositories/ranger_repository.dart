@@ -92,7 +92,8 @@ class RangerRepository {
   }
 
   Future<bool> updateRangerEquipment(RangerEquipmentCompanion companion) async {
-    return await _db.update(_db.rangerEquipment).replace(companion);
+    final rows = await (_db.update(_db.rangerEquipment)..where((e) => e.id.equals(companion.id.value))).write(companion);
+    return rows > 0;
   }
 
   Future<int> deleteRangerEquipment(int id) async {
@@ -110,5 +111,9 @@ class RangerRepository {
     final query = _db.select(_db.equipment)
       ..where((e) => e.id.equals(id));
     return await query.getSingleOrNull();
+  }
+
+  Future<List<EquipmentData>> getAllEquipment() async {
+    return await _db.select(_db.equipment).get();
   }
 }

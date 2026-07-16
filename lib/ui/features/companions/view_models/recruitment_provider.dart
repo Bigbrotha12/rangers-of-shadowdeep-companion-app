@@ -2,7 +2,8 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart' hide CompanionType;
 import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../domain/constants/companion_types.dart';
+import '../../../../domain/constants/companion_types.dart'
+    show CompanionType, companionTypeKeyFromId;
 
 class RecruitmentState {
   final int rangerId;
@@ -65,7 +66,7 @@ class CompanionEntry {
   final int companionTypeId;
   final String name;
   final int rpCost;
-  final int? existingId; // Non-null if already persisted
+  final int? existingId;
 
   const CompanionEntry({
     required this.companionTypeId,
@@ -73,6 +74,8 @@ class CompanionEntry {
     required this.rpCost,
     this.existingId,
   });
+
+  String get key => companionTypeKeyFromId(companionTypeId);
 }
 
 final recruitmentProvider = StateNotifierProvider.family<RecruitmentNotifier, RecruitmentState, int>((ref, rangerId) {

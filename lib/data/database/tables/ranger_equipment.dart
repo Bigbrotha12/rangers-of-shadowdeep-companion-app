@@ -8,4 +8,5 @@ class RangerEquipment extends Table {
   IntColumn get equipmentId => integer().references(Equipment, #id)();
   IntColumn get currentUses => integer().nullable()();
   TextColumn get equippedBy => text().withDefault(const Constant('ranger'))(); // 'ranger' or companion_id as string
+  IntColumn get slotIndex => integer().nullable()(); // 0-5 for equipped, null = inventory
 }

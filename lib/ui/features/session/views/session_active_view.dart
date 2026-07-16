@@ -208,6 +208,7 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
                   ButtonSegment(value: 'partial', label: Text('Partial')),
                   ButtonSegment(value: 'defeat', label: Text('Defeat')),
                 ],
+                selectedIcon: const SizedBox.shrink(),
                 selected: {outcome},
                 onSelectionChanged: (selection) {
                   setDialogState(() => outcome = selection.first);
@@ -302,28 +303,37 @@ class _PhaseIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final phases = SessionPhase.values;
+    const phases = SessionPhase.values;
     final phaseNames = ['Ranger', 'Creature', 'Companion', 'Event'];
     final phaseIcons = [Icons.person, Icons.pets, Icons.group, Icons.event];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: theme.colorScheme.surface,
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (var i = 0; i < phases.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            _PhaseChip(
-              label: phaseNames[i],
-              icon: phaseIcons[i],
-              isActive: phases[i] == currentPhase,
-              isPast: phases[i].index < currentPhase.index,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < phases.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                _PhaseChip(
+                  label: phaseNames[i],
+                  icon: phaseIcons[i],
+                  isActive: phases[i] == currentPhase,
+                  isPast: phases[i].index < currentPhase.index,
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.tonal(
+              onPressed: onNextPhase,
+              child: const Text('Next Phase'),
             ),
-          ],
-          const Spacer(),
-          FilledButton.tonal(
-            onPressed: onNextPhase,
-            child: const Text('Next Phase'),
           ),
         ],
       ),
@@ -429,14 +439,30 @@ class _PartyPanel extends StatelessWidget {
   }
 }
 
-class _PartyMemberCard extends ConsumerWidget {
+class _PartyMemberCard extends ConsumerStatefulWidget {
   const _PartyMemberCard({required this.member});
 
   final PartyMemberState member;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PartyMemberCard> createState() => _PartyMemberCardState();
+}
+
+class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
+  final TextEditingController _deltaController = TextEditingController(text: '1');
+
+  @override
+  void dispose() {
+    _deltaController.dispose();
+    super.dispose();
+  }
+
+  int get _delta => int.tryParse(_deltaController.text) ?? 1;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final member = widget.member;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -493,27 +519,28 @@ class _PartyMemberCard extends ConsumerWidget {
             if (!member.isDead) ...[
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, -1),
-                tooltip: '-1 HP',
+                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, -_delta),
                 iconSize: 28,
               ),
-              Container(
-                width: 40,
-                alignment: Alignment.center,
-                child: Text(
-                  '${member.currentHealth}',
+              SizedBox(
+                width: 44,
+                child: TextField(
+                  controller: _deltaController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: member.currentHealth <= member.maxHealth ~/ 3
-                        ? Colors.orange
-                        : theme.colorScheme.primary,
+                  ),
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    border: OutlineInputBorder(),
+                    isDense: true,
                   ),
                 ),
               ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, 1),
-                tooltip: '+1 HP',
+                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, _delta),
                 iconSize: 28,
               ),
             ] else
@@ -590,14 +617,30 @@ class _CreaturePanel extends StatelessWidget {
   }
 }
 
-class _CreatureCard extends ConsumerWidget {
+class _CreatureCard extends ConsumerStatefulWidget {
   const _CreatureCard({required this.creature});
 
   final CreatureData creature;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CreatureCard> createState() => _CreatureCardState();
+}
+
+class _CreatureCardState extends ConsumerState<_CreatureCard> {
+  final TextEditingController _deltaController = TextEditingController(text: '1');
+
+  @override
+  void dispose() {
+    _deltaController.dispose();
+    super.dispose();
+  }
+
+  int get _delta => int.tryParse(_deltaController.text) ?? 1;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final creature = widget.creature;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -660,13 +703,29 @@ class _CreatureCard extends ConsumerWidget {
             if (!creature.isDead) ...[
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, -1),
-                tooltip: '-1 HP',
+                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, -_delta),
+                iconSize: 28,
+              ),
+              SizedBox(
+                width: 44,
+                child: TextField(
+                  controller: _deltaController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, 1),
-                tooltip: '+1 HP',
+                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, _delta),
+                iconSize: 28,
               ),
             ],
             IconButton(

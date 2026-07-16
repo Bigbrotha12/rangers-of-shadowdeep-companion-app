@@ -6,7 +6,9 @@ import '../../../core/widgets/stat_display.dart';
 import '../view_models/companion_types_provider.dart';
 
 class CompanionTypesBrowser extends ConsumerWidget {
-  const CompanionTypesBrowser({super.key});
+  const CompanionTypesBrowser({required this.rangerId, super.key});
+
+  final int rangerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,9 +29,11 @@ class CompanionTypesBrowser extends ConsumerWidget {
         body: TabBarView(
           children: [
             _CompanionList(
+              rangerId: rangerId,
               companions: companionTypes.where((c) => !c.isAnimal).toList(),
             ),
             _CompanionList(
+              rangerId: rangerId,
               companions: companionTypes.where((c) => c.isAnimal).toList(),
             ),
           ],
@@ -40,8 +44,9 @@ class CompanionTypesBrowser extends ConsumerWidget {
 }
 
 class _CompanionList extends StatelessWidget {
-  const _CompanionList({required this.companions});
+  const _CompanionList({required this.rangerId, required this.companions});
 
+  final int rangerId;
   final List<CompanionType> companions;
 
   @override
@@ -51,15 +56,16 @@ class _CompanionList extends StatelessWidget {
       itemCount: companions.length,
       itemBuilder: (context, index) {
         final companion = companions[index];
-        return _CompanionCard(companion: companion);
+        return _CompanionCard(rangerId: rangerId, companion: companion);
       },
     );
   }
 }
 
 class _CompanionCard extends StatelessWidget {
-  const _CompanionCard({required this.companion});
+  const _CompanionCard({required this.rangerId, required this.companion});
 
+  final int rangerId;
   final CompanionType companion;
 
   @override
@@ -141,6 +147,7 @@ class _CompanionCard extends StatelessWidget {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => _TypeDetailSheet(
+          rangerId: rangerId,
           companion: companion,
           scrollController: scrollController,
         ),
@@ -173,10 +180,12 @@ class _StatRow extends StatelessWidget {
 
 class _TypeDetailSheet extends StatelessWidget {
   const _TypeDetailSheet({
+    required this.rangerId,
     required this.companion,
     required this.scrollController,
   });
 
+  final int rangerId;
   final CompanionType companion;
   final ScrollController scrollController;
 
@@ -365,7 +374,7 @@ class _TypeDetailSheet extends StatelessWidget {
           FilledButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              context.push('/rangers/1/companions/recruit');
+              context.push('/rangers/$rangerId/companions/recruit');
             },
             icon: const Icon(Icons.add),
             label: const Text('Recruit This Companion'),

@@ -6,6 +6,7 @@ import '../../../../domain/constants/base_stats.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../view_models/ranger_creation_provider.dart';
+import '../view_models/rangers_provider.dart';
 import 'ranger_creation_step1_name.dart';
 import 'ranger_creation_step2_build_points.dart';
 import 'ranger_creation_step3_equipment.dart';
@@ -101,6 +102,7 @@ class _RangerCreationWizardViewState
       }
 
       // Insert equipment
+      int slotIndex = 0;
       for (final itemKey in state.selectedEquipment) {
         final equipment = await repo.getEquipmentByKey(itemKey);
         if (equipment != null) {
@@ -108,13 +110,16 @@ class _RangerCreationWizardViewState
             rangerId: rangerId,
             equipmentId: equipment.id,
             currentUses: equipment.hasUses ? Value(equipment.maxUses) : const Value(null),
+            slotIndex: Value(slotIndex < 6 ? slotIndex : null),
           ));
+          slotIndex++;
         }
       }
 
       // Reset wizard and navigate back
       if (mounted) {
         ref.read(rangerCreationProvider.notifier).reset();
+        ref.invalidate(rangersListProvider);
         context.go('/rangers');
       }
     } catch (e) {

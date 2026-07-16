@@ -4,6 +4,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../data/repositories/session_repository_provider.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
+import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
 
 // Session phases
 enum SessionPhase { ranger, creature, companion, event }
@@ -245,12 +246,15 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
       ));
     }
     for (final comp in companions) {
+      final typeKey = companionTypeKeyFromId(comp.companionTypeId);
+      final type = getCompanionType(typeKey);
+      final baseHealth = type?.health ?? 10;
       party.add(PartyMemberState(
         id: comp.id,
         name: comp.customName,
         type: 'companion',
-        currentHealth: comp.bonusHealth + 1, // Base 1 health + bonus
-        maxHealth: comp.bonusHealth + 1,
+        currentHealth: baseHealth + comp.bonusHealth,
+        maxHealth: baseHealth + comp.bonusHealth,
       ));
     }
 
@@ -294,6 +298,11 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     } else {
       state = state.copyWith(currentPhase: phases[nextIndex]);
     }
+  }
+
+  // Jump to a specific phase
+  void setPhase(SessionPhase phase) {
+    state = state.copyWith(currentPhase: phase);
   }
 
   // Update party member health

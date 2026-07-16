@@ -130,17 +130,19 @@ class _RangerCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                children: [
-                  _StatChip(label: 'M', value: ranger.move),
-                  _StatChip(label: 'F', value: ranger.fight),
-                  _StatChip(label: 'S', value: ranger.shoot),
-                  _StatChip(label: 'A', value: ranger.armour),
-                  _StatChip(label: 'W', value: ranger.will),
-                  _StatChip(label: 'H', value: ranger.health),
-                ],
+              Center(
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: [
+                    _StatChip(label: 'M', value: ranger.move),
+                    _StatChip(label: 'F', value: ranger.fight),
+                    _StatChip(label: 'S', value: ranger.shoot),
+                    _StatChip(label: 'A', value: ranger.armour),
+                    _StatChip(label: 'W', value: ranger.will),
+                    _StatChip(label: 'H', value: ranger.health),
+                  ],
+                ),
               ),
               if (ranger.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),

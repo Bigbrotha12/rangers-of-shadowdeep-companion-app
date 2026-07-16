@@ -336,7 +336,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     final bonusType = didLevelUp ? bonusTypeForLevel(newLevel) : null;
 
     // Calculate RP
-    final leadershipBonus = 0;
+    const leadershipBonus = 0;
     final levelBonusRp = didLevelUp && bonusType == LevelBonusType.gainRecruitmentPoints ? 10 : 0;
     final rp = ranger.baseRecruitmentPoints + levelBonusRp + leadershipBonus;
 
@@ -367,7 +367,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
 
     // Build companion list with type info
     final companionList = <CompanionWithType>[];
-    int usedRp = 0;
     for (final comp in companions) {
       final type = typeMap[comp.companionTypeId];
       final cost = type?.rpCost ?? 0;
@@ -379,7 +378,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         isActive: comp.isActive,
         progressionPoints: comp.progressionPoints,
       ));
-      if (comp.isActive) usedRp += cost;
     }
 
     state = PostGameState(
@@ -753,6 +751,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
 
     // ── Process treasure results ────────────────────────────
     final collectedItems = <String>[];
+    final allEquipment = await rangerRepo.getAllEquipment();
     for (final tr in state!.treasureResults) {
       if (tr.category == 'gold') {
         if (tr.isGoldChoiceMade && tr.goldChoseXp) {
@@ -765,7 +764,18 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
           }
         }
       } else {
-        collectedItems.add('${tr.name} (${tr.categoryName})');
+        // Try to match treasure name to equipment catalog
+        final cleanName = tr.name.replaceAll(RegExp(r' \(\d+\)$'), '');
+        final match = allEquipment.where((e) => e.name == cleanName).firstOrNull;
+        if (match != null) {
+          await rangerRepo.insertRangerEquipment(RangerEquipmentCompanion.insert(
+            rangerId: state!.rangerId,
+            equipmentId: match.id,
+            currentUses: match.hasUses ? Value(match.maxUses) : const Value(null),
+          ));
+        } else {
+          collectedItems.add('${tr.name} (${tr.categoryName})');
+        }
       }
     }
 

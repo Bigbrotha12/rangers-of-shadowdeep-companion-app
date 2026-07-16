@@ -63,7 +63,10 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
               const SizedBox(height: 8),
               Text('All results have been saved.', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               const SizedBox(height: 24),
-              FilledButton(onPressed: () => context.go('/session'), child: const Text('Back to Sessions')),
+              FilledButton(onPressed: () {
+                ref.invalidate(sessionHistoryProvider);
+                context.go('/session');
+              }, child: const Text('Back to Sessions')),
             ],
           ),
         ),
@@ -209,7 +212,8 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
 
   /* ── Step 2: Experience & Level Up ──────────────────────────── */
   Widget _buildStep2(PostGameState postGame, ThemeData theme) {
-    return ListView(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // ── XP & Level Summary ──────────────────────────────
         Card(
@@ -316,7 +320,8 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
     final rolledCount = postGame.treasureResults.length;
     final remaining = postGame.treasureCount - rolledCount;
 
-    return ListView(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // ── Treasure Count Setup ─────────────────────────────
         if (postGame.treasureCount == 0)
@@ -396,8 +401,8 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
             return _TreasurePendingCard(
               index: i,
               theme: theme,
-              onRoll: () => notifier.rollTreasure(),
-              onManualRoll: (main, sub) => notifier.rollTreasureManually(main, sub),
+              onRoll: notifier.rollTreasure,
+              onManualRoll: notifier.rollTreasureManually,
             );
           }),
         ],
@@ -417,7 +422,8 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
     final usedRp = activeCompanions.fold(0, (sum, c) => sum + c.rpCost);
     final remainingRp = postGame.availableRp - usedRp;
 
-    return ListView(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // ── RP Summary ──────────────────────────────────────
         Card(
@@ -528,11 +534,19 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
 
   Future<void> _finalize(BuildContext context) async {
     final notifier = ref.read(postGameProvider.notifier);
-    await notifier.finalize();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post-game results saved!'), behavior: SnackBarBehavior.floating),
-      );
+    try {
+      await notifier.finalize();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post-game results saved!'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving: $e'), backgroundColor: Theme.of(context).colorScheme.error, behavior: SnackBarBehavior.floating),
+        );
+      }
     }
   }
 }
@@ -767,14 +781,31 @@ class _OutcomeDetail extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _color()),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_icon(), color: _color()),
-          const SizedBox(width: 12),
-          Expanded(child: Text(
-            _message(),
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: _color()),
-          )),
+          Row(
+            children: [
+              Icon(_icon(), color: _color()),
+              const SizedBox(width: 12),
+              Expanded(child: Text(
+                _message(),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: _color()),
+              )),
+            ],
+          ),
+          if (target.survivalRoll != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'd20: ${target.survivalRoll}${target.isRanger ? " (${target.survivalRollModified})" : ""}',
+              style: theme.textTheme.bodySmall?.copyWith(color: _color()),
+            ),
+            if (target.injuryRoll != null)
+              Text(
+                'Injury d20: ${target.injuryRoll}',
+                style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
+              ),
+          ],
         ],
       ),
     );
@@ -928,7 +959,7 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
                   } : null,
                   visualDensity: VisualDensity.compact,
                 ),
-                Text('${newValue}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text('$newValue', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline),
                   iconSize: 20,
@@ -958,7 +989,7 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
         final isSelected = state.selectedStat == stat;
         final atMax = currentVal >= maxVal;
         return RadioListTile<String>(
-          title: Text('${statLabels[stat] ?? stat}'),
+          title: Text(statLabels[stat] ?? stat),
           subtitle: Text('$currentVal / $maxVal${atMax ? ' (MAX)' : ''}'),
           value: stat,
           groupValue: isSelected ? stat : null,

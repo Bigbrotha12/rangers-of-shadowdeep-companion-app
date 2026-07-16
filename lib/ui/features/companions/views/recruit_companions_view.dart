@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../domain/constants/companion_types.dart';
 import '../../../core/widgets/placeholder_image.dart';
 import '../view_models/recruitment_provider.dart';
+import '../../rangers/view_models/ranger_detail_provider.dart';
 
 class RecruitCompanionsView extends ConsumerStatefulWidget {
   const RecruitCompanionsView({
@@ -21,7 +22,6 @@ class RecruitCompanionsView extends ConsumerStatefulWidget {
 
 class _RecruitCompanionsViewState extends ConsumerState<RecruitCompanionsView> {
   int _playerCount = 1;
-  int _leadershipBonus = 0;
   bool _isSaving = false;
 
   @override
@@ -30,8 +30,18 @@ class _RecruitCompanionsViewState extends ConsumerState<RecruitCompanionsView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(recruitmentProvider(widget.rangerId).notifier)
         ..setBaseRecruitmentPoints(widget.baseRecruitmentPoints)
-        ..setPlayerCount(_playerCount)
-        ..setLeadershipBonus(_leadershipBonus);
+        ..setPlayerCount(_playerCount);
+
+      // Fetch leadership skill from ranger detail
+      ref.read(rangerDetailProvider(widget.rangerId).future).then((detail) {
+        if (detail != null && mounted) {
+          final leadershipValue = detail.skillBonuses
+              .where((s) => s.skillKey == 'leadership')
+              .fold(0, (sum, s) => sum + s.value);
+          ref.read(recruitmentProvider(widget.rangerId).notifier)
+              .setLeadershipBonus(leadershipValue);
+        }
+      });
     });
   }
 
@@ -49,6 +59,7 @@ class _RecruitCompanionsViewState extends ConsumerState<RecruitCompanionsView> {
                 : () async {
                     setState(() => _isSaving = true);
                     await ref.read(recruitmentProvider(widget.rangerId).notifier).saveCompanions();
+                    ref.invalidate(rangerDetailProvider(widget.rangerId));
                     if (mounted) {
                       context.pop();
                     }
@@ -68,16 +79,10 @@ class _RecruitCompanionsViewState extends ConsumerState<RecruitCompanionsView> {
           _RecruitmentHeader(
             state: recruitmentState,
             playerCount: _playerCount,
-            leadershipBonus: _leadershipBonus,
             onPlayerCountChanged: (count) {
               setState(() => _playerCount = count);
               ref.read(recruitmentProvider(widget.rangerId).notifier)
                   .setPlayerCount(count);
-            },
-            onLeadershipChanged: (bonus) {
-              setState(() => _leadershipBonus = bonus);
-              ref.read(recruitmentProvider(widget.rangerId).notifier)
-                  .setLeadershipBonus(bonus);
             },
           ),
           const Divider(),
@@ -97,16 +102,12 @@ class _RecruitmentHeader extends StatelessWidget {
   const _RecruitmentHeader({
     required this.state,
     required this.playerCount,
-    required this.leadershipBonus,
     required this.onPlayerCountChanged,
-    required this.onLeadershipChanged,
   });
 
   final RecruitmentState state;
   final int playerCount;
-  final int leadershipBonus;
   final ValueChanged<int> onPlayerCountChanged;
-  final ValueChanged<int> onLeadershipChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +182,7 @@ class _RecruitmentHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  value: playerCount,
+                  initialValue: playerCount,
                   decoration: const InputDecoration(
                     labelText: 'Players',
                     border: OutlineInputBorder(),
@@ -198,20 +199,31 @@ class _RecruitmentHeader extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: DropdownButtonFormField<int>(
-                  value: leadershipBonus,
-                  decoration: const InputDecoration(
-                    labelText: 'Leadership Bonus',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  items: List.generate(11, (i) => DropdownMenuItem(
-                    value: i,
-                    child: Text('+$i'),
-                  )),
-                  onChanged: (value) {
-                    if (value != null) onLeadershipChanged(value);
-                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Leadership Bonus',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '+${state.leadershipBonus}',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -267,9 +279,9 @@ class _CurrentCompanionsList extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return SizedBox(
-      height: 120,
+      height: 136,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         scrollDirection: Axis.horizontal,
         itemCount: state.currentCompanions.length,
         itemBuilder: (context, index) {

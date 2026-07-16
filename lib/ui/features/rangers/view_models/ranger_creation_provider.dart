@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../domain/constants/base_stats.dart';
 
@@ -8,7 +10,6 @@ class RangerCreationState {
 
   // Build Points
   final int totalBuildPoints;
-  final int spentBuildPoints;
   final Map<String, int> statBonuses; // stat key -> bonus value (max 1 per stat)
   final List<String> selectedHeroicAbilities;
   final List<String> selectedSpells;
@@ -23,7 +24,6 @@ class RangerCreationState {
     this.name = '',
     this.notes = '',
     this.totalBuildPoints = 10,
-    this.spentBuildPoints = 0,
     this.statBonuses = const {},
     this.selectedHeroicAbilities = const [],
     this.selectedSpells = const [],
@@ -32,29 +32,48 @@ class RangerCreationState {
     this.selectedEquipment = const [],
   });
 
-  int get remainingBuildPoints => totalBuildPoints - spentBuildPoints;
+  int get remainingBuildPoints => totalBuildPoints - totalSpent;
 
   int get statPointsSpent => statBonuses.values.fold(0, (sum, v) => sum + v);
 
   int get abilityPointsSpent =>
       selectedHeroicAbilities.length + selectedSpells.length;
 
-  int get skillPointsSpent => skillBonuses.isEmpty
-      ? 0
-      : (skillBonuses.values.fold(0, (sum, v) => sum + v) / 8).ceil();
+  int get skillPointsSpent {
+    if (skillBonuses.isEmpty) return 0;
+    final totalPoints = skillBonuses.values.fold(0, (sum, v) => sum + v);
+    final impliedByTotal = (totalPoints / 8).ceil();
+    final impliedByMax = skillBonuses.values.fold(0, (a, b) => a > b ? a : b);
+    return impliedByTotal > impliedByMax ? impliedByTotal : impliedByMax;
+  }
 
   int get rpPointsSpent => recruitmentPointsBonus ~/ 10;
 
   int get totalSpent =>
       statPointsSpent + abilityPointsSpent + skillPointsSpent + rpPointsSpent;
 
-  bool get canSpendOnStats => statPointsSpent < 3;
+  int get effectiveMaxStats =>
+      min(maxStatBuildPoints, totalBuildPoints - (totalSpent - statPointsSpent));
 
-  bool get canSpendOnAbilities => abilityPointsSpent < 5;
+  int get effectiveMaxAbilities =>
+      min(maxHeroicAbilityBuildPoints, totalBuildPoints - (totalSpent - abilityPointsSpent));
 
-  bool get canSpendOnSkills => skillPointsSpent < 5;
+  int get effectiveMaxSkills =>
+      min(maxSkillBuildPoints, totalBuildPoints - (totalSpent - skillPointsSpent));
 
-  bool get canSpendOnRP => rpPointsSpent < 3;
+  int get effectiveMaxRP =>
+      min(maxRecruitmentPointBuildPoints, totalBuildPoints - (totalSpent - rpPointsSpent));
+
+  bool get canSpendOnStats => statPointsSpent < effectiveMaxStats;
+
+  bool get canSpendOnAbilities => abilityPointsSpent < effectiveMaxAbilities;
+
+  bool get canSpendOnSkills {
+    final totalSkillPoints = skillBonuses.values.fold(0, (sum, v) => sum + v);
+    return totalSkillPoints < effectiveMaxSkills * 8;
+  }
+
+  bool get canSpendOnRP => rpPointsSpent < effectiveMaxRP;
 
   bool get isStep1Valid => name.trim().isNotEmpty;
 
@@ -203,7 +222,6 @@ class RangerCreationNotifier extends StateNotifier<RangerCreationState> {
     final newValue = current + delta;
 
     if (newValue < 0) return false;
-    if (newValue > 10) return false; // Max +10 per skill
 
     final newBonuses = Map<String, int>.from(state.skillBonuses);
     if (newValue == 0) {
@@ -212,12 +230,20 @@ class RangerCreationNotifier extends StateNotifier<RangerCreationState> {
       newBonuses[skillKey] = newValue;
     }
 
-    // Check if total spent exceeds limit
-    final totalSkillPoints =
-        newBonuses.values.fold(0, (sum, v) => sum + v);
-    final pointsNeeded = (totalSkillPoints / 8).ceil();
+    final totalSkillPoints = newBonuses.values.fold(0, (sum, v) => sum + v);
+    final impliedByTotal = (totalSkillPoints / 8).ceil();
+    final impliedByMax = newBonuses.values.fold(0, (a, b) => a > b ? a : b);
+    final newSkillPointsSpent = impliedByTotal > impliedByMax ? impliedByTotal : impliedByMax;
 
-    if (pointsNeeded > 5) return false;
+    // Per-skill cap: no skill can exceed the total BP available for this section
+    if (newValue > state.effectiveMaxSkills) return false;
+
+    // Section cap
+    if (newSkillPointsSpent > maxSkillBuildPoints) return false;
+
+    // Global BP cap
+    final newTotalSpent = state.totalSpent - state.skillPointsSpent + newSkillPointsSpent;
+    if (newTotalSpent > state.totalBuildPoints) return false;
 
     _updateState(skillBonuses: newBonuses);
     return true;

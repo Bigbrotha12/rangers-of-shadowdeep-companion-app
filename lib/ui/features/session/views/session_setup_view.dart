@@ -74,7 +74,7 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
                   );
                 }
                 return DropdownButtonFormField<int>(
-                  value: _selectedRangerId,
+                  initialValue: _selectedRangerId,
                   decoration: const InputDecoration(
                     labelText: 'Ranger',
                     border: OutlineInputBorder(),

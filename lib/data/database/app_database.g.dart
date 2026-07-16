@@ -3609,6 +3609,17 @@ class $RangerEquipmentTable extends RangerEquipment
     requiredDuringInsert: false,
     defaultValue: const Constant('ranger'),
   );
+  static const VerificationMeta _slotIndexMeta = const VerificationMeta(
+    'slotIndex',
+  );
+  @override
+  late final GeneratedColumn<int> slotIndex = GeneratedColumn<int>(
+    'slot_index',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3616,6 +3627,7 @@ class $RangerEquipmentTable extends RangerEquipment
     equipmentId,
     currentUses,
     equippedBy,
+    slotIndex,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3666,6 +3678,12 @@ class $RangerEquipmentTable extends RangerEquipment
         equippedBy.isAcceptableOrUnknown(data['equipped_by']!, _equippedByMeta),
       );
     }
+    if (data.containsKey('slot_index')) {
+      context.handle(
+        _slotIndexMeta,
+        slotIndex.isAcceptableOrUnknown(data['slot_index']!, _slotIndexMeta),
+      );
+    }
     return context;
   }
 
@@ -3695,6 +3713,10 @@ class $RangerEquipmentTable extends RangerEquipment
         DriftSqlType.string,
         data['${effectivePrefix}equipped_by'],
       )!,
+      slotIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}slot_index'],
+      ),
     );
   }
 
@@ -3711,12 +3733,14 @@ class RangerEquipmentData extends DataClass
   final int equipmentId;
   final int? currentUses;
   final String equippedBy;
+  final int? slotIndex;
   const RangerEquipmentData({
     required this.id,
     required this.rangerId,
     required this.equipmentId,
     this.currentUses,
     required this.equippedBy,
+    this.slotIndex,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3728,6 +3752,9 @@ class RangerEquipmentData extends DataClass
       map['current_uses'] = Variable<int>(currentUses);
     }
     map['equipped_by'] = Variable<String>(equippedBy);
+    if (!nullToAbsent || slotIndex != null) {
+      map['slot_index'] = Variable<int>(slotIndex);
+    }
     return map;
   }
 
@@ -3740,6 +3767,9 @@ class RangerEquipmentData extends DataClass
           ? const Value.absent()
           : Value(currentUses),
       equippedBy: Value(equippedBy),
+      slotIndex: slotIndex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(slotIndex),
     );
   }
 
@@ -3754,6 +3784,7 @@ class RangerEquipmentData extends DataClass
       equipmentId: serializer.fromJson<int>(json['equipmentId']),
       currentUses: serializer.fromJson<int?>(json['currentUses']),
       equippedBy: serializer.fromJson<String>(json['equippedBy']),
+      slotIndex: serializer.fromJson<int?>(json['slotIndex']),
     );
   }
   @override
@@ -3765,6 +3796,7 @@ class RangerEquipmentData extends DataClass
       'equipmentId': serializer.toJson<int>(equipmentId),
       'currentUses': serializer.toJson<int?>(currentUses),
       'equippedBy': serializer.toJson<String>(equippedBy),
+      'slotIndex': serializer.toJson<int?>(slotIndex),
     };
   }
 
@@ -3774,12 +3806,14 @@ class RangerEquipmentData extends DataClass
     int? equipmentId,
     Value<int?> currentUses = const Value.absent(),
     String? equippedBy,
+    Value<int?> slotIndex = const Value.absent(),
   }) => RangerEquipmentData(
     id: id ?? this.id,
     rangerId: rangerId ?? this.rangerId,
     equipmentId: equipmentId ?? this.equipmentId,
     currentUses: currentUses.present ? currentUses.value : this.currentUses,
     equippedBy: equippedBy ?? this.equippedBy,
+    slotIndex: slotIndex.present ? slotIndex.value : this.slotIndex,
   );
   RangerEquipmentData copyWithCompanion(RangerEquipmentCompanion data) {
     return RangerEquipmentData(
@@ -3794,6 +3828,7 @@ class RangerEquipmentData extends DataClass
       equippedBy: data.equippedBy.present
           ? data.equippedBy.value
           : this.equippedBy,
+      slotIndex: data.slotIndex.present ? data.slotIndex.value : this.slotIndex,
     );
   }
 
@@ -3804,14 +3839,21 @@ class RangerEquipmentData extends DataClass
           ..write('rangerId: $rangerId, ')
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
-          ..write('equippedBy: $equippedBy')
+          ..write('equippedBy: $equippedBy, ')
+          ..write('slotIndex: $slotIndex')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, rangerId, equipmentId, currentUses, equippedBy);
+  int get hashCode => Object.hash(
+    id,
+    rangerId,
+    equipmentId,
+    currentUses,
+    equippedBy,
+    slotIndex,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3820,7 +3862,8 @@ class RangerEquipmentData extends DataClass
           other.rangerId == this.rangerId &&
           other.equipmentId == this.equipmentId &&
           other.currentUses == this.currentUses &&
-          other.equippedBy == this.equippedBy);
+          other.equippedBy == this.equippedBy &&
+          other.slotIndex == this.slotIndex);
 }
 
 class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
@@ -3829,12 +3872,14 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
   final Value<int> equipmentId;
   final Value<int?> currentUses;
   final Value<String> equippedBy;
+  final Value<int?> slotIndex;
   const RangerEquipmentCompanion({
     this.id = const Value.absent(),
     this.rangerId = const Value.absent(),
     this.equipmentId = const Value.absent(),
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
+    this.slotIndex = const Value.absent(),
   });
   RangerEquipmentCompanion.insert({
     this.id = const Value.absent(),
@@ -3842,6 +3887,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     required int equipmentId,
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
+    this.slotIndex = const Value.absent(),
   }) : rangerId = Value(rangerId),
        equipmentId = Value(equipmentId);
   static Insertable<RangerEquipmentData> custom({
@@ -3850,6 +3896,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Expression<int>? equipmentId,
     Expression<int>? currentUses,
     Expression<String>? equippedBy,
+    Expression<int>? slotIndex,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3857,6 +3904,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       if (equipmentId != null) 'equipment_id': equipmentId,
       if (currentUses != null) 'current_uses': currentUses,
       if (equippedBy != null) 'equipped_by': equippedBy,
+      if (slotIndex != null) 'slot_index': slotIndex,
     });
   }
 
@@ -3866,6 +3914,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Value<int>? equipmentId,
     Value<int?>? currentUses,
     Value<String>? equippedBy,
+    Value<int?>? slotIndex,
   }) {
     return RangerEquipmentCompanion(
       id: id ?? this.id,
@@ -3873,6 +3922,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       equipmentId: equipmentId ?? this.equipmentId,
       currentUses: currentUses ?? this.currentUses,
       equippedBy: equippedBy ?? this.equippedBy,
+      slotIndex: slotIndex ?? this.slotIndex,
     );
   }
 
@@ -3894,6 +3944,9 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     if (equippedBy.present) {
       map['equipped_by'] = Variable<String>(equippedBy.value);
     }
+    if (slotIndex.present) {
+      map['slot_index'] = Variable<int>(slotIndex.value);
+    }
     return map;
   }
 
@@ -3904,7 +3957,8 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
           ..write('rangerId: $rangerId, ')
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
-          ..write('equippedBy: $equippedBy')
+          ..write('equippedBy: $equippedBy, ')
+          ..write('slotIndex: $slotIndex')
           ..write(')'))
         .toString();
   }
@@ -8616,6 +8670,7 @@ typedef $$RangerEquipmentTableCreateCompanionBuilder =
       required int equipmentId,
       Value<int?> currentUses,
       Value<String> equippedBy,
+      Value<int?> slotIndex,
     });
 typedef $$RangerEquipmentTableUpdateCompanionBuilder =
     RangerEquipmentCompanion Function({
@@ -8624,6 +8679,7 @@ typedef $$RangerEquipmentTableUpdateCompanionBuilder =
       Value<int> equipmentId,
       Value<int?> currentUses,
       Value<String> equippedBy,
+      Value<int?> slotIndex,
     });
 
 final class $$RangerEquipmentTableReferences
@@ -8702,6 +8758,11 @@ class $$RangerEquipmentTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get slotIndex => $composableBuilder(
+    column: $table.slotIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$RangersTableFilterComposer get rangerId {
     final $$RangersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -8773,6 +8834,11 @@ class $$RangerEquipmentTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get slotIndex => $composableBuilder(
+    column: $table.slotIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$RangersTableOrderingComposer get rangerId {
     final $$RangersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8841,6 +8907,9 @@ class $$RangerEquipmentTableAnnotationComposer
     column: $table.equippedBy,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get slotIndex =>
+      $composableBuilder(column: $table.slotIndex, builder: (column) => column);
 
   $$RangersTableAnnotationComposer get rangerId {
     final $$RangersTableAnnotationComposer composer = $composerBuilder(
@@ -8924,12 +8993,14 @@ class $$RangerEquipmentTableTableManager
                 Value<int> equipmentId = const Value.absent(),
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
+                Value<int?> slotIndex = const Value.absent(),
               }) => RangerEquipmentCompanion(
                 id: id,
                 rangerId: rangerId,
                 equipmentId: equipmentId,
                 currentUses: currentUses,
                 equippedBy: equippedBy,
+                slotIndex: slotIndex,
               ),
           createCompanionCallback:
               ({
@@ -8938,12 +9009,14 @@ class $$RangerEquipmentTableTableManager
                 required int equipmentId,
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
+                Value<int?> slotIndex = const Value.absent(),
               }) => RangerEquipmentCompanion.insert(
                 id: id,
                 rangerId: rangerId,
                 equipmentId: equipmentId,
                 currentUses: currentUses,
                 equippedBy: equippedBy,
+                slotIndex: slotIndex,
               ),
           withReferenceMapper: (p0) => p0
               .map(

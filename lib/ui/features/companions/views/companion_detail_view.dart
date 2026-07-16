@@ -260,17 +260,19 @@ class _StatsTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 24,
-            runSpacing: 16,
-            children: [
-              StatDisplay(label: 'Move', baseValue: type.move),
-              StatDisplay(label: 'Fight', baseValue: type.fight),
-              StatDisplay(label: 'Shoot', baseValue: type.shoot),
-              StatDisplay(label: 'Armour', baseValue: type.armour),
-              StatDisplay(label: 'Will', baseValue: type.will),
-              StatDisplay(label: 'Health', baseValue: type.health),
-            ],
+          Center(
+            child: Wrap(
+              spacing: 24,
+              runSpacing: 16,
+              children: [
+                StatDisplay(label: 'Move', baseValue: type.move),
+                StatDisplay(label: 'Fight', baseValue: type.fight),
+                StatDisplay(label: 'Shoot', baseValue: type.shoot),
+                StatDisplay(label: 'Armour', baseValue: type.armour),
+                StatDisplay(label: 'Will', baseValue: type.will),
+                StatDisplay(label: 'Health', baseValue: type.health),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           Text(
@@ -280,41 +282,43 @@ class _StatsTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 24,
-            runSpacing: 16,
-            children: [
-              StatDisplay(
-                label: 'Move',
-                baseValue: type.move,
-                effectiveValue: companion.effectiveMove,
-              ),
-              StatDisplay(
-                label: 'Fight',
-                baseValue: type.fight,
-                effectiveValue: companion.effectiveFight,
-              ),
-              StatDisplay(
-                label: 'Shoot',
-                baseValue: type.shoot,
-                effectiveValue: companion.effectiveShoot,
-              ),
-              StatDisplay(
-                label: 'Armour',
-                baseValue: type.armour,
-                effectiveValue: companion.effectiveArmour,
-              ),
-              StatDisplay(
-                label: 'Will',
-                baseValue: type.will,
-                effectiveValue: companion.effectiveWill,
-              ),
-              StatDisplay(
-                label: 'Health',
-                baseValue: type.health,
-                effectiveValue: companion.effectiveHealth,
-              ),
-            ],
+          Center(
+            child: Wrap(
+              spacing: 24,
+              runSpacing: 16,
+              children: [
+                StatDisplay(
+                  label: 'Move',
+                  baseValue: type.move,
+                  effectiveValue: companion.effectiveMove,
+                ),
+                StatDisplay(
+                  label: 'Fight',
+                  baseValue: type.fight,
+                  effectiveValue: companion.effectiveFight,
+                ),
+                StatDisplay(
+                  label: 'Shoot',
+                  baseValue: type.shoot,
+                  effectiveValue: companion.effectiveShoot,
+                ),
+                StatDisplay(
+                  label: 'Armour',
+                  baseValue: type.armour,
+                  effectiveValue: companion.effectiveArmour,
+                ),
+                StatDisplay(
+                  label: 'Will',
+                  baseValue: type.will,
+                  effectiveValue: companion.effectiveWill,
+                ),
+                StatDisplay(
+                  label: 'Health',
+                  baseValue: type.health,
+                  effectiveValue: companion.effectiveHealth,
+                ),
+              ],
+            ),
           ),
         ],
       ),

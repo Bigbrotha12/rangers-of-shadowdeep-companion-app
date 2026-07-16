@@ -12,7 +12,6 @@ class RangerCreationStep2BuildPoints extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(rangerCreationProvider);
-    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -31,7 +30,7 @@ class RangerCreationStep2BuildPoints extends ConsumerWidget {
             title: 'Stats',
             subtitle: 'Up to 3 BP (once per stat)',
             spent: state.statPointsSpent,
-            maxSpend: 3,
+            maxSpend: state.effectiveMaxStats,
           ),
           const SizedBox(height: 8),
           _StatsSection(state: state),
@@ -42,7 +41,7 @@ class RangerCreationStep2BuildPoints extends ConsumerWidget {
             title: 'Heroic Abilities & Spells',
             subtitle: '1 BP each, up to 5 BP total',
             spent: state.abilityPointsSpent,
-            maxSpend: 5,
+            maxSpend: state.effectiveMaxAbilities,
           ),
           const SizedBox(height: 8),
           _AbilitiesSection(state: state),
@@ -53,7 +52,7 @@ class RangerCreationStep2BuildPoints extends ConsumerWidget {
             title: 'Skills',
             subtitle: '1 BP = +1 to 8 skills, up to 5 BP',
             spent: state.skillPointsSpent,
-            maxSpend: 5,
+            maxSpend: state.effectiveMaxSkills,
           ),
           const SizedBox(height: 8),
           _SkillsSection(state: state),
@@ -64,7 +63,7 @@ class RangerCreationStep2BuildPoints extends ConsumerWidget {
             title: 'Recruitment Points',
             subtitle: '+10 RP per BP, up to 3 BP',
             spent: state.rpPointsSpent,
-            maxSpend: 3,
+            maxSpend: state.effectiveMaxRP,
           ),
           const SizedBox(height: 8),
           _RecruitmentPointsSection(state: state),
@@ -276,14 +275,32 @@ class _StatsSection extends ConsumerWidget {
   }
 }
 
-class _AbilitiesSection extends ConsumerWidget {
+class _AbilitiesSection extends ConsumerStatefulWidget {
   const _AbilitiesSection({required this.state});
 
   final RangerCreationState state;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AbilitiesSection> createState() => _AbilitiesSectionState();
+}
+
+class _AbilitiesSectionState extends ConsumerState<_AbilitiesSection> {
+  final Set<String> _expandedKeys = {};
+
+  void _toggleExpanded(String key) {
+    setState(() {
+      if (_expandedKeys.contains(key)) {
+        _expandedKeys.remove(key);
+      } else {
+        _expandedKeys.add(key);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final state = widget.state;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,31 +319,64 @@ class _AbilitiesSection extends ConsumerWidget {
               final isSelected =
                   state.selectedHeroicAbilities.contains(ability.key);
               final canSelect = state.canSpendOnAbilities || isSelected;
+              final isExpanded = _expandedKeys.contains(ability.key);
 
-              return ListTile(
-                title: Text(ability.name),
-                subtitle: Text(
-                  ability.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Checkbox(
-                  value: isSelected,
-                  onChanged: canSelect
-                      ? (value) {
-                          ref
-                              .read(rangerCreationProvider.notifier)
-                              .toggleHeroicAbility(ability.key);
-                        }
-                      : null,
-                ),
-                onTap: canSelect
-                    ? () {
-                        ref
-                            .read(rangerCreationProvider.notifier)
-                            .toggleHeroicAbility(ability.key);
-                      }
-                    : null,
+              return Column(
+                children: [
+                  if (ability != heroicAbilities.first)
+                    const Divider(height: 1),
+                  InkWell(
+                    onTap: canSelect
+                        ? () => _toggleExpanded(ability.key)
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: isExpanded
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ability.name,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  ability.description,
+                                  maxLines: isExpanded ? null : 2,
+                                  overflow: isExpanded
+                                      ? null
+                                      : TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Checkbox(
+                            value: isSelected,
+                            onChanged: canSelect
+                                ? (value) {
+                                    ref
+                                        .read(rangerCreationProvider.notifier)
+                                        .toggleHeroicAbility(ability.key);
+                                  }
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             }).toList(),
           ),
@@ -346,52 +396,85 @@ class _AbilitiesSection extends ConsumerWidget {
             children: spells.map((spell) {
               final isSelected = state.selectedSpells.contains(spell.key);
               final canSelect = state.canSpendOnAbilities || isSelected;
+              final isExpanded = _expandedKeys.contains(spell.key);
 
-              return ListTile(
-                title: Text(spell.name),
-                subtitle: Text(
-                  spell.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSelected)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${state.selectedSpells.where((s) => s == spell.key).length}x',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+              return Column(
+                children: [
+                  if (spell != spells.first)
+                    const Divider(height: 1),
+                  InkWell(
+                    onTap: canSelect
+                        ? () => _toggleExpanded(spell.key)
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: isExpanded
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  spell.name,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  spell.description,
+                                  maxLines: isExpanded ? null : 2,
+                                  overflow: isExpanded
+                                      ? null
+                                      : TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isSelected)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${state.selectedSpells.where((s) => s == spell.key).length}x',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 8),
+                              Checkbox(
+                                value: isSelected,
+                                onChanged: canSelect
+                                    ? (value) {
+                                        ref
+                                            .read(rangerCreationProvider.notifier)
+                                            .toggleSpell(spell.key);
+                                      }
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    const SizedBox(width: 8),
-                    Checkbox(
-                      value: isSelected,
-                      onChanged: canSelect
-                          ? (value) {
-                              ref
-                                  .read(rangerCreationProvider.notifier)
-                                  .toggleSpell(spell.key);
-                            }
-                          : null,
                     ),
-                  ],
-                ),
-                onTap: canSelect
-                    ? () {
-                        ref
-                            .read(rangerCreationProvider.notifier)
-                            .toggleSpell(spell.key);
-                      }
-                    : null,
+                  ),
+                ],
               );
             }).toList(),
           ),
@@ -456,11 +539,11 @@ class _SkillsSection extends ConsumerWidget {
                 IconButton(
                   icon: Icon(
                     Icons.add,
-                    color: state.canSpendOnSkills
+                    color: state.canSpendOnSkills && currentValue < state.effectiveMaxSkills
                         ? theme.colorScheme.primary
                         : theme.colorScheme.surfaceContainerHighest,
                   ),
-                  onPressed: state.canSpendOnSkills
+                  onPressed: state.canSpendOnSkills && currentValue < state.effectiveMaxSkills
                       ? () {
                           ref
                               .read(rangerCreationProvider.notifier)

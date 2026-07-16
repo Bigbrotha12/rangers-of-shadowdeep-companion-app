@@ -23,7 +23,8 @@ class CompanionRepository {
   }
 
   Future<bool> updateCompanion(RangerCompanionsCompanion companion) async {
-    return await _db.update(_db.rangerCompanions).replace(companion);
+    final rows = await (_db.update(_db.rangerCompanions)..where((c) => c.id.equals(companion.id.value))).write(companion);
+    return rows > 0;
   }
 
   Future<int> deleteCompanion(int id) async {

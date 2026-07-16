@@ -5,7 +5,7 @@
 Flutter is **not installed locally**. All Flutter commands must be run via a **Podman container**.
 
 ### Container Details
-- **Image**: `firechain-flutter-dev` (locally built)
+- **Image**: `flutter-dev` (locally built)
 - **Flutter version**: 3.44.4
 - **Android SDK**: API 36
 - **Java**: OpenJDK 21
@@ -20,7 +20,7 @@ podman run --rm \
   -w /workspace/rangers-mobile \
   -v pub-cache:/root/.pub-cache \
   --entrypoint="" \
-  firechain-flutter-dev \
+  flutter-dev \
   flutter <command>
 ```
 
@@ -35,7 +35,7 @@ podman run --rm \
   -w /workspace \
   --entrypoint="" \
   -v pub-cache:/root/.pub-cache \
-  firechain-flutter-dev \
+  flutter-dev \
   flutter create rangers_mobile
 
 # Install dependencies
@@ -44,7 +44,7 @@ podman run --rm \
   -w /workspace/rangers-mobile \
   -v pub-cache:/root/.pub-cache \
   --entrypoint="" \
-  firechain-flutter-dev \
+  flutter-dev \
   flutter pub get
 
 # Run code generation (freezed, drift, etc.)
@@ -53,7 +53,7 @@ podman run --rm \
   -w /workspace/rangers-mobile \
   -v pub-cache:/root/.pub-cache \
   --entrypoint="" \
-  firechain-flutter-dev \
+  flutter-dev \
   dart run build_runner build --delete-conflicting-outputs
 
 # Analyze
@@ -62,7 +62,7 @@ podman run --rm \
   -w /workspace/rangers-mobile \
   -v pub-cache:/root/.pub-cache \
   --entrypoint="" \
-  firechain-flutter-dev \
+  flutter-dev \
   flutter analyze
 ```
 
@@ -70,4 +70,4 @@ podman run --rm \
 - The `pub-cache` volume persists packages across container runs
 - The container is ephemeral (`--rm` flag) — no need to manage container lifecycle
 - All file changes happen on the host filesystem via the bind mount
-- If the container image needs rebuilding: `podman build -t firechain-flutter-dev .` from `/home/bigbrotha/Projects/mobile/`
+- If the container image needs rebuilding: `podman build -t flutter-dev .` from `/home/bigbrotha/Projects/mobile/`

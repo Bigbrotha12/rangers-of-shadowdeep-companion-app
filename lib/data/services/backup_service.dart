@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../database/app_database.dart';
@@ -60,48 +59,32 @@ class BackupService {
     return const JsonEncoder.withIndent('  ').convert(backup);
   }
 
-  Future<void> exportToFile() async {
+  Future<String> exportToFile() async {
     final json = await exportToJson();
-
+    final dir = await getApplicationDocumentsDirectory();
     final now = DateTime.now();
     final timestamp =
         '${now.year}-${_pad(now.month)}-${_pad(now.day)}_${_pad(now.hour)}-${_pad(now.minute)}-${_pad(now.second)}';
-    final suggestedName = 'rangers_${timestamp}.json';
-
-    final tempFile = File(
-      p.join((await getTemporaryDirectory()).path, suggestedName),
-    );
-    await tempFile.writeAsString(json);
-
-    final result = await FilePicker.platform.saveFile(
-      dialogTitle: 'Save backup',
-      fileName: suggestedName,
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-
-    if (result != null) {
-      final savedFile = File(result);
-      await tempFile.copy(savedFile.path);
-    }
-
-    if (await tempFile.exists()) {
-      await tempFile.delete();
-    }
+    final fileName = 'rangers_backup_$timestamp.json';
+    final file = File(p.join(dir.path, fileName));
+    await file.writeAsString(json);
+    return file.path;
   }
 
-  Future<BackupImportResult> importFromFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Select backup file',
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
+  Future<List<String>> listBackupFiles() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final files = dir.listSync().whereType<File>().where(
+      (f) => f.path.endsWith('.json') && p.basename(f.path).startsWith('rangers_backup_'),
+    ).map((f) => f.path).toList();
+    files.sort((a, b) => b.compareTo(a));
+    return files;
+  }
 
-    if (result == null || result.files.isEmpty) {
-      return BackupImportResult.cancelled();
+  Future<BackupImportResult> importFromFile(String path) async {
+    final file = File(path);
+    if (!await file.exists()) {
+      return BackupImportResult.error('File not found: $path');
     }
-
-    final file = File(result.files.single.path!);
     final json = await file.readAsString();
     return importFromJson(json);
   }

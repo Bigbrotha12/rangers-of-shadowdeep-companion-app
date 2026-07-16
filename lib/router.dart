@@ -82,7 +82,8 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/rangers/:rangerId/companions',
       builder: (context, state) {
-        return const CompanionTypesBrowser();
+        final rangerId = int.parse(state.pathParameters['rangerId']!);
+        return CompanionTypesBrowser(rangerId: rangerId);
       },
     ),
     GoRoute(

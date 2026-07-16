@@ -7,11 +7,15 @@ class RangerEquipmentWithName {
   final RangerEquipmentData equipment;
   final String name;
   final String category;
+  final String effects;
+  final int? slotIndex;
 
   RangerEquipmentWithName({
     required this.equipment,
     required this.name,
     required this.category,
+    required this.effects,
+    this.slotIndex,
   });
 }
 
@@ -50,15 +54,17 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
   final companions = await companionRepo.getCompanionsByRanger(rangerId);
 
   // Load equipment names
-  final equipment = <RangerEquipmentWithName>[];
-  for (final item in equipmentRows) {
-    final equipmentData = await repo.getEquipmentById(item.equipmentId);
-    equipment.add(RangerEquipmentWithName(
-      equipment: item,
-      name: equipmentData?.name ?? 'Unknown Item',
-      category: equipmentData?.category ?? 'unknown',
-    ));
-  }
+    final equipment = <RangerEquipmentWithName>[];
+    for (final item in equipmentRows) {
+      final equipmentData = await repo.getEquipmentById(item.equipmentId);
+      equipment.add(RangerEquipmentWithName(
+        equipment: item,
+        name: equipmentData?.name ?? 'Unknown Item',
+        category: equipmentData?.category ?? 'unknown',
+        effects: equipmentData?.effects ?? '{}',
+        slotIndex: item.slotIndex,
+      ));
+    }
 
   return RangerDetail(
     ranger: ranger,
