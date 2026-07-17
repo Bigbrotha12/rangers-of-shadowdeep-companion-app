@@ -8,150 +8,76 @@
 .DS_Store
 Thumbs.db
 
-# Build directories
-build/
-.cache/
-.packages/
-
-# Gradle files for Android
-/android/.gradle/
-/android/build/
-
-# iOS files for iOS (if applicable)
-/ios/Pods/
-/ios/build/
-/ios/.symlinks/
-ios/*.xcworkspace/
-ios/xcuserdata/
-
-# Xcode files
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-*.xccheckout
-*.xcuserdata
-*.xcstategraph
-*.xcore
-*.xcscheme
-
-# CocoaPods artifacts
-/ios/Pods/
-*.xcworkspacedata
-
-# Dart/Flutter generated files
+# Flutter/Dart generated
 .dart_tool/
-.flutter-plugins/
+.flutter-plugins
+.flutter-plugins-dependencies
 .flutter-plugins-build/
-.dart_tool/
-build/
-/.dart_tool/
+.metadata
 .pub-cache/
+.pub/
+
+# Build outputs
+build/
+dist/
+web-build/
+
+# Android
+android/.gradle/
+android/build/
+android/rangers_mobile_android.iml
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# iOS
+ios/Pods/
+ios/build/
+ios/.symlinks/
+*.ipa
+
+# Linux
+linux/flutter/ephemeral
+
+# macOS
+macos/build/
+*.pem
+*.p12
+*.p8
+
+# Windows
+windows/build/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+*.iml
 
 # Test coverage
 coverage/
-.lcov
-coverage.json
-coverage.html
+*.lcov
 
-# IntelliJ IDEA
-.idea/
-.ideaWorkspace
-
-# VS Code
-.vscode/
-*.code-workspace
-
-# Obfuscation
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
-*.xccheckout
-*.xcuserdata
-*.xcstategraph
-*.xcore
-*.xcscheme
-
-# Environment specific
+# Environment
 .env
 .env.local
 .env.*.local
 *.local
 
-# References (as requested)
+# SSH config (contains private key references)
+config
+
+# Reference material
 references/
-references/**
 
-# Lock file (optional - some prefer to commit this)
-pubspec.lock
+# AI tool configs
+opencode.json
 
-# Android
-*.apk
-*.aab
-*.keystore
 
-# iOS
-*.ipa
 
-# Carthage
-Carthage/Build/
-
-# Code coverage
-*.lcov
-coverage/
-
-# Flutter-generated files
-.linux/flutter
-.linux/flutter_config
-.linux/flutter_temp
-.linux/flutter_tool
-.linux/flutter_tool.d
-
-# Build outputs
-linux/build/
-macos/build/
-web-build/
-dist/
-build/
-
-# Windows build
-windows/build/
-windows/flutter/Debug/
-windows/flutter/Release/
-
-# macOS build artifacts
-*.pem
-*.p12
-*.p8
-*.p12p
-
-# Crash logs
+# Crash/profiling
 *.crash
-
-# Profiling logs
 *.xcprofile
-
-# Xcode build directory
-DerivedData/
-
-# Fastlane
-*.gatekeeper_assistant
-
-# Codecov
-.codecov.yml
-.jaam.yml
-
-# Log files (optional)
-*.log
-*.pgpass
-
-# Build artifacts
 *.hprof
-
-# Ranges
-.history/
+DerivedData/
