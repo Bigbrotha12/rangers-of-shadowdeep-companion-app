@@ -9,6 +9,7 @@ import '../../../../domain/constants/skills.dart';
 import '../../../../domain/constants/heroic_abilities.dart';
 import '../../../../domain/constants/experience_table.dart' show LevelBonusType, statImprovementLimits;
 import '../../companions/views/recruit_companions_view.dart';
+import '../../../core/theme/app_colors.dart';
 
 class PostGameView extends ConsumerStatefulWidget {
   const PostGameView({required this.sessionId, super.key});
@@ -164,7 +165,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
           children: [
             Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 32),
+                Icon(Icons.check_circle, color: statusGreen(theme), size: 32),
                 const SizedBox(width: 12),
                 Expanded(child: Text('No heroes were reduced to 0 HP during this session.', style: theme.textTheme.bodyLarge)),
               ],
@@ -201,10 +202,10 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
         ),
         ...postGame.survivalTargets.map((target) => _SurvivalCard(
           target: target,
-          onRoll: () => ref.read(postGameProvider.notifier).rollSurvival(target.id),
-          onManualRoll: (roll) => ref.read(postGameProvider.notifier).rollSurvival(target.id, predeterminedRoll: roll),
-          onRollInjury: () => ref.read(postGameProvider.notifier).rollInjury(target.id),
-          onManualInjuryRoll: (roll) => ref.read(postGameProvider.notifier).rollInjuryWithValue(target.id, roll),
+          onRoll: () => ref.read(postGameProvider.notifier).rollSurvival(target.id, isRanger: target.isRanger),
+          onManualRoll: (roll) => ref.read(postGameProvider.notifier).rollSurvival(target.id, isRanger: target.isRanger, predeterminedRoll: roll),
+          onRollInjury: () => ref.read(postGameProvider.notifier).rollInjury(target.id, isRanger: target.isRanger),
+          onManualInjuryRoll: (roll) => ref.read(postGameProvider.notifier).rollInjuryWithValue(target.id, roll, isRanger: target.isRanger),
         )),
       ],
     );
@@ -256,17 +257,18 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
 
         // ── Level-Up Applied Banner ─────────────────────────
         if (postGame.levelUpApplied)
-          Card(
-            color: Colors.green.shade50,
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green),
-                  SizedBox(width: 12),
-                  Text('Level-up bonus applied!', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: theme.colorScheme.onPrimaryContainer),
+                const SizedBox(width: 12),
+                Text('Level-up bonus applied!', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onPrimaryContainer)),
+              ],
             ),
           ),
 
@@ -291,7 +293,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
                         Text('${pp.oldPp} → ${pp.newPp} PP', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                         if (pp.unclaimedRewards.isNotEmpty) ...[
                           const SizedBox(width: 8),
-                          Icon(Icons.star, color: Colors.amber, size: 16),
+                          Icon(Icons.star, color: statusAmber(theme), size: 16),
                         ],
                       ],
                     ),
@@ -589,7 +591,7 @@ class _SurvivalCardState extends ConsumerState<_SurvivalCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: target.isRanger ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      color: target.isRanger ? theme.colorScheme.surfaceContainerHighest : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -716,27 +718,27 @@ class _SurvivalCardState extends ConsumerState<_SurvivalCard> {
               // Injury Detail
               if (target.injury != null) ...[
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: statusOrange(theme).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: statusOrange(theme)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.healing, color: statusOrange(theme)),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(target.injury!.name, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: statusOrange(theme))),
+                            Text(target.injury!.effect, style: theme.textTheme.bodySmall),
+                          ],
+                        )),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.healing, color: Colors.orange),
-                      const SizedBox(width: 12),
-                      Expanded(child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(target.injury!.name, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange)),
-                          Text(target.injury!.effect, style: theme.textTheme.bodySmall),
-                        ],
-                      )),
-                    ],
-                  ),
-                ),
               ],
             ],
           ],
@@ -748,10 +750,10 @@ class _SurvivalCardState extends ConsumerState<_SurvivalCard> {
   Color _outcomeColor(SurvivalResult result, ThemeData theme) {
     switch (result) {
       case SurvivalResult.dead: return theme.colorScheme.error;
-      case SurvivalResult.permanentInjury: return Colors.orange;
-      case SurvivalResult.badlyWounded: return Colors.amber;
-      case SurvivalResult.closeCall: return Colors.blue;
-      case SurvivalResult.fullRecovery: return Colors.green;
+      case SurvivalResult.permanentInjury: return statusOrange(theme);
+      case SurvivalResult.badlyWounded: return statusAmber(theme);
+      case SurvivalResult.closeCall: return statusBlue(theme);
+      case SurvivalResult.fullRecovery: return statusGreen(theme);
     }
   }
 
@@ -803,7 +805,7 @@ class _OutcomeDetail extends StatelessWidget {
             if (target.injuryRoll != null)
               Text(
                 'Injury d20: ${target.injuryRoll}',
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
+                style: theme.textTheme.bodySmall?.copyWith(color: statusOrange(theme)),
               ),
           ],
         ],
@@ -814,10 +816,10 @@ class _OutcomeDetail extends StatelessWidget {
   Color _color() {
     switch (target.result!) {
       case SurvivalResult.dead: return theme.colorScheme.error;
-      case SurvivalResult.permanentInjury: return Colors.orange;
-      case SurvivalResult.badlyWounded: return Colors.amber.shade800;
-      case SurvivalResult.closeCall: return Colors.blue;
-      case SurvivalResult.fullRecovery: return Colors.green;
+      case SurvivalResult.permanentInjury: return statusOrange(theme);
+      case SurvivalResult.badlyWounded: return statusAmber(theme);
+      case SurvivalResult.closeCall: return statusBlue(theme);
+      case SurvivalResult.fullRecovery: return statusGreen(theme);
     }
   }
 
@@ -926,7 +928,7 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
             Text('Remaining: ', style: theme.textTheme.bodyMedium),
             Text('${state.remainingSkillPoints}', style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: state.remainingSkillPoints > 0 ? theme.colorScheme.primary : Colors.green,
+              color: state.remainingSkillPoints > 0 ? theme.colorScheme.primary : statusGreen(theme),
             )),
           ],
         ),
@@ -949,7 +951,7 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
                 Text('$currentValue', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                 const SizedBox(width: 4),
                 if (allocated > 0)
-                  Text('+$allocated', style: theme.textTheme.bodySmall?.copyWith(color: Colors.green, fontWeight: FontWeight.bold)),
+                  Text('+$allocated', style: theme.textTheme.bodySmall?.copyWith(color: statusGreen(theme), fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline),
@@ -1349,21 +1351,21 @@ class _TreasureResultCard extends ConsumerWidget {
             ],
             if (result.isGoldChoiceMade) ...[
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: statusGreen(theme).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, color: statusGreen(theme), size: 18),
+                      const SizedBox(width: 8),
+                      Text(result.goldChoseXp ? '+10 XP applied' : '+1 PP awarded to companion',
+                        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: statusGreen(theme))),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 18),
-                    const SizedBox(width: 8),
-                    Text(result.goldChoseXp ? '+10 XP applied' : '+1 PP awarded to companion',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.green)),
-                  ],
-                ),
-              ),
             ],
           ],
         ),
@@ -1373,11 +1375,11 @@ class _TreasureResultCard extends ConsumerWidget {
 
   Color _categoryColor() {
     switch (result.category) {
-      case 'gold': return Colors.amber.shade700;
-      case 'herb_potion': return Colors.green;
-      case 'weapon_armour': return Colors.blue;
-      case 'magic_item': return Colors.purple;
-      default: return Colors.grey;
+      case 'gold': return statusAmber(theme);
+      case 'herb_potion': return statusGreen(theme);
+      case 'weapon_armour': return statusBlue(theme);
+      case 'magic_item': return statusPurple(theme);
+      default: return statusGrey(theme);
     }
   }
 
@@ -1437,11 +1439,11 @@ class _CompanionCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: isReleased ? Colors.grey.shade300 : theme.colorScheme.secondaryContainer,
+              backgroundColor: isReleased ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.secondaryContainer,
               child: Text('${companion.progressionPoints}', style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isReleased ? Colors.grey : null,
+                color: isReleased ? theme.colorScheme.onSurfaceVariant : null,
               )),
             ),
             const SizedBox(width: 12),

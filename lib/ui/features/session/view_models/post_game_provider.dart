@@ -471,9 +471,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
   }
 
   /* ── Step 1: Survival ──────────────────────────────────── */
-  void rollSurvival(int targetId, {int? predeterminedRoll}) {
+  void rollSurvival(int targetId, {required bool isRanger, int? predeterminedRoll}) {
     if (state == null) return;
-    final existing = state!.survivalTargets.where((t) => t.id == targetId).firstOrNull;
+    final existing = state!.survivalTargets.where((t) => t.id == targetId && t.isRanger == isRanger).firstOrNull;
     if (existing == null) return;
 
     final roll = predeterminedRoll ?? (Random().nextInt(20) + 1);
@@ -482,7 +482,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
 
     state = state!.copyWith(
       survivalTargets: state!.survivalTargets.map((t) {
-        if (t.id != targetId) return t;
+        if (t.id != targetId || t.isRanger != isRanger) return t;
         return t.copyWith(
           survivalRoll: roll,
           survivalRollModified: modified,
@@ -493,9 +493,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     );
   }
 
-  void rollInjury(int targetId) {
+  void rollInjury(int targetId, {required bool isRanger}) {
     if (state == null) return;
-    final existing = state!.survivalTargets.where((t) => t.id == targetId).firstOrNull;
+    final existing = state!.survivalTargets.where((t) => t.id == targetId && t.isRanger == isRanger).firstOrNull;
     if (existing == null || existing.result != SurvivalResult.permanentInjury) return;
 
     final roll = Random().nextInt(20) + 1;
@@ -503,7 +503,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
 
     state = state!.copyWith(
       survivalTargets: state!.survivalTargets.map((t) {
-        if (t.id != targetId) return t;
+        if (t.id != targetId || t.isRanger != isRanger) return t;
         return t.copyWith(
           injuryRoll: roll,
           injury: injury,
@@ -513,12 +513,12 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     );
   }
 
-  void rollInjuryWithValue(int targetId, int d20) {
+  void rollInjuryWithValue(int targetId, int d20, {required bool isRanger}) {
     if (state == null) return;
     final injury = rollInjuryTableWithRoll(d20);
     state = state!.copyWith(
       survivalTargets: state!.survivalTargets.map((t) {
-        if (t.id != targetId) return t;
+        if (t.id != targetId || t.isRanger != isRanger) return t;
         return t.copyWith(
           injuryRoll: d20,
           injury: injury,

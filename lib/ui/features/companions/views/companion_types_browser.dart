@@ -120,7 +120,10 @@ class _CompanionCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              _StatRow(companion: companion),
+              StatTable(
+                labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+                values: [companion.move, companion.fight, companion.shoot, companion.armour, companion.will, companion.health],
+              ),
               const SizedBox(height: 8),
               Text(
                 companion.notes,
@@ -152,28 +155,6 @@ class _CompanionCard extends StatelessWidget {
           scrollController: scrollController,
         ),
       ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  const _StatRow({required this.companion});
-
-  final CompanionType companion;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 8,
-      children: [
-        StatDisplay(label: 'M', baseValue: companion.move, isCompact: true),
-        StatDisplay(label: 'F', baseValue: companion.fight, isCompact: true),
-        StatDisplay(label: 'S', baseValue: companion.shoot, isCompact: true),
-        StatDisplay(label: 'A', baseValue: companion.armour, isCompact: true),
-        StatDisplay(label: 'W', baseValue: companion.will, isCompact: true),
-        StatDisplay(label: 'H', baseValue: companion.health, isCompact: true),
-      ],
     );
   }
 }
@@ -275,17 +256,9 @@ class _TypeDetailSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 16,
-            runSpacing: 12,
-            children: [
-              _StatChip(label: 'Move', value: companion.move),
-              _StatChip(label: 'Fight', value: companion.fight),
-              _StatChip(label: 'Shoot', value: companion.shoot),
-              _StatChip(label: 'Armour', value: companion.armour),
-              _StatChip(label: 'Will', value: companion.will),
-              _StatChip(label: 'Health', value: companion.health),
-            ],
+          StatTable(
+            labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+            values: [companion.move, companion.fight, companion.shoot, companion.armour, companion.will, companion.health],
           ),
           const SizedBox(height: 24),
 
@@ -380,43 +353,6 @@ class _TypeDetailSheet extends StatelessWidget {
             label: const Text('Recruit This Companion'),
           ),
           const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value});
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            '$value',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
         ],
       ),
     );

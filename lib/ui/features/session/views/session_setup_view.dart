@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../data/database/app_database.dart' show RangerCompanion;
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
+import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
 import '../../rangers/view_models/rangers_provider.dart';
 import '../view_models/session_provider.dart';
 
@@ -234,6 +236,7 @@ class _PartyPreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rangersAsync = ref.watch(rangersListProvider);
+    final companionRepo = ref.watch(companionRepositoryProvider);
     final theme = Theme.of(context);
 
     return rangersAsync.when(
@@ -241,52 +244,104 @@ class _PartyPreview extends ConsumerWidget {
         final ranger = rangers.where((r) => r.id == rangerId).firstOrNull;
         if (ranger == null) return const SizedBox.shrink();
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Ranger
-                Row(
+        return FutureBuilder<List<RangerCompanion>>(
+          future: companionRepo.getCompanionsByRanger(rangerId),
+          builder: (context, snapshot) {
+            final companions = snapshot.data ?? <RangerCompanion>[];
+
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Icon(Icons.person, color: theme.colorScheme.onPrimaryContainer),
+                    // Ranger
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          child: Icon(Icons.person, color: theme.colorScheme.onPrimaryContainer),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ranger.name,
+                                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Ranger • HP: ${ranger.currentHealth}/${ranger.health}',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ranger.name,
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Ranger • HP: ${ranger.currentHealth}/${ranger.health}',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                    // Stats preview
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        _StatChip(label: 'M', value: ranger.move),
+                        _StatChip(label: 'F', value: ranger.fight),
+                        _StatChip(label: 'S', value: ranger.shoot),
+                        _StatChip(label: 'A', value: ranger.armour),
+                        _StatChip(label: 'W', value: ranger.will),
+                      ],
+                    ),
+                    // Companions
+                    if (companions.isNotEmpty) ...[
+                      const Divider(height: 24),
+                      Text(
+                        'Companions (${companions.length})',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      ...companions.map((comp) {
+                        final typeKey = companionTypeKeyFromId(comp.companionTypeId);
+                        final type = getCompanionType(typeKey);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: theme.colorScheme.secondaryContainer,
+                                child: Icon(Icons.pets, color: theme.colorScheme.onSecondaryContainer, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      comp.customName,
+                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      '${type?.name ?? 'Companion'} • '
+                                      'HP: ${1 + comp.bonusHealth}/${1 + comp.bonusHealth} '
+                                      '• PP: ${comp.progressionPoints}',
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
                   ],
                 ),
-                // Stats preview
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    _StatChip(label: 'M', value: ranger.move),
-                    _StatChip(label: 'F', value: ranger.fight),
-                    _StatChip(label: 'S', value: ranger.shoot),
-                    _StatChip(label: 'A', value: ranger.armour),
-                    _StatChip(label: 'W', value: ranger.will),
-                  ],
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

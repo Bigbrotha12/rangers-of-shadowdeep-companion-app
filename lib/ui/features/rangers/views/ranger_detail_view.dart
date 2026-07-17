@@ -44,6 +44,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
 
     for (final item in ranger.equipment) {
       if (item.slotIndex == null) continue;
+      if (!item.isActive) continue;
       try {
         final effects = item.effects;
         if (effects.isEmpty) continue;
@@ -107,6 +108,15 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
     ref.invalidate(rangerDetailProvider(widget.rangerId));
   }
 
+  Future<void> _toggleItemActive(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.updateRangerEquipment(RangerEquipmentCompanion(
+      id: Value(item.id),
+      isActive: Value(!item.isActive),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final rangerAsync = ref.watch(rangerDetailProvider(widget.rangerId));
@@ -154,11 +164,11 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                     ),
                   ),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete, color: Colors.red),
-                      title: Text('Delete', style: TextStyle(color: Colors.red)),
+                      leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                      title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                     ),
                   ),
                 ],
@@ -196,6 +206,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                         onUnequip: _unequipItem,
                         onRemove: _removeItem,
                         onAdd: _addItem,
+                        onToggleActive: _toggleItemActive,
                       ),
                       _CompanionsTab(rangerId: widget.rangerId),
                     ],
@@ -285,7 +296,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                 context.go('/rangers');
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -642,6 +653,7 @@ class _EquipmentTab extends ConsumerWidget {
     required this.onUnequip,
     required this.onRemove,
     required this.onAdd,
+    required this.onToggleActive,
   });
 
   final RangerDetail ranger;
@@ -649,6 +661,7 @@ class _EquipmentTab extends ConsumerWidget {
   final Future<void> Function(RangerEquipmentData item) onUnequip;
   final Future<void> Function(int itemId) onRemove;
   final Future<void> Function(int equipmentId) onAdd;
+  final Future<void> Function(RangerEquipmentData item) onToggleActive;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -696,10 +709,60 @@ class _EquipmentTab extends ConsumerWidget {
                   ? Text('Uses: ${item!.equipment.currentUses}')
                   : null,
               trailing: item != null
-                  ? IconButton(
-                      icon: const Icon(Icons.indeterminate_check_box, size: 20),
-                      onPressed: () => onUnequip(item.equipment),
-                      tooltip: 'Unequip',
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
+                          TextButton.icon(
+                            icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
+                            label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
+                            onPressed: () async {
+                              final currentUses = item.equipment.currentUses ?? 0;
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Use Item Charge'),
+                                  content: Text(
+                                    currentUses <= 1
+                                        ? 'Use ${item.name}? This will consume the item.'
+                                        : 'Use one charge of ${item.name}?\n\n$currentUses charges remaining.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(ctx).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.of(ctx).pop(true),
+                                      child: const Text('Use'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                final repo = ref.read(rangerRepositoryProvider);
+                                await repo.useEquipmentCharge(item.equipment.id);
+                                ref.invalidate(rangerDetailProvider(ranger.ranger.id));
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        Switch(
+                          value: item.isActive,
+                          onChanged: (_) => onToggleActive(item.equipment),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.indeterminate_check_box, size: 20),
+                          onPressed: () => onUnequip(item.equipment),
+                          tooltip: 'Unequip',
+                        ),
+                      ],
                     )
                   : null,
             ),
@@ -747,6 +810,47 @@ class _EquipmentTab extends ConsumerWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
+                    TextButton.icon(
+                      icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
+                      label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
+                      onPressed: () async {
+                        final currentUses = item.equipment.currentUses ?? 0;
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Use Item Charge'),
+                            content: Text(
+                              currentUses <= 1
+                                  ? 'Use ${item.name}? This will consume the item.'
+                                  : 'Use one charge of ${item.name}?\n\n$currentUses charges remaining.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('Use'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          final repo = ref.read(rangerRepositoryProvider);
+                          await repo.useEquipmentCharge(item.equipment.id);
+                          ref.invalidate(rangerDetailProvider(ranger.ranger.id));
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  const SizedBox(width: 8),
                   if (equipped.where((e) => e != null).length < 6)
                     IconButton(
                       icon: const Icon(Icons.chevron_left, size: 20),
@@ -840,6 +944,39 @@ class _EquipmentTab extends ConsumerWidget {
   }
 }
 
+Map<String, int> _computeCompanionEquipMods(List<RangerEquipmentWithName> items) {
+  final stats = <String, int>{};
+  const effectMappings = {
+    'armour_bonus': 'armour',
+    'fight_bonus': 'fight',
+    'fight_penalty': 'fight',
+    'shoot_bonus': 'shoot',
+    'will_bonus': 'will',
+    'will_penalty': 'will',
+    'move_bonus': 'move',
+    'move_penalty': 'move',
+    'damage_modifier': 'damage',
+  };
+
+  for (final item in items) {
+    if (!item.isActive) continue;
+    try {
+      final effects = item.effects;
+      if (effects.isEmpty) continue;
+      final parsed = Map<String, dynamic>.from(
+        const JsonDecoder().convert(effects) as Map,
+      );
+      for (final entry in effectMappings.entries) {
+        final mod = parsed[entry.key] as int?;
+        if (mod != null) {
+          stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
+        }
+      }
+    } catch (_) {}
+  }
+  return stats;
+}
+
 class _CompanionsTab extends ConsumerWidget {
   const _CompanionsTab({required this.rangerId});
 
@@ -923,8 +1060,13 @@ class _CompanionsTab extends ConsumerWidget {
                   final customSkills = Map<String, int>.from(
                     const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
                   );
+                  final companionEquip = ranger.equipment
+                    .where((e) => e.slotIndex != null)
+                    .where((e) => e.equipment.equippedBy == companion.id.toString())
+                    .toList();
+                  final equipMods = _computeCompanionEquipMods(companionEquip);
                   int effectiveStat(int base, String key) =>
-                      base + (customSkills[key] ?? 0);
+                      base + (customSkills[key] ?? 0) + (equipMods[key] ?? 0);
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: InkWell(
@@ -932,88 +1074,148 @@ class _CompanionsTab extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            PlaceholderImage(
-                              assetPath: 'assets/images/companions/$typeKey.png',
-                              category: 'companion',
-                              width: 40,
-                              height: 40,
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
+                            Row(
                               children: [
-                                SizedBox(
-                                  width: 80,
-                                  child: Text(
-                                    companion.customName,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                PlaceholderImage(
+                                  assetPath: 'assets/images/companions/$typeKey.png',
+                                  category: 'companion',
+                                  width: 40,
+                                  height: 40,
                                 ),
-                                Text(
-                                  'PP: ${companion.progressionPoints}',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 80,
+                                      child: Text(
+                                        companion.customName,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      'PP: ${companion.progressionPoints}',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                if (type != null)
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: ['M', 'F', 'S', 'A', 'W', 'H'].map((l) =>
+                                          SizedBox(
+                                            width: 24,
+                                            child: Text(
+                                              l,
+                                              textAlign: TextAlign.center,
+                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                color: theme.colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ),
+                                        ).toList(),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          effectiveStat(type.move, 'move'),
+                                          effectiveStat(type.fight, 'fight'),
+                                          effectiveStat(type.shoot, 'shoot'),
+                                          effectiveStat(type.armour, 'armour'),
+                                          effectiveStat(type.will, 'will'),
+                                          effectiveStat(type.health, 'health'),
+                                        ].map((v) =>
+                                          SizedBox(
+                                            width: 24,
+                                            child: Text(
+                                              '$v',
+                                              textAlign: TextAlign.center,
+                                              style: theme.textTheme.bodySmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ).toList(),
+                                      ),
+                                    ],
                                   ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 20,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ],
                             ),
-                            const Spacer(),
-                            if (type != null)
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: ['M', 'F', 'S', 'A', 'W', 'H'].map((l) =>
-                                      SizedBox(
-                                        width: 24,
-                                        child: Text(
-                                          l,
-                                          textAlign: TextAlign.center,
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: theme.colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ),
-                                    ).toList(),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      effectiveStat(type.move, 'move'),
-                                      effectiveStat(type.fight, 'fight'),
-                                      effectiveStat(type.shoot, 'shoot'),
-                                      effectiveStat(type.armour, 'armour'),
-                                      effectiveStat(type.will, 'will'),
-                                      effectiveStat(type.health, 'health'),
-                                    ].map((v) =>
-                                      SizedBox(
-                                        width: 24,
-                                        child: Text(
-                                          '$v',
-                                          textAlign: TextAlign.center,
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ).toList(),
-                                  ),
-                                ],
+                            if (companionEquip.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: companionEquip.map((item) {
+                                  final hasUses = item.equipment.currentUses != null && item.equipment.currentUses! > 0;
+                                  final eff = Map<String, dynamic>.from(
+                                    const JsonDecoder().convert(item.effects) as Map,
+                                  );
+                                  final dmg = eff['damage_modifier'] as int?;
+                                  final arm = eff['armour_bonus'] as int?;
+                                  final lbl = StringBuffer(item.name);
+                                  if (hasUses) lbl.write(' (${item.equipment.currentUses})');
+                                  if (dmg != null) lbl.write(' ${dmg >= 0 ? '+' : ''}$dmg');
+                                  if (arm != null) lbl.write(' ${arm >= 0 ? '+' : ''}$arm');
+
+                                  if (hasUses) {
+                                    return ActionChip(
+                                      avatar: const Icon(Icons.remove_circle_outline, size: 14, color: Colors.red),
+                                      label: Text(lbl.toString(), style: theme.textTheme.labelSmall),
+                                      onPressed: () {
+                                        final repo = ref.read(rangerRepositoryProvider);
+                                        repo.useEquipmentCharge(item.equipment.id);
+                                        ref.invalidate(rangerDetailProvider(rangerId));
+                                      },
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    );
+                                  }
+
+                                  return ActionChip(
+                                    avatar: Icon(
+                                      item.isActive ? Icons.check_circle : Icons.radio_button_unchecked,
+                                      size: 14,
+                                      color: item.isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    label: Text(lbl.toString(), style: theme.textTheme.labelSmall),
+                                    onPressed: () {
+                                      final repo = ref.read(rangerRepositoryProvider);
+                                      repo.updateRangerEquipment(RangerEquipmentCompanion(
+                                        id: Value(item.equipment.id),
+                                        isActive: Value(!item.isActive),
+                                      ));
+                                      ref.invalidate(rangerDetailProvider(rangerId));
+                                    },
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  );
+                                }).toList(),
                               ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 20,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                            ],
                           ],
                         ),
                       ),

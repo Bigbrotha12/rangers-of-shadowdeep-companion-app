@@ -34,7 +34,7 @@ class ColorSchemes {
         elevation: 0,
         backgroundColor: Colors.white,
         selectedItemColor: _hexToColor(_rangersBlue),
-        unselectedItemColor: _hexToColor('#6c757d'),
+        unselectedItemColor: _hexToColor('#4b5563'),
         type: BottomNavigationBarType.fixed,
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -111,7 +111,7 @@ class ColorSchemes {
         elevation: 0,
         backgroundColor: _hexToColor('#1a1a2e'),
         selectedItemColor: _hexToColor(_rangersBlue),
-        unselectedItemColor: _hexToColor('#6c757d'),
+        unselectedItemColor: _hexToColor('#9ca3af'),
         type: BottomNavigationBarType.fixed,
       ),
       inputDecorationTheme: InputDecorationTheme(

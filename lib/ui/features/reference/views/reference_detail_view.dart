@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../view_models/reference_provider.dart';
 import '../../../../data/services/rules_reference_service.dart';
+import '../../../core/widgets/stat_display.dart';
 
 class ReferenceDetailView extends ConsumerWidget {
   const ReferenceDetailView({
@@ -121,7 +122,17 @@ class ReferenceDetailView extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _StatsGrid(metadata: entry.metadata, prefix: true),
+          StatTable(
+            labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+            values: [
+              int.tryParse(entry.metadata['move'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['fight'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['shoot'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['armour'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['will'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['health'] ?? '') ?? 0,
+            ],
+          ),
           const SizedBox(height: 16),
           if (entry.metadata.containsKey('rp_cost'))
             _InfoBlock(
@@ -298,74 +309,19 @@ class _InfoBlock extends StatelessWidget {
               label,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: bgColor.computeLuminance() > 0.5
-                    ? Colors.black87
-                    : Colors.white70,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               content,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: bgColor.computeLuminance() > 0.5
-                    ? Colors.black87
-                    : Colors.white70,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.metadata, this.prefix = false});
-
-  final Map<String, String> metadata;
-  final bool prefix;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final statKeys = ['move', 'fight', 'shoot', 'armour', 'will', 'health'];
-    final statLabels = ['M', 'F', 'S', 'A', 'W', 'H'];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: List.generate(statKeys.length, (i) {
-        final key = statKeys[i];
-        final value = metadata[key];
-        if (value == null) return const SizedBox.shrink();
-        final display = prefix && (key == 'fight' || key == 'shoot' || key == 'will')
-            ? '+$value'
-            : value;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Text(
-                statLabels[i],
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                display,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
     );
   }
 }

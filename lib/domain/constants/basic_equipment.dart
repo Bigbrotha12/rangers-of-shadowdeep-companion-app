@@ -131,5 +131,8 @@ List<BasicEquipment> get basicGear =>
 /// Maximum equipment slots for a figure
 const int maxEquipmentSlots = 6;
 
+/// Maximum equipment slots for a companion (non-animal)
+const int maxCompanionEquipmentSlots = 2;
+
 /// Maximum starting equipment items for a new ranger
 const int maxStartingEquipmentItems = 5;

@@ -3620,6 +3620,18 @@ class $RangerEquipmentTable extends RangerEquipment
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3628,6 +3640,7 @@ class $RangerEquipmentTable extends RangerEquipment
     currentUses,
     equippedBy,
     slotIndex,
+    isActive,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3684,6 +3697,12 @@ class $RangerEquipmentTable extends RangerEquipment
         slotIndex.isAcceptableOrUnknown(data['slot_index']!, _slotIndexMeta),
       );
     }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
     return context;
   }
 
@@ -3717,6 +3736,10 @@ class $RangerEquipmentTable extends RangerEquipment
         DriftSqlType.int,
         data['${effectivePrefix}slot_index'],
       ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
     );
   }
 
@@ -3734,6 +3757,7 @@ class RangerEquipmentData extends DataClass
   final int? currentUses;
   final String equippedBy;
   final int? slotIndex;
+  final bool isActive;
   const RangerEquipmentData({
     required this.id,
     required this.rangerId,
@@ -3741,6 +3765,7 @@ class RangerEquipmentData extends DataClass
     this.currentUses,
     required this.equippedBy,
     this.slotIndex,
+    this.isActive = true,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3755,6 +3780,7 @@ class RangerEquipmentData extends DataClass
     if (!nullToAbsent || slotIndex != null) {
       map['slot_index'] = Variable<int>(slotIndex);
     }
+    map['is_active'] = Variable<bool>(isActive);
     return map;
   }
 
@@ -3770,6 +3796,7 @@ class RangerEquipmentData extends DataClass
       slotIndex: slotIndex == null && nullToAbsent
           ? const Value.absent()
           : Value(slotIndex),
+      isActive: Value(isActive),
     );
   }
 
@@ -3785,6 +3812,7 @@ class RangerEquipmentData extends DataClass
       currentUses: serializer.fromJson<int?>(json['currentUses']),
       equippedBy: serializer.fromJson<String>(json['equippedBy']),
       slotIndex: serializer.fromJson<int?>(json['slotIndex']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
     );
   }
   @override
@@ -3797,6 +3825,7 @@ class RangerEquipmentData extends DataClass
       'currentUses': serializer.toJson<int?>(currentUses),
       'equippedBy': serializer.toJson<String>(equippedBy),
       'slotIndex': serializer.toJson<int?>(slotIndex),
+      'isActive': serializer.toJson<bool>(isActive),
     };
   }
 
@@ -3807,6 +3836,7 @@ class RangerEquipmentData extends DataClass
     Value<int?> currentUses = const Value.absent(),
     String? equippedBy,
     Value<int?> slotIndex = const Value.absent(),
+    bool? isActive,
   }) => RangerEquipmentData(
     id: id ?? this.id,
     rangerId: rangerId ?? this.rangerId,
@@ -3814,6 +3844,7 @@ class RangerEquipmentData extends DataClass
     currentUses: currentUses.present ? currentUses.value : this.currentUses,
     equippedBy: equippedBy ?? this.equippedBy,
     slotIndex: slotIndex.present ? slotIndex.value : this.slotIndex,
+    isActive: isActive ?? this.isActive,
   );
   RangerEquipmentData copyWithCompanion(RangerEquipmentCompanion data) {
     return RangerEquipmentData(
@@ -3829,6 +3860,7 @@ class RangerEquipmentData extends DataClass
           ? data.equippedBy.value
           : this.equippedBy,
       slotIndex: data.slotIndex.present ? data.slotIndex.value : this.slotIndex,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
   }
 
@@ -3840,7 +3872,8 @@ class RangerEquipmentData extends DataClass
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
           ..write('equippedBy: $equippedBy, ')
-          ..write('slotIndex: $slotIndex')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('isActive: $isActive')
           ..write(')'))
         .toString();
   }
@@ -3853,6 +3886,7 @@ class RangerEquipmentData extends DataClass
     currentUses,
     equippedBy,
     slotIndex,
+    isActive,
   );
   @override
   bool operator ==(Object other) =>
@@ -3863,7 +3897,8 @@ class RangerEquipmentData extends DataClass
           other.equipmentId == this.equipmentId &&
           other.currentUses == this.currentUses &&
           other.equippedBy == this.equippedBy &&
-          other.slotIndex == this.slotIndex);
+          other.slotIndex == this.slotIndex &&
+          other.isActive == this.isActive);
 }
 
 class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
@@ -3873,6 +3908,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
   final Value<int?> currentUses;
   final Value<String> equippedBy;
   final Value<int?> slotIndex;
+  final Value<bool> isActive;
   const RangerEquipmentCompanion({
     this.id = const Value.absent(),
     this.rangerId = const Value.absent(),
@@ -3880,6 +3916,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
     this.slotIndex = const Value.absent(),
+    this.isActive = const Value.absent(),
   });
   RangerEquipmentCompanion.insert({
     this.id = const Value.absent(),
@@ -3888,6 +3925,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
     this.slotIndex = const Value.absent(),
+    this.isActive = const Value.absent(),
   }) : rangerId = Value(rangerId),
        equipmentId = Value(equipmentId);
   static Insertable<RangerEquipmentData> custom({
@@ -3897,6 +3935,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Expression<int>? currentUses,
     Expression<String>? equippedBy,
     Expression<int>? slotIndex,
+    Expression<bool>? isActive,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3905,6 +3944,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       if (currentUses != null) 'current_uses': currentUses,
       if (equippedBy != null) 'equipped_by': equippedBy,
       if (slotIndex != null) 'slot_index': slotIndex,
+      if (isActive != null) 'is_active': isActive,
     });
   }
 
@@ -3915,6 +3955,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Value<int?>? currentUses,
     Value<String>? equippedBy,
     Value<int?>? slotIndex,
+    Value<bool>? isActive,
   }) {
     return RangerEquipmentCompanion(
       id: id ?? this.id,
@@ -3923,6 +3964,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       currentUses: currentUses ?? this.currentUses,
       equippedBy: equippedBy ?? this.equippedBy,
       slotIndex: slotIndex ?? this.slotIndex,
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -3947,6 +3989,9 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     if (slotIndex.present) {
       map['slot_index'] = Variable<int>(slotIndex.value);
     }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
     return map;
   }
 
@@ -3958,7 +4003,8 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
           ..write('equippedBy: $equippedBy, ')
-          ..write('slotIndex: $slotIndex')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('isActive: $isActive')
           ..write(')'))
         .toString();
   }

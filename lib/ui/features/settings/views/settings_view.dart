@@ -276,11 +276,11 @@ class SettingsView extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Import backup'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+            Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.tertiary, size: 48),
             SizedBox(height: 16),
             Text(
               'This will replace ALL existing rangers, companions, '

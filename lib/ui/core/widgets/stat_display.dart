@@ -72,3 +72,66 @@ class StatDisplay extends StatelessWidget {
     );
   }
 }
+
+class StatTable extends StatelessWidget {
+  const StatTable({
+    required this.labels,
+    required this.values,
+    this.cellWidth = 30,
+    this.highlightLast = false,
+    super.key,
+  });
+
+  final List<String> labels;
+  final List<int> values;
+  final double cellWidth;
+  final bool highlightLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < labels.length; i++)
+              SizedBox(
+                width: cellWidth,
+                child: Text(
+                  labels[i],
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < values.length; i++)
+              SizedBox(
+                width: cellWidth,
+                child: Text(
+                  '${values[i]}',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: highlightLast && i == labels.length - 1
+                        ? theme.colorScheme.tertiary
+                        : null,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}

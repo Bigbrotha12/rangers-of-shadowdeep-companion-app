@@ -1,12 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart' show Value;
+import '../../../../data/database/app_database.dart' hide CompanionType;
+import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
+import '../../../../domain/constants/basic_equipment.dart';
 import '../../../../domain/constants/companion_types.dart';
 import '../../../../domain/constants/skills.dart';
 import '../../../core/widgets/stat_display.dart';
 import '../../../core/widgets/placeholder_image.dart';
 import '../view_models/companion_provider.dart';
+import '../../rangers/view_models/ranger_detail_provider.dart';
 
 class CompanionDetailView extends ConsumerWidget {
   const CompanionDetailView({
@@ -81,11 +88,11 @@ class CompanionDetailView extends ConsumerWidget {
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'remove',
                 child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Remove', style: TextStyle(color: Colors.red)),
+                  leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                  title: Text('Remove', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                 ),
               ),
             ],
@@ -93,25 +100,37 @@ class CompanionDetailView extends ConsumerWidget {
         ],
       ),
       body: DefaultTabController(
-        length: 4,
+        length: 5,
         child: Column(
           children: [
             _CompanionHeader(companion: companion, type: type),
             const TabBar(
+              isScrollable: true,
+              labelPadding: EdgeInsets.only(left: 8, right: 16),
               tabs: [
                 Tab(text: 'Stats'),
                 Tab(text: 'Skills'),
                 Tab(text: 'Injuries'),
                 Tab(text: 'Info'),
+                Tab(text: 'Equipment'),
               ],
             ),
             Expanded(
-              child: TabBarView(
+              child:               TabBarView(
                 children: [
-                  _StatsTab(companion: companion, type: type),
+                  _StatsTab(
+                    companion: companion,
+                    type: type,
+                    rangerId: rangerId,
+                    companionId: companionId,
+                  ),
                   _SkillsTab(companion: companion, type: type),
                   _InjuriesTab(companion: companion),
                   _InfoTab(companion: companion, type: type),
+                  _CompanionEquipmentTab(
+                    rangerId: rangerId,
+                    companionId: companionId,
+                  ),
                 ],
               ),
             ),
@@ -170,10 +189,11 @@ class CompanionDetailView extends ConsumerWidget {
               await repo.deleteCompanion(companion.id);
               if (context.mounted) {
                 Navigator.pop(context);
+                ref.invalidate(rangerDetailProvider);
                 context.pop();
               }
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text('Remove', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -237,17 +257,85 @@ class _CompanionHeader extends StatelessWidget {
   }
 }
 
-class _StatsTab extends StatelessWidget {
+class _StatsTab extends ConsumerStatefulWidget {
   const _StatsTab({
     required this.companion,
     required this.type,
+    required this.rangerId,
+    required this.companionId,
   });
 
   final CompanionData companion;
   final CompanionType type;
+  final int rangerId;
+  final int companionId;
+
+  @override
+  ConsumerState<_StatsTab> createState() => _StatsTabState();
+}
+
+class _StatsTabState extends ConsumerState<_StatsTab> {
+  Future<void> _toggleItemActive(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.updateRangerEquipment(RangerEquipmentCompanion(
+      id: Value(item.id),
+      isActive: Value(!item.isActive),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Map<String, int> _computeStatModifiers(List<RangerEquipmentWithName> items) {
+    final stats = <String, int>{};
+    const effectMappings = {
+      'armour_bonus': 'armour',
+      'fight_bonus': 'fight',
+      'fight_penalty': 'fight',
+      'shoot_bonus': 'shoot',
+      'will_bonus': 'will',
+      'will_penalty': 'will',
+      'move_bonus': 'move',
+      'move_penalty': 'move',
+      'damage_modifier': 'damage',
+    };
+
+    for (final item in items) {
+      if (!item.isActive) continue;
+      try {
+        final effects = item.effects;
+        if (effects.isEmpty) continue;
+        final parsed = Map<String, dynamic>.from(
+          const JsonDecoder().convert(effects) as Map,
+        );
+        for (final entry in effectMappings.entries) {
+          final mod = parsed[entry.key] as int?;
+          if (mod != null) {
+            stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
+          }
+        }
+      } catch (_) {}
+    }
+    return stats;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final rangerAsync = ref.watch(rangerDetailProvider(widget.rangerId));
+
+    final companionEquipment = rangerAsync.whenOrNull(
+      data: (ranger) {
+        if (ranger == null) return <RangerEquipmentWithName>[];
+        return ranger.equipment
+          .where((e) => e.slotIndex != null)
+          .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+          .toList();
+      },
+    );
+
+    final statModifiers = companionEquipment != null
+        ? _computeStatModifiers(companionEquipment)
+        : <String, int>{};
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -255,7 +343,7 @@ class _StatsTab extends StatelessWidget {
         children: [
           Text(
             'Base Stats',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -265,19 +353,19 @@ class _StatsTab extends StatelessWidget {
               spacing: 24,
               runSpacing: 16,
               children: [
-                StatDisplay(label: 'Move', baseValue: type.move),
-                StatDisplay(label: 'Fight', baseValue: type.fight),
-                StatDisplay(label: 'Shoot', baseValue: type.shoot),
-                StatDisplay(label: 'Armour', baseValue: type.armour),
-                StatDisplay(label: 'Will', baseValue: type.will),
-                StatDisplay(label: 'Health', baseValue: type.health),
+                StatDisplay(label: 'Move', baseValue: widget.type.move),
+                StatDisplay(label: 'Fight', baseValue: widget.type.fight),
+                StatDisplay(label: 'Shoot', baseValue: widget.type.shoot),
+                StatDisplay(label: 'Armour', baseValue: widget.type.armour),
+                StatDisplay(label: 'Will', baseValue: widget.type.will),
+                StatDisplay(label: 'Health', baseValue: widget.type.health),
               ],
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'Effective Stats',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -289,37 +377,84 @@ class _StatsTab extends StatelessWidget {
               children: [
                 StatDisplay(
                   label: 'Move',
-                  baseValue: type.move,
-                  effectiveValue: companion.effectiveMove,
+                  baseValue: widget.type.move,
+                  effectiveValue: widget.companion.effectiveMove + (statModifiers['move'] ?? 0),
                 ),
                 StatDisplay(
                   label: 'Fight',
-                  baseValue: type.fight,
-                  effectiveValue: companion.effectiveFight,
+                  baseValue: widget.type.fight,
+                  effectiveValue: widget.companion.effectiveFight + (statModifiers['fight'] ?? 0),
                 ),
                 StatDisplay(
                   label: 'Shoot',
-                  baseValue: type.shoot,
-                  effectiveValue: companion.effectiveShoot,
+                  baseValue: widget.type.shoot,
+                  effectiveValue: widget.companion.effectiveShoot + (statModifiers['shoot'] ?? 0),
                 ),
                 StatDisplay(
                   label: 'Armour',
-                  baseValue: type.armour,
-                  effectiveValue: companion.effectiveArmour,
+                  baseValue: widget.type.armour,
+                  effectiveValue: widget.companion.effectiveArmour + (statModifiers['armour'] ?? 0),
                 ),
                 StatDisplay(
                   label: 'Will',
-                  baseValue: type.will,
-                  effectiveValue: companion.effectiveWill,
+                  baseValue: widget.type.will,
+                  effectiveValue: widget.companion.effectiveWill + (statModifiers['will'] ?? 0),
                 ),
                 StatDisplay(
                   label: 'Health',
-                  baseValue: type.health,
-                  effectiveValue: companion.effectiveHealth,
+                  baseValue: widget.type.health,
+                  effectiveValue: widget.companion.effectiveHealth,
                 ),
+                if (statModifiers.containsKey('damage'))
+                  StatDisplay(
+                    label: 'Damage',
+                    baseValue: 0,
+                    effectiveValue: statModifiers['damage']!,
+                  ),
               ],
             ),
           ),
+          if (companionEquipment != null && companionEquipment.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Equipment',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: companionEquipment.map((item) {
+                final effects = Map<String, dynamic>.from(
+                  const JsonDecoder().convert(item.effects) as Map,
+                );
+                final damageMod = effects['damage_modifier'] as int?;
+                final armourMod = effects['armour_bonus'] as int?;
+                final label = StringBuffer(item.name);
+                if (damageMod != null) {
+                  label.write(' ${damageMod >= 0 ? '+' : ''}$damageMod');
+                }
+                if (armourMod != null) {
+                  label.write(' ${armourMod >= 0 ? '+' : ''}$armourMod');
+                }
+
+                return ActionChip(
+                  avatar: Icon(
+                    item.isActive ? Icons.check_circle : Icons.radio_button_unchecked,
+                    size: 14,
+                    color: item.isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  label: Text(label.toString(), style: theme.textTheme.labelSmall),
+                  onPressed: () => _toggleItemActive(item.equipment),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );
@@ -513,6 +648,320 @@ class _InfoSection extends StatelessWidget {
           style: theme.textTheme.bodyMedium,
         ),
       ],
+    );
+  }
+}
+
+class _CompanionEquipmentTab extends ConsumerStatefulWidget {
+  const _CompanionEquipmentTab({
+    required this.rangerId,
+    required this.companionId,
+  });
+
+  final int rangerId;
+  final int companionId;
+
+  @override
+  ConsumerState<_CompanionEquipmentTab> createState() => _CompanionEquipmentTabState();
+}
+
+class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> {
+  Future<void> _equipItem(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final ranger = await ref.read(rangerDetailProvider(widget.rangerId).future);
+    if (ranger == null) return;
+    final equipped = ranger.equipment
+      .where((e) => e.slotIndex != null)
+      .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+      .toList();
+    final usedSlots = equipped.map((e) => e.slotIndex!).toSet();
+    for (int i = 0; i < maxCompanionEquipmentSlots; i++) {
+      if (!usedSlots.contains(i)) {
+        await repo.updateRangerEquipment(RangerEquipmentCompanion(
+          id: Value(item.id),
+          slotIndex: Value(i),
+        ));
+        ref.invalidate(rangerDetailProvider(widget.rangerId));
+        return;
+      }
+    }
+  }
+
+  Future<void> _unequipItem(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.updateRangerEquipment(RangerEquipmentCompanion(
+      id: Value(item.id),
+      slotIndex: const Value(null),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _removeItem(int itemId) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.deleteRangerEquipment(itemId);
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _addItem(int equipmentId) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final equipment = await repo.getEquipmentById(equipmentId);
+    await repo.insertRangerEquipment(RangerEquipmentCompanion.insert(
+      rangerId: widget.rangerId,
+      equipmentId: equipmentId,
+      equippedBy: Value(widget.companionId.toString()),
+      currentUses: equipment?.hasUses == true ? Value(equipment!.maxUses) : const Value(null),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _toggleActive(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.updateRangerEquipment(RangerEquipmentCompanion(
+      id: Value(item.id),
+      isActive: Value(!item.isActive),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _useItem(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.useEquipmentCharge(item.id);
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _confirmAndUseItem(BuildContext context, RangerEquipmentData item, String itemName) async {
+    final remaining = item.currentUses ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Use Item Charge'),
+        content: Text(
+          remaining <= 1
+              ? 'Use $itemName? This will consume the item.'
+              : 'Use one charge of $itemName?\n\n$remaining charges remaining.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Use'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _useItem(item);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final rangerAsync = ref.watch(rangerDetailProvider(widget.rangerId));
+
+    return rangerAsync.when(
+      data: (ranger) {
+        if (ranger == null) {
+          return const Center(child: Text('Ranger not found'));
+        }
+
+        final companionItems = ranger.equipment
+          .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+          .toList();
+
+        final equipped = List<RangerEquipmentWithName?>.generate(
+          maxCompanionEquipmentSlots,
+          (i) {
+            try {
+              return companionItems.firstWhere((e) => e.slotIndex == i);
+            } catch (_) {
+              return null;
+            }
+          },
+        );
+        final inventory = companionItems.where((e) => e.slotIndex == null).toList();
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ── Equipment Slots ──
+            Text('Equipment (${equipped.where((e) => e != null).length}/$maxCompanionEquipmentSlots Slots)',
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...List.generate(maxCompanionEquipmentSlots, (i) {
+              final item = equipped[i];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 6),
+                child: ListTile(
+                  dense: true,
+                  leading: CircleAvatar(
+                    backgroundColor: item != null
+                        ? theme.colorScheme.primaryContainer
+                        : theme.colorScheme.surfaceContainerHighest,
+                    radius: 16,
+                    child: Icon(
+                      item != null ? Icons.check_circle : Icons.circle_outlined,
+                      size: 20,
+                      color: item != null
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  title: Text(
+                    item?.name ?? 'Empty Slot',
+                    style: TextStyle(
+                      fontWeight: item != null ? FontWeight.bold : null,
+                      color: item != null ? null : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  subtitle: item?.equipment.currentUses != null
+                      ? Text('Uses: ${item!.equipment.currentUses}')
+                      : null,
+                  trailing: item != null
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
+                              TextButton.icon(
+                                icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
+                                label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
+                                onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            const SizedBox(width: 12),
+                            Switch(
+                              value: item.isActive,
+                              onChanged: (_) => _toggleActive(item.equipment),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.indeterminate_check_box, size: 20),
+                              onPressed: () => _unequipItem(item.equipment),
+                              tooltip: 'Unequip',
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              );
+            }),
+
+            const SizedBox(height: 16),
+
+            // ── Inventory ──
+            Row(
+              children: [
+                Text('Inventory (${inventory.length})',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => _showAddItemDialog(context),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Item'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (inventory.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text('No items in inventory.', style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                )),
+              )
+            else
+              ...inventory.map((item) => Card(
+                margin: const EdgeInsets.only(bottom: 6),
+                child: ListTile(
+                  dense: true,
+                  leading: Icon(Icons.inventory_2, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                  title: Text(item.name, style: const TextStyle(fontSize: 14)),
+                  subtitle: item.equipment.currentUses != null
+                      ? Text('Uses: ${item.equipment.currentUses}', style: const TextStyle(fontSize: 12))
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
+                        TextButton.icon(
+                          icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
+                          label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
+                          onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+                      if (equipped.where((e) => e != null).length < maxCompanionEquipmentSlots)
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left, size: 20),
+                          onPressed: () => _equipItem(item.equipment),
+                          tooltip: 'Equip',
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: () => _removeItem(item.equipment.id),
+                        tooltip: 'Remove',
+                      ),
+                    ],
+                  ),
+                ),
+              )),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text('Error: $error')),
+    );
+  }
+
+  Future<void> _showAddItemDialog(BuildContext context) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final allEquipment = await repo.getAllEquipment();
+    final ranger = await ref.read(rangerDetailProvider(widget.rangerId).future);
+    if (ranger == null) return;
+    final ownedIds = ranger.equipment
+      .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+      .map((e) => e.equipment.equipmentId)
+      .toSet();
+
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Item'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: allEquipment
+              .where((e) => !ownedIds.contains(e.id))
+              .map((e) => ListTile(
+                dense: true,
+                title: Text(e.name, style: const TextStyle(fontSize: 14)),
+                subtitle: Text(e.category, style: const TextStyle(fontSize: 12)),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _addItem(e.id);
+                },
+              ))
+              .toList(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+        ],
+      ),
     );
   }
 }

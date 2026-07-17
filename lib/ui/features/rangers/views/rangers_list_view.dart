@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../view_models/rangers_provider.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/placeholder_image.dart';
+import '../../../core/widgets/stat_display.dart';
 
 class RangersListView extends ConsumerWidget {
   const RangersListView({super.key});
@@ -69,6 +70,7 @@ class RangersListView extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'rangers_fab',
         onPressed: () => context.push('/rangers/create'),
         child: const Icon(Icons.add),
       ),
@@ -131,17 +133,9 @@ class _RangerCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Center(
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  children: [
-                    _StatChip(label: 'M', value: ranger.move),
-                    _StatChip(label: 'F', value: ranger.fight),
-                    _StatChip(label: 'S', value: ranger.shoot),
-                    _StatChip(label: 'A', value: ranger.armour),
-                    _StatChip(label: 'W', value: ranger.will),
-                    _StatChip(label: 'H', value: ranger.health),
-                  ],
+                child: StatTable(
+                  labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+                  values: [ranger.move, ranger.fight, ranger.shoot, ranger.armour, ranger.will, ranger.health],
                 ),
               ),
               if (ranger.notes.isNotEmpty) ...[
@@ -158,47 +152,6 @@ class _RangerCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '$value',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }

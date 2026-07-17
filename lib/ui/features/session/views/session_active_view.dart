@@ -1,7 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart' show Value;
 import '../view_models/session_provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../../data/database/app_database.dart';
+import '../../../../data/repositories/ranger_repository_provider.dart';
+import '../../rangers/view_models/ranger_detail_provider.dart';
+import '../../../../domain/constants/companion_types.dart';
 
 class SessionActiveView extends ConsumerStatefulWidget {
   const SessionActiveView({required this.sessionId, super.key});
@@ -41,9 +49,10 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
             onPressed: () => _showDiceRoller(context),
             tooltip: 'Roll Dice',
           ),
-          // End session
+          // Menu
           PopupMenuButton<String>(
             onSelected: (value) {
+              if (value == 'pause') _pauseSession(context, ref);
               if (value == 'end') _showEndSessionDialog(context, ref);
               if (value == 'add_creature') _showAddCreatureDialog(context, ref);
               if (value == 'add_note') _showAddNoteDialog(context, ref);
@@ -52,9 +61,11 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
               const PopupMenuItem(value: 'add_creature', child: Text('Add Creature')),
               const PopupMenuItem(value: 'add_note', child: Text('Add Note')),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              const PopupMenuItem(value: 'pause', child: Text('Pause Session')),
+              const PopupMenuDivider(),
+              PopupMenuItem(
                 value: 'end',
-                child: Text('End Session', style: TextStyle(color: Colors.red)),
+                child: Text('End Session', style: TextStyle(color: Theme.of(context).colorScheme.error)),
               ),
             ],
           ),
@@ -101,6 +112,12 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
       context: context,
       builder: (context) => const _DiceRollerSheet(),
     );
+  }
+
+  Future<void> _pauseSession(BuildContext context, WidgetRef ref) async {
+    await ref.read(activeSessionProvider.notifier).pauseSession();
+    if (!context.mounted) return;
+    context.go('/session');
   }
 
   void _showAddCreatureDialog(BuildContext context, WidgetRef ref) {
@@ -433,16 +450,20 @@ class _PartyPanel extends StatelessWidget {
             ),
           )
         else
-          ...session.party.map((member) => _PartyMemberCard(member: member)),
+          ...session.party.map((member) => _PartyMemberCard(
+            member: member,
+            rangerId: session.rangerId,
+          )),
       ],
     );
   }
 }
 
 class _PartyMemberCard extends ConsumerStatefulWidget {
-  const _PartyMemberCard({required this.member});
+  const _PartyMemberCard({required this.member, required this.rangerId});
 
   final PartyMemberState member;
+  final int rangerId;
 
   @override
   ConsumerState<_PartyMemberCard> createState() => _PartyMemberCardState();
@@ -450,6 +471,7 @@ class _PartyMemberCard extends ConsumerStatefulWidget {
 
 class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
   final TextEditingController _deltaController = TextEditingController(text: '1');
+  bool _isExpanded = false;
 
   @override
   void dispose() {
@@ -459,110 +481,435 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
 
   int get _delta => int.tryParse(_deltaController.text) ?? 1;
 
+  Future<void> _toggleItemActive(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.updateRangerEquipment(RangerEquipmentCompanion(
+      id: Value(item.id),
+      isActive: Value(!item.isActive),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _useItem(RangerEquipmentData item) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    await repo.useEquipmentCharge(item.id);
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _confirmAndUseItem(BuildContext context, RangerEquipmentData item, String itemName) async {
+    final remaining = item.currentUses ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Use Item Charge'),
+        content: Text(
+          remaining <= 1
+              ? 'Use $itemName? This will consume the item.'
+              : 'Use one charge of $itemName?\n\n$remaining charges remaining.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Use'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _useItem(item);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final member = widget.member;
+    final rangerAsync = ref.watch(rangerDetailProvider(widget.rangerId));
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: member.isDead ? theme.colorScheme.errorContainer.withValues(alpha: 0.3) : null,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+    return rangerAsync.when(
+      data: (ranger) {
+        if (ranger == null) return const SizedBox.shrink();
+
+        // ── Equipment filtered for this member ──
+        final equippedBy = member.type == 'ranger' ? 'ranger' : member.id.toString();
+        final memberEquip = ranger.equipment
+          .where((e) => e.slotIndex != null)
+          .where((e) => e.equipment.equippedBy == equippedBy)
+          .toList();
+
+        // ── Stats computation ──
+        final equipMods = _computeEquipMods(memberEquip);
+        StatRow stats;
+        if (member.type == 'ranger') {
+          stats = StatRow(
+            move: ranger.ranger.move + (equipMods['move'] ?? 0),
+            fight: ranger.ranger.fight + (equipMods['fight'] ?? 0),
+            shoot: ranger.ranger.shoot + (equipMods['shoot'] ?? 0),
+            armour: ranger.ranger.armour + (equipMods['armour'] ?? 0),
+            will: ranger.ranger.will + (equipMods['will'] ?? 0),
+            health: member.maxHealth,
+            damage: equipMods['damage'],
+          );
+        } else {
+          final companion = ranger.companions.where((c) => c.id == member.id).firstOrNull;
+          if (companion != null) {
+            final typeKey = companionTypeKeyFromId(companion.companionTypeId);
+            final type = getCompanionType(typeKey);
+            final customSkills = Map<String, int>.from(
+              const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
+            );
+            final injuries = List<String>.from(
+              jsonDecode(companion.permanentInjuries) as List? ?? [],
+            );
+            int injuryPenalty(String stat) {
+              int p = 0;
+              for (final inj in injuries) {
+                if (inj == 'smashed_leg' && stat == 'move') p -= 1;
+                if (inj == 'lost_toes' && stat == 'move') p -= 1;
+                if (inj == 'crushed_arm' && stat == 'fight') p -= 1;
+                if (inj == 'lost_fingers' && stat == 'shoot') p -= 1;
+                if (inj == 'never_quite_as_strong' && stat == 'health') p -= 1;
+                if (inj == 'psychological_scars' && stat == 'will') p -= 1;
+              }
+              return p;
+            }
+
+            stats = StatRow(
+              move: (type?.move ?? 6) + (customSkills['move'] ?? 0) + injuryPenalty('move') + (equipMods['move'] ?? 0),
+              fight: (type?.fight ?? 0) + (customSkills['fight'] ?? 0) + injuryPenalty('fight') + (equipMods['fight'] ?? 0),
+              shoot: (type?.shoot ?? 0) + (customSkills['shoot'] ?? 0) + injuryPenalty('shoot') + (equipMods['shoot'] ?? 0),
+              armour: (type?.armour ?? 10) + (equipMods['armour'] ?? 0),
+              will: (type?.will ?? 0) + (customSkills['will'] ?? 0) + injuryPenalty('will') + (equipMods['will'] ?? 0),
+              health: (type?.health ?? 10) + injuryPenalty('health') + companion.bonusHealth,
+              damage: equipMods['damage'],
+            );
+          } else {
+            stats = StatRow(
+              move: 6, fight: 0, shoot: 0, armour: 10, will: 0, health: member.maxHealth,
+            );
+          }
+        }
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          color: member.isDead ? theme.colorScheme.errorContainer.withValues(alpha: 0.3) : null,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: member.isDead ? null : () => setState(() => _isExpanded = !_isExpanded),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final wideEnough = constraints.maxWidth >= 480;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Header row ──
+                      Row(
+                        children: [
+                          // Avatar
+                          CircleAvatar(
+                            backgroundColor: member.isDead
+                                ? theme.colorScheme.error
+                                : member.type == 'ranger'
+                                    ? theme.colorScheme.primaryContainer
+                                    : theme.colorScheme.secondaryContainer,
+                            child: Icon(
+                              member.isDead ? Icons.close : member.type == 'ranger' ? Icons.person : Icons.pets,
+                              color: member.isDead
+                                  ? theme.colorScheme.onError
+                                  : member.type == 'ranger'
+                                      ? theme.colorScheme.onPrimaryContainer
+                                      : theme.colorScheme.onSecondaryContainer,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Name and HP
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  member.name,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: member.isDead ? TextDecoration.lineThrough : null,
+                                  ),
+                                ),
+                                Text(
+                                  'HP: ${member.currentHealth}/${member.maxHealth}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: member.currentHealth <= 0
+                                        ? theme.colorScheme.error
+                                        : member.currentHealth <= member.maxHealth ~/ 3
+                                            ? statusOrange(theme)
+                                            : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Stats table (inline in header when wide enough)
+                          if (wideEnough && !member.isDead) ...[
+                            const SizedBox(width: 8),
+                            _StatTable(stats: stats),
+                            const SizedBox(width: 8),
+                          ],
+
+                          // HP Controls
+                          if (!member.isDead) ...[
+                            IconButton(
+                              icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error),
+                              onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, -_delta),
+                              iconSize: 28,
+                            ),
+                            SizedBox(
+                              width: 44,
+                              child: TextField(
+                                controller: _deltaController,
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                  border: OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.add_circle_outline, color: statusGreen(theme)),
+                              onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, _delta),
+                              iconSize: 28,
+                            ),
+                            IconButton(
+                              icon: AnimatedRotation(
+                                turns: _isExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: const Icon(Icons.expand_more),
+                              ),
+                              onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                            ),
+                          ] else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.error,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'DEAD',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onError,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      // ── Stats row (always visible, below header on narrow screens) ──
+                      if (!member.isDead) ...[
+                        if (!wideEnough) ...[
+                          const SizedBox(height: 12),
+                          _StatTable(stats: stats),
+                        ],
+                      ],
+
+                      // ── Equipment rows (only when expanded) ──
+                      if (_isExpanded && !member.isDead && memberEquip.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('Equipment', style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 4),
+                        ...memberEquip.map((item) {
+                          final hasUses = item.equipment.currentUses != null && item.equipment.currentUses! > 0;
+                          final effects = Map<String, dynamic>.from(
+                            const JsonDecoder().convert(item.effects) as Map,
+                          );
+                          final damageMod = effects['damage_modifier'] as int?;
+                          final armourMod = effects['armour_bonus'] as int?;
+                          final label = StringBuffer(item.name);
+                          if (damageMod != null) label.write(' ${damageMod >= 0 ? '+' : ''}$damageMod');
+                          if (armourMod != null) label.write(' ${armourMod >= 0 ? '+' : ''}$armourMod');
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          label.toString(),
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (hasUses)
+                                          Text(
+                                            'Uses: ${item.equipment.currentUses}',
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (hasUses)
+                                    TextButton.icon(
+                                      icon: const Icon(Icons.remove_circle_outline, size: 22, color: Colors.red),
+                                      label: const Text('Use', style: TextStyle(fontSize: 15, color: Colors.red)),
+                                      onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 12),
+                                  Switch(
+                                    value: item.isActive,
+                                    onChanged: (_) => _toggleItemActive(item.equipment),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _StatTable extends StatelessWidget {
+  const _StatTable({required this.stats});
+
+  final StatRow stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const cellWidth = 30.0;
+    final labels = <String>['M', 'F', 'S', 'A', 'W', 'H'];
+    final values = <int>[stats.move, stats.fight, stats.shoot, stats.armour, stats.will, stats.health];
+    if (stats.damage != null) {
+      labels.add('D');
+      values.add(stats.damage!);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: labels.map((l) => SizedBox(
+            width: cellWidth,
+            child: Text(l, textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              )),
+          )).toList(),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Avatar
-            CircleAvatar(
-              backgroundColor: member.isDead
-                  ? theme.colorScheme.error
-                  : member.type == 'ranger'
-                      ? theme.colorScheme.primaryContainer
-                      : theme.colorScheme.secondaryContainer,
-              child: Icon(
-                member.isDead ? Icons.close : member.type == 'ranger' ? Icons.person : Icons.pets,
-                color: member.isDead
-                    ? theme.colorScheme.onError
-                    : member.type == 'ranger'
-                        ? theme.colorScheme.onPrimaryContainer
-                        : theme.colorScheme.onSecondaryContainer,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Name and HP
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    member.name,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      decoration: member.isDead ? TextDecoration.lineThrough : null,
-                    ),
-                  ),
-                  Text(
-                    'HP: ${member.currentHealth}/${member.maxHealth}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: member.currentHealth <= 0
-                          ? theme.colorScheme.error
-                          : member.currentHealth <= member.maxHealth ~/ 3
-                              ? Colors.orange
-                              : null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // HP Controls
-            if (!member.isDead) ...[
-              IconButton(
-                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, -_delta),
-                iconSize: 28,
-              ),
+            for (int i = 0; i < values.length; i++)
               SizedBox(
-                width: 44,
-                child: TextField(
-                  controller: _deltaController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                width: cellWidth,
+                child: Text('${values[i]}', textAlign: TextAlign.center,
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, _delta),
-                iconSize: 28,
-              ),
-            ] else
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'DEAD',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onError,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                    color: stats.damage != null && i >= 6
+                        ? theme.colorScheme.tertiary
+                        : null,
+                  )),
               ),
           ],
         ),
-      ),
+      ],
     );
   }
+}
+
+Map<String, int> _computeEquipMods(List<RangerEquipmentWithName> items) {
+  final stats = <String, int>{};
+  const effectMappings = {
+    'armour_bonus': 'armour',
+    'fight_bonus': 'fight',
+    'fight_penalty': 'fight',
+    'shoot_bonus': 'shoot',
+    'will_bonus': 'will',
+    'will_penalty': 'will',
+    'move_bonus': 'move',
+    'move_penalty': 'move',
+    'damage_modifier': 'damage',
+  };
+  for (final item in items) {
+    if (!item.isActive) continue;
+    try {
+      final effects = item.effects;
+      if (effects.isEmpty) continue;
+      final parsed = Map<String, dynamic>.from(
+        const JsonDecoder().convert(effects) as Map,
+      );
+      for (final entry in effectMappings.entries) {
+        final mod = parsed[entry.key] as int?;
+        if (mod != null) {
+          stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
+        }
+      }
+    } catch (_) {}
+  }
+  return stats;
+}
+
+class StatRow {
+  final int move;
+  final int fight;
+  final int shoot;
+  final int armour;
+  final int will;
+  final int health;
+  final int? damage;
+
+  const StatRow({
+    required this.move,
+    required this.fight,
+    required this.shoot,
+    required this.armour,
+    required this.will,
+    required this.health,
+    this.damage,
+  });
 }
 
 // Creature Panel
@@ -685,7 +1032,7 @@ class _CreatureCardState extends ConsumerState<_CreatureCard> {
                       color: creature.currentHealth <= 0
                           ? theme.colorScheme.error
                           : creature.currentHealth <= creature.maxHealth ~/ 3
-                              ? Colors.orange
+                              ? statusOrange(theme)
                               : theme.colorScheme.error,
                       minHeight: 8,
                     ),
@@ -702,7 +1049,7 @@ class _CreatureCardState extends ConsumerState<_CreatureCard> {
             // HP Controls
             if (!creature.isDead) ...[
               IconButton(
-                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error),
                 onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, -_delta),
                 iconSize: 28,
               ),
@@ -723,7 +1070,7 @@ class _CreatureCardState extends ConsumerState<_CreatureCard> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                icon: Icon(Icons.add_circle_outline, color: statusGreen(theme)),
                 onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, _delta),
                 iconSize: 28,
               ),
@@ -796,27 +1143,27 @@ class _EventTile extends StatelessWidget {
     switch (event.eventType) {
       case 'damage':
         icon = Icons.local_fire_department;
-        color = Colors.red;
+        color = theme.colorScheme.error;
         break;
       case 'heal':
         icon = Icons.favorite;
-        color = Colors.green;
+        color = statusGreen(theme);
         break;
       case 'ability_used':
         icon = Icons.auto_awesome;
-        color = Colors.purple;
+        color = statusPurple(theme);
         break;
       case 'spell_cast':
         icon = Icons.cast;
-        color = Colors.blue;
+        color = statusBlue(theme);
         break;
       case 'skill_roll':
         icon = Icons.casino;
-        color = Colors.orange;
+        color = statusOrange(theme);
         break;
       case 'death':
         icon = Icons.dangerous;
-        color = Colors.red;
+        color = theme.colorScheme.error;
         break;
       default:
         icon = Icons.note;

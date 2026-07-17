@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import '../database/app_database.dart';
 
 class RangerRepository {
@@ -98,6 +99,19 @@ class RangerRepository {
 
   Future<int> deleteRangerEquipment(int id) async {
     return await (_db.delete(_db.rangerEquipment)..where((e) => e.id.equals(id))).go();
+  }
+
+  Future<bool> useEquipmentCharge(int id) async {
+    final item = await (_db.select(_db.rangerEquipment)..where((e) => e.id.equals(id))).getSingleOrNull();
+    if (item == null || item.currentUses == null || item.currentUses! <= 0) return false;
+    final remaining = item.currentUses! - 1;
+    if (remaining <= 0) {
+      await deleteRangerEquipment(id);
+      return true;
+    }
+    await (_db.update(_db.rangerEquipment)..where((e) => e.id.equals(id)))
+      .write(RangerEquipmentCompanion(currentUses: Value(remaining)));
+    return false;
   }
 
   // Equipment lookup

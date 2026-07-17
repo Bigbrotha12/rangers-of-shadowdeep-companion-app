@@ -306,9 +306,9 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
   }
 
   // Update party member health
-  Future<void> updatePartyHealth(int memberId, int delta) async {
+  Future<void> updatePartyHealth(int memberId, String memberType, int delta) async {
     final updatedParty = state.party.map((member) {
-      if (member.id == memberId) {
+      if (member.id == memberId && member.type == memberType) {
         final newHealth = (member.currentHealth + delta).clamp(0, member.maxHealth);
         return member.copyWith(
           currentHealth: newHealth,
@@ -321,7 +321,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     state = state.copyWith(party: updatedParty);
 
     // Log the event
-    final member = updatedParty.firstWhere((m) => m.id == memberId);
+    final member = updatedParty.firstWhere((m) => m.id == memberId && m.type == memberType);
     final eventType = delta > 0 ? 'heal' : 'damage';
     final description = delta > 0
         ? '${member.name} healed for ${delta.abs()} HP'
@@ -331,9 +331,9 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
   }
 
   // Mark party member as having acted
-  void markPartyActed(int memberId) {
+  void markPartyActed(int memberId, String memberType) {
     state = state.copyWith(
-      party: state.party.map((m) => m.id == memberId ? m.copyWith(hasActed: true) : m).toList(),
+      party: state.party.map((m) => m.id == memberId && m.type == memberType ? m.copyWith(hasActed: true) : m).toList(),
     );
   }
 
@@ -415,6 +415,16 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     );
 
     state = state.copyWith(eventLog: [...state.eventLog, logEntry]);
+  }
+
+  // Save current state and prepare for pause
+  Future<void> pauseSession() async {
+    if (state.sessionId == null) return;
+    final repo = _ref.read(sessionRepositoryProvider);
+    final rangerMember = state.party.where((p) => p.type == 'ranger').firstOrNull;
+    if (rangerMember != null) {
+      await repo.updateRangerCurrentHealth(state.rangerId, rangerMember.currentHealth);
+    }
   }
 
   // End session

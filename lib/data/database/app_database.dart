@@ -15,6 +15,8 @@ import 'tables/ranger_equipment.dart';
 import 'tables/injuries.dart';
 import 'tables/sessions.dart';
 import 'tables/session_events.dart';
+import '../../domain/constants/magic_items.dart';
+import '../../domain/constants/herbs_potions.dart';
 
 part 'app_database.g.dart';
 
@@ -36,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +55,12 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(rangerEquipment, rangerEquipment.slotIndex);
+          }
+          if (from < 4) {
+            await m.addColumn(rangerEquipment, rangerEquipment.isActive);
+          }
+          if (from < 5) {
+            await _migrateEquipmentEffects();
           }
         },
       );
@@ -117,26 +125,26 @@ class AppDatabase extends _$AppDatabase {
       (itemKey: 'light_armour', name: 'Light Armour', category: 'basic_armour', description: 'Leather or nonmetal materials. +1 to Armour.', effects: '{"armour_bonus":1}', hasUses: false, maxUses: null),
       (itemKey: 'heavy_armour', name: 'Heavy Armour', category: 'basic_armour', description: 'Mostly metal construction. +2 to Armour, -1 to Move.', effects: '{"armour_bonus":2,"move_penalty":-1}', hasUses: false, maxUses: null),
       // Magic Weapons (sample)
-      (itemKey: 'magic_hand_weapon', name: 'Hand Weapon, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'magic_two_handed_weapon', name: 'Two-Handed Weapon, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'magic_bow', name: 'Bow, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'magic_crossbow', name: 'Crossbow, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'magic_staff', name: 'Staff, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'light_hand_weapon', name: 'Hand Weapon, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"light":true}', hasUses: false, maxUses: null),
-      (itemKey: 'light_two_handed_weapon', name: 'Two-Handed Weapon, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"light":true}', hasUses: false, maxUses: null),
-      (itemKey: 'light_dagger', name: 'Dagger, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"light":true}', hasUses: false, maxUses: null),
-      (itemKey: 'light_throwing_knife', name: 'Throwing Knife, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"light":true}', hasUses: false, maxUses: null),
-      (itemKey: 'brightness_shield', name: 'Shield, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"brightness":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'brightness_light_armour', name: 'Light Armour, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"brightness":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'brightness_heavy_armour', name: 'Heavy Armour, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"brightness":true}', hasUses: true, maxUses: 5),
-      (itemKey: 'elemental_strike_hand', name: 'Hand Weapon, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"elemental_strike":5}', hasUses: true, maxUses: 3),
-      (itemKey: 'elemental_strike_two_handed', name: 'Two-Handed Weapon, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"elemental_strike":5}', hasUses: true, maxUses: 3),
-      (itemKey: 'elemental_strike_staff', name: 'Staff, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"elemental_strike":5}', hasUses: true, maxUses: 3),
-      (itemKey: 'blocking_shield', name: 'Shield, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"blocking":true}', hasUses: true, maxUses: 1),
-      (itemKey: 'blocking_light_armour', name: 'Light Armour, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"blocking":true}', hasUses: true, maxUses: 1),
-      (itemKey: 'blocking_heavy_armour', name: 'Heavy Armour, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"blocking":true}', hasUses: true, maxUses: 1),
-      (itemKey: 'blocking_hand_weapon', name: 'Hand Weapon, Blocking', category: 'magic_weapon', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"blocking":true}', hasUses: true, maxUses: 1),
-      (itemKey: 'blocking_two_handed_weapon', name: 'Two-Handed Weapon, Blocking', category: 'magic_weapon', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"blocking":true}', hasUses: true, maxUses: 1),
+      (itemKey: 'magic_hand_weapon', name: 'Hand Weapon, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"damage_modifier":0,"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'magic_two_handed_weapon', name: 'Two-Handed Weapon, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"damage_modifier":2,"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'magic_bow', name: 'Bow, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"damage_modifier":0,"range":24,"reload":"single_action","requires":"quiver","fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'magic_crossbow', name: 'Crossbow, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"damage_modifier":2,"range":24,"reload":"load_and_fire","requires":"quiver","fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'magic_staff', name: 'Staff, Magic', category: 'magic_weapon', description: 'Counts as magic and gives +1 Fight for rest of game when activated.', effects: '{"damage_modifier":-1,"opponent_damage_modifier":-1,"fight_bonus":1,"magic":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'light_hand_weapon', name: 'Hand Weapon, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"damage_modifier":0,"light":true}', hasUses: false, maxUses: null),
+      (itemKey: 'light_two_handed_weapon', name: 'Two-Handed Weapon, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"damage_modifier":2,"light":true}', hasUses: false, maxUses: null),
+      (itemKey: 'light_dagger', name: 'Dagger, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"damage_modifier":-1,"light":true}', hasUses: false, maxUses: null),
+      (itemKey: 'light_throwing_knife', name: 'Throwing Knife, Light', category: 'magic_weapon', description: 'Does not take up an item slot.', effects: '{"damage_modifier":-1,"range":8,"shots_per_game":1,"light":true}', hasUses: false, maxUses: null),
+      (itemKey: 'brightness_shield', name: 'Shield, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"armour_bonus":1,"brightness":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'brightness_light_armour', name: 'Light Armour, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"armour_bonus":1,"brightness":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'brightness_heavy_armour', name: 'Heavy Armour, Brightness', category: 'magic_armour', description: 'Add +5 to Fight Roll when targeted by shooting attack.', effects: '{"armour_bonus":2,"move_penalty":-1,"brightness":true}', hasUses: true, maxUses: 5),
+      (itemKey: 'elemental_strike_hand', name: 'Hand Weapon, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"damage_modifier":0,"elemental_strike":5}', hasUses: true, maxUses: 3),
+      (itemKey: 'elemental_strike_two_handed', name: 'Two-Handed Weapon, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"damage_modifier":2,"elemental_strike":5}', hasUses: true, maxUses: 3),
+      (itemKey: 'elemental_strike_staff', name: 'Staff, Elemental Strike', category: 'magic_weapon', description: 'Additional 5 points of elemental magic damage when winning fight.', effects: '{"damage_modifier":-1,"opponent_damage_modifier":-1,"elemental_strike":5}', hasUses: true, maxUses: 3),
+      (itemKey: 'blocking_shield', name: 'Shield, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"armour_bonus":1,"blocking":true}', hasUses: true, maxUses: 1),
+      (itemKey: 'blocking_light_armour', name: 'Light Armour, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"armour_bonus":1,"blocking":true}', hasUses: true, maxUses: 1),
+      (itemKey: 'blocking_heavy_armour', name: 'Heavy Armour, Blocking', category: 'magic_armour', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"armour_bonus":2,"move_penalty":-1,"blocking":true}', hasUses: true, maxUses: 1),
+      (itemKey: 'blocking_hand_weapon', name: 'Hand Weapon, Blocking', category: 'magic_weapon', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"damage_modifier":0,"blocking":true}', hasUses: true, maxUses: 1),
+      (itemKey: 'blocking_two_handed_weapon', name: 'Two-Handed Weapon, Blocking', category: 'magic_weapon', description: 'Block the blow when losing a fight. Take no damage.', effects: '{"damage_modifier":2,"blocking":true}', hasUses: true, maxUses: 1),
       // Magic Items (sample)
       (itemKey: 'gemstone_spellfire', name: 'Gemstone of Spellfire', category: 'magic_item', description: 'Cast one spell without expending it for the scenario.', effects: '{"re_cast_spell":true}', hasUses: true, maxUses: 1),
       (itemKey: 'sunfire_pendant', name: 'Sunfire Pendant', category: 'magic_item', description: 'Attacks vs undead count as magic. Undead in combat suffer -2 Fight and -2 Armour.', effects: '{"undead_magic":true,"undead_penalty":-2}', hasUses: true, maxUses: 3),
@@ -158,6 +166,16 @@ class AppDatabase extends _$AppDatabase {
       (itemKey: 'spell_shield_pendant', name: 'Spell-shield Pendant', category: 'magic_item', description: 'Cancel a spell after failing Will Roll.', effects: '{"cancel_spell":true}', hasUses: true, maxUses: 1),
       (itemKey: 'fireball_orb', name: 'Fireball Orb', category: 'magic_item', description: '+5 elemental magic shooting attack to all figures within 2" of impact point.', effects: '{"fireball_damage":5,"radius":2}', hasUses: true, maxUses: 1),
       (itemKey: 'fate_stone', name: 'Fate Stone', category: 'magic_item', description: 'Re-roll any one die roll.', effects: '{"reroll":true}', hasUses: true, maxUses: 1),
+      // Herbs and Potions
+      ...herbsAndPotions.map((h) => (
+        itemKey: h.key,
+        name: h.name,
+        category: 'herb_potion',
+        description: h.description,
+        effects: h.effects,
+        hasUses: true,
+        maxUses: 1,
+      )),
     ];
 
     await batch((batch) {
@@ -174,6 +192,16 @@ class AppDatabase extends _$AppDatabase {
             )),
       );
     });
+  }
+
+  // Migrate existing equipment effects to include basic equipment stats
+  Future<void> _migrateEquipmentEffects() async {
+    for (final item in magicItemsList) {
+      await (update(equipment)..where((e) => e.itemKey.equals(item.key)))
+        .write(EquipmentCompanion(
+          effects: Value(item.effects),
+        ));
+    }
   }
 }
 

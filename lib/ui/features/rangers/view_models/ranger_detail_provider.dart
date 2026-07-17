@@ -9,6 +9,7 @@ class RangerEquipmentWithName {
   final String category;
   final String effects;
   final int? slotIndex;
+  final bool isActive;
 
   RangerEquipmentWithName({
     required this.equipment,
@@ -16,6 +17,7 @@ class RangerEquipmentWithName {
     required this.category,
     required this.effects,
     this.slotIndex,
+    this.isActive = true,
   });
 }
 
@@ -63,6 +65,7 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
         category: equipmentData?.category ?? 'unknown',
         effects: equipmentData?.effects ?? '{}',
         slotIndex: item.slotIndex,
+        isActive: item.isActive,
       ));
     }
 

@@ -65,16 +65,11 @@ coverage/
 .env.*.local
 *.local
 
-# SSH config (contains private key references)
-config
-
 # Reference material
 references/
 
 # AI tool configs
 opencode.json
-
-
 
 # Crash/profiling
 *.crash

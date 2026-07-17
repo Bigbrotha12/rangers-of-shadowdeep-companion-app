@@ -4,6 +4,7 @@ import '../../../../domain/constants/companion_progression.dart';
 import '../../../../domain/constants/skills.dart';
 import '../../../../domain/constants/heroic_abilities.dart';
 import '../view_models/companion_provider.dart';
+import '../../../core/theme/app_colors.dart';
 
 class CompanionProgressionView extends ConsumerWidget {
   const CompanionProgressionView({
@@ -514,7 +515,7 @@ class _TimelineItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isClaimed
-                    ? Colors.green
+                    ? statusGreen(theme)
                     : isAchieved
                         ? theme.colorScheme.primary
                         : theme.colorScheme.surfaceContainerHighest,
@@ -529,7 +530,7 @@ class _TimelineItem extends StatelessWidget {
                   ? Icon(
                       Icons.check,
                       size: 16,
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                     )
                   : isAchieved
                       ? Icon(
@@ -564,7 +565,7 @@ class _TimelineItem extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: isAchieved ? FontWeight.bold : FontWeight.normal,
                   color: isClaimed
-                      ? Colors.green
+                      ? statusGreen(theme)
                       : isAchieved
                           ? theme.colorScheme.onSurface
                           : theme.colorScheme.onSurfaceVariant,
@@ -592,13 +593,13 @@ class _TimelineItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
+                    color: statusGreen(theme).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'CLAIMED',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.green,
+                      color: statusGreen(theme),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

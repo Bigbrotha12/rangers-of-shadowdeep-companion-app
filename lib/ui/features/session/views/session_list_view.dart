@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../data/database/app_database.dart' show Session;
 import '../view_models/session_provider.dart';
+import '../../../core/theme/app_colors.dart';
 
 class SessionListView extends ConsumerWidget {
   const SessionListView({super.key});
@@ -17,6 +18,7 @@ class SessionListView extends ConsumerWidget {
         title: const Text('Game Sessions'),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'sessions_fab',
         onPressed: () => context.push('/session/setup'),
         icon: const Icon(Icons.play_arrow),
         label: const Text('New Session'),
@@ -150,7 +152,7 @@ class _SessionCard extends StatelessWidget {
 
     switch (session.outcome) {
       case 'victory':
-        outcomeColor = Colors.green;
+        outcomeColor = statusGreen(theme);
         outcomeIcon = Icons.emoji_events;
         outcomeText = 'Victory';
         break;
@@ -160,7 +162,7 @@ class _SessionCard extends StatelessWidget {
         outcomeText = 'Defeat';
         break;
       case 'partial':
-        outcomeColor = Colors.orange;
+        outcomeColor = statusOrange(theme);
         outcomeIcon = Icons.trending_up;
         outcomeText = 'Partial';
         break;
@@ -350,10 +352,10 @@ class _SessionSummarySheet extends ConsumerWidget {
                     label: 'Outcome',
                     value: session.outcome.toUpperCase(),
                     valueColor: session.outcome == 'victory'
-                        ? Colors.green
+                        ? statusGreen(theme)
                         : session.outcome == 'defeat'
                             ? theme.colorScheme.error
-                            : Colors.orange,
+                            : statusOrange(theme),
                   ),
 
                 _SummaryRow(
