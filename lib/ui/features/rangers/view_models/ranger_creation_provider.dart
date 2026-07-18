@@ -12,7 +12,7 @@ class RangerCreationState {
   final int totalBuildPoints;
   final Map<String, int> statBonuses; // stat key -> bonus value (max 1 per stat)
   final List<String> selectedHeroicAbilities;
-  final List<String> selectedSpells;
+  final Map<String, int> selectedSpells;
   final Map<String, int> skillBonuses; // skill key -> bonus value
   final int recruitmentPointsBonus; // +10 RP per BP spent
 
@@ -26,7 +26,7 @@ class RangerCreationState {
     this.totalBuildPoints = 10,
     this.statBonuses = const {},
     this.selectedHeroicAbilities = const [],
-    this.selectedSpells = const [],
+    this.selectedSpells = const {},
     this.skillBonuses = const {},
     this.recruitmentPointsBonus = 0,
     this.selectedEquipment = const [],
@@ -37,7 +37,8 @@ class RangerCreationState {
   int get statPointsSpent => statBonuses.values.fold(0, (sum, v) => sum + v);
 
   int get abilityPointsSpent =>
-      selectedHeroicAbilities.length + selectedSpells.length;
+      selectedHeroicAbilities.length +
+      selectedSpells.values.fold(0, (sum, v) => sum + v);
 
   int get skillPointsSpent {
     if (skillBonuses.isEmpty) return 0;
@@ -202,14 +203,21 @@ class RangerCreationNotifier extends StateNotifier<RangerCreationState> {
 
   // Spells: 1 BP each, max 5 BP
   bool toggleSpell(String spellKey) {
-    if (state.selectedSpells.contains(spellKey)) {
-      final newSpells = List<String>.from(state.selectedSpells);
-      newSpells.remove(spellKey);
+    final currentCount = state.selectedSpells[spellKey] ?? 0;
+    if (currentCount > 0 && !state.canSpendOnAbilities) {
+      // Remove one copy when at BP limit
+      final newSpells = Map<String, int>.from(state.selectedSpells);
+      if (currentCount <= 1) {
+        newSpells.remove(spellKey);
+      } else {
+        newSpells[spellKey] = currentCount - 1;
+      }
       _updateState(selectedSpells: newSpells);
       return true;
     } else if (state.canSpendOnAbilities) {
-      final newSpells = List<String>.from(state.selectedSpells);
-      newSpells.add(spellKey);
+      // Add one copy
+      final newSpells = Map<String, int>.from(state.selectedSpells);
+      newSpells[spellKey] = currentCount + 1;
       _updateState(selectedSpells: newSpells);
       return true;
     }
@@ -287,7 +295,7 @@ class RangerCreationNotifier extends StateNotifier<RangerCreationState> {
   void _updateState({
     Map<String, int>? statBonuses,
     List<String>? selectedHeroicAbilities,
-    List<String>? selectedSpells,
+    Map<String, int>? selectedSpells,
     Map<String, int>? skillBonuses,
     int? recruitmentPointsBonus,
     List<String>? selectedEquipment,

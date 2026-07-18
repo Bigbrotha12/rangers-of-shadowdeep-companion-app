@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
@@ -29,6 +31,8 @@ class RangerDetail {
   final List<RangerSkill> skillBonuses;
   final List<RangerEquipmentWithName> equipment;
   final List<RangerCompanion> companions;
+  final List<String> statusEffects;
+  final List<String> permanentInjuryKeys;
 
   RangerDetail({
     required this.ranger,
@@ -36,6 +40,8 @@ class RangerDetail {
     required this.skillBonuses,
     required this.equipment,
     required this.companions,
+    this.statusEffects = const [],
+    this.permanentInjuryKeys = const [],
   });
 
   List<RangerAbility> get heroicAbilities =>
@@ -81,11 +87,25 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
       ));
     }
 
+  // Parse status effects from JSON column
+  final statusEffects = List<String>.from(
+    jsonDecode(ranger.statusEffects) as List? ?? [],
+  );
+
+  // Parse permanent injury keys from notes
+  final notes = ranger.notes;
+  final injuryRegex = RegExp(r'\[Injury\]\s*(\w+(?:_\w+)*)');
+  final permanentInjuryKeys = injuryRegex.allMatches(notes)
+      .map((m) => m.group(1)!)
+      .toList();
+
   return RangerDetail(
     ranger: ranger,
     abilities: abilities,
     skillBonuses: skillBonuses,
     equipment: equipment,
     companions: companions,
+    statusEffects: statusEffects,
+    permanentInjuryKeys: permanentInjuryKeys,
   );
 });

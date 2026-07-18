@@ -18,4 +18,5 @@ class RangerCompanions extends Table {
   IntColumn get bonusHealth => integer().withDefault(const Constant(0))();
   TextColumn get heroicAbilityKeys => text().withDefault(const Constant('[]'))();
   TextColumn get spellKeys => text().withDefault(const Constant('[]'))();
+  TextColumn get statusEffects => text().withDefault(const Constant('[]'))();
 }

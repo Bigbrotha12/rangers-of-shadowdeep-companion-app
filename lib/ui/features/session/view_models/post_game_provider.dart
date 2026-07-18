@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:math' show Random;
+import 'dart:math' show Random, max;
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart' hide CompanionType;
@@ -9,10 +9,12 @@ import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
 import '../../../../data/services/post_game_service.dart';
 import '../../../../domain/constants/experience_table.dart' show LevelBonusType, getStatMaxValue;
-import '../../../../domain/constants/permanent_injuries.dart' show PermanentInjury;
+import '../../../../domain/constants/permanent_injuries.dart' show PermanentInjury, canApplyInjury;
 import '../../../../domain/constants/companion_progression.dart' show ProgressionReward, getUnclaimedRewards;
 
 enum SurvivalOutcomeState { pending, rolled }
+
+const _Unset = Object();
 
 class SurvivalTargetState {
   final int id;
@@ -233,15 +235,15 @@ class PostGameState {
     int? oldLevel,
     int? newLevel,
     bool? didLevelUp,
-    LevelBonusType? bonusType,
+    Object? bonusType = _Unset,
     Map<String, int>? skillAllocations,
     int? remainingSkillPoints,
-    String? selectedStat,
-    String? selectedHeroicAbility,
+    Object? selectedStat = _Unset,
+    Object? selectedHeroicAbility = _Unset,
     List<RangerSkill>? rangerSkills,
     List<RangerAbility>? rangerAbilities,
     bool? levelUpApplied,
-    Ranger? ranger,
+    Object? ranger = _Unset,
     List<CompanionPpState>? companionPpGains,
     int? treasureCount,
     List<TreasureResultState>? treasureResults,
@@ -264,15 +266,15 @@ class PostGameState {
       oldLevel: oldLevel ?? this.oldLevel,
       newLevel: newLevel ?? this.newLevel,
       didLevelUp: didLevelUp ?? this.didLevelUp,
-      bonusType: bonusType ?? this.bonusType,
+      bonusType: identical(bonusType, _Unset) ? this.bonusType : bonusType as LevelBonusType?,
       skillAllocations: skillAllocations ?? this.skillAllocations,
       remainingSkillPoints: remainingSkillPoints ?? this.remainingSkillPoints,
-      selectedStat: selectedStat ?? this.selectedStat,
-      selectedHeroicAbility: selectedHeroicAbility ?? this.selectedHeroicAbility,
+      selectedStat: identical(selectedStat, _Unset) ? this.selectedStat : selectedStat as String?,
+      selectedHeroicAbility: identical(selectedHeroicAbility, _Unset) ? this.selectedHeroicAbility : selectedHeroicAbility as String?,
       rangerSkills: rangerSkills ?? this.rangerSkills,
       rangerAbilities: rangerAbilities ?? this.rangerAbilities,
       levelUpApplied: levelUpApplied ?? this.levelUpApplied,
-      ranger: ranger ?? this.ranger,
+      ranger: identical(ranger, _Unset) ? this.ranger : ranger as Ranger?,
       companionPpGains: companionPpGains ?? this.companionPpGains,
       treasureCount: treasureCount ?? this.treasureCount,
       treasureResults: treasureResults ?? this.treasureResults,
@@ -684,9 +686,16 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
       }
     }
 
-    // Heal ranger to full after stat improvements
+    // Heal ranger to full after stat improvements, except for badly wounded
     if (ranger != null) {
-      await sessionRepo.updateRangerCurrentHealth(state!.rangerId, ranger.health);
+      final badlyWounded = state!.survivalTargets
+          .any((t) => t.isRanger && t.result == SurvivalResult.badlyWounded);
+      if (badlyWounded) {
+        final reducedHealth = max(1, ranger.health - 5);
+        await sessionRepo.updateRangerCurrentHealth(state!.rangerId, reducedHealth);
+      } else {
+        await sessionRepo.updateRangerCurrentHealth(state!.rangerId, ranger.health);
+      }
     }
 
     // ── Process survival outcomes ───────────────────────────
@@ -718,8 +727,14 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
           } catch (_) {}
 
           if (target.result == SurvivalResult.permanentInjury && target.injury != null) {
-            injuries.add(target.injury!.key);
+            if (canApplyInjury(injuries, target.injury!.key)) {
+              injuries.add(target.injury!.key);
+            }
           }
+
+          final newBonusHealth = target.result == SurvivalResult.badlyWounded
+              ? max(-5, existing.bonusHealth - 5)
+              : existing.bonusHealth;
 
           await companionRepo.updateCompanion(RangerCompanionsCompanion(
             id: Value(existing.id),
@@ -733,7 +748,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
             isActive: Value(existing.isActive),
             claimedProgressionRewards: Value(existing.claimedProgressionRewards),
             hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
-            bonusHealth: Value(existing.bonusHealth),
+            bonusHealth: Value(newBonusHealth),
             heroicAbilityKeys: Value(existing.heroicAbilityKeys),
             spellKeys: Value(existing.spellKeys),
 
@@ -802,6 +817,19 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
           notes: Value('${ranger.notes}$itemsNote'),
         ));
+      }
+    }
+
+    // ── Process Close Call equipment stripping ────────────────
+    final hasCloseCall = state!.survivalTargets
+        .any((t) => t.result == SurvivalResult.closeCall);
+    if (hasCloseCall) {
+      final equipment = await rangerRepo.getRangerEquipment(state!.rangerId);
+      for (final eq in equipment) {
+        final eqDef = await rangerRepo.getEquipmentById(eq.equipmentId);
+        if (eqDef != null && !eqDef.category.startsWith('basic_')) {
+          await rangerRepo.deleteRangerEquipment(eq.id);
+        }
       }
     }
 

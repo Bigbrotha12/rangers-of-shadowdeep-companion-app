@@ -8,6 +8,9 @@ import '../../../../domain/constants/heroic_abilities.dart';
 import '../../../../domain/constants/spells.dart';
 import '../../../../domain/constants/skills.dart';
 import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import '../../../../domain/constants/status_effects.dart';
+import '../../../../domain/constants/permanent_injuries.dart';
+import '../../../../domain/services/stat_calculation_service.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../core/widgets/stat_display.dart';
@@ -189,7 +192,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
             ],
           ),
           body: DefaultTabController(
-            length: 5,
+            length: 6,
             child: Column(
               children: [
                 _RangerHeader(ranger: ranger),
@@ -198,6 +201,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                   labelPadding: EdgeInsets.only(left: 8, right: 16),
                   tabs: [
                     Tab(text: 'Stats'),
+                    Tab(text: 'Injuries'),
                     Tab(text: 'Abilities'),
                     Tab(text: 'Skills'),
                     Tab(text: 'Equipment'),
@@ -212,6 +216,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                         statModifiers: _computeStatModifiers(ranger),
                         onEditNotes: () => _showNotesDialog(context, ref, ranger),
                       ),
+                      _InjuriesTab(ranger: ranger, rangerId: widget.rangerId),
                       _AbilitiesTab(ranger: ranger),
                       _SkillsTab(ranger: ranger),
                       _EquipmentTab(
@@ -544,6 +549,188 @@ class _StatsTab extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InjuriesTab extends ConsumerWidget {
+  const _InjuriesTab({required this.ranger, required this.rangerId});
+
+  final RangerDetail ranger;
+  final int rangerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final injuryKeys = ranger.permanentInjuryKeys;
+    final statusEffectKeys = ranger.statusEffects;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // ── Permanent Injuries Section ──
+        Text('Permanent Injuries',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        if (injuryKeys.isEmpty && !ranger.ranger.notes.contains('[Injury]'))
+          Card(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Icon(Icons.check_circle, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Text('No permanent injuries.'),
+            ]),
+          ))
+        else ...[
+          ...injuryKeys.map((key) {
+            final injury = permanentInjuries.where((i) => i.key == key).firstOrNull;
+            return Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: Icon(Icons.warning_amber, color: theme.colorScheme.error),
+                title: Text(injury?.name ?? key.replaceAll('_', ' ')),
+                subtitle: Text(injury?.effect ?? ''),
+              ),
+            );
+          }),
+          if (ranger.ranger.notes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Notes', style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    )),
+                    const SizedBox(height: 4),
+                    Text(ranger.ranger.notes, style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+
+        const Divider(height: 32),
+
+        // ── Temporary Status Effects Section ──
+        Text('Active Status Effects',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        if (statusEffectKeys.isEmpty)
+          Card(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('No active status effects.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant)),
+          ))
+        else
+          ...statusEffectKeys.map((key) {
+            final effect = getStatusEffect(key);
+            return Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: Icon(
+                  effect?.category == StatusEffectCategory.positive
+                    ? Icons.arrow_upward : Icons.arrow_downward,
+                  color: effect?.category == StatusEffectCategory.positive
+                    ? Colors.green : theme.colorScheme.error,
+                ),
+                title: Text(effect?.name ?? key),
+                subtitle: Text(effect?.description ?? ''),
+              ),
+            );
+          }),
+
+        const SizedBox(height: 16),
+
+        // ── Effective Stat Penalties Summary ──
+        Text('Penalty Summary',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _penaltyRow('Move', computeStatPenalty('move',
+                  permanentInjuryKeys: injuryKeys,
+                  statusEffectKeys: statusEffectKeys,
+                )),
+                _penaltyRow('Fight', computeStatPenalty('fight',
+                  permanentInjuryKeys: injuryKeys,
+                  statusEffectKeys: statusEffectKeys,
+                )),
+                _penaltyRow('Shoot', computeStatPenalty('shoot',
+                  permanentInjuryKeys: injuryKeys,
+                  statusEffectKeys: statusEffectKeys,
+                )),
+                _penaltyRow('Will', computeStatPenalty('will',
+                  permanentInjuryKeys: injuryKeys,
+                  statusEffectKeys: statusEffectKeys,
+                )),
+                _penaltyRow('Health', computeStatPenalty('health',
+                  permanentInjuryKeys: injuryKeys,
+                  statusEffectKeys: statusEffectKeys,
+                )),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // ── Special Rules Summary ──
+        Text('Active Special Rules',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Builder(builder: (_) {
+          final rules = getActiveSpecialRules(
+            permanentInjuryKeys: injuryKeys,
+            statusEffectKeys: statusEffectKeys,
+          );
+          if (rules.isEmpty) {
+            return Text('None.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant));
+          }
+          return Column(
+            children: rules.map((rule) => Card(
+              margin: const EdgeInsets.only(bottom: 4),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18, color: theme.colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(rule.replaceAll('_', ' '))),
+                  ],
+                ),
+              ),
+            )).toList(),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _penaltyRow(String label, int penalty) {
+    final display = penalty >= 0 ? '+$penalty' : '$penalty';
+    final isNegative = penalty < 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          SizedBox(width: 60, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500))),
+          Text(display, style: TextStyle(
+            color: isNegative ? Colors.red : Colors.green,
+            fontWeight: FontWeight.bold,
+          )),
         ],
       ),
     );

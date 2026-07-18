@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -186,6 +188,9 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
       final companionRows = await companionRepo.getCompanionsByRanger(_selectedRangerId!);
 
       // Build party
+      final rangerEffects = List<String>.from(
+        jsonDecode(ranger.statusEffects) as List? ?? [],
+      );
       final party = <PartyMemberState>[
         PartyMemberState(
           id: ranger.id,
@@ -193,16 +198,21 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
           type: 'ranger',
           currentHealth: ranger.currentHealth,
           maxHealth: ranger.health,
+          statusEffects: rangerEffects,
         ),
       ];
 
       for (final comp in companionRows) {
+        final compEffects = List<String>.from(
+          jsonDecode(comp.statusEffects) as List? ?? [],
+        );
         party.add(PartyMemberState(
           id: comp.id,
           name: comp.customName,
           type: 'companion',
           currentHealth: 1 + comp.bonusHealth,
           maxHealth: 1 + comp.bonusHealth,
+          statusEffects: compEffects,
         ));
       }
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart';
@@ -5,6 +7,7 @@ import '../../../../data/repositories/session_repository_provider.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
 import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import '../../../../domain/constants/status_effects.dart' show getStatusEffect;
 
 // Session phases
 enum SessionPhase { ranger, creature, companion, event }
@@ -53,6 +56,7 @@ class PartyMemberState {
   final bool hasActed;
   final bool carryingTreasure;
   final Map<String, bool> usedAbilities; // abilityKey → used this scenario
+  final List<String> statusEffects;
 
   const PartyMemberState({
     required this.id,
@@ -64,6 +68,7 @@ class PartyMemberState {
     this.hasActed = false,
     this.carryingTreasure = false,
     this.usedAbilities = const {},
+    this.statusEffects = const [],
   });
 
   PartyMemberState copyWith({
@@ -76,6 +81,7 @@ class PartyMemberState {
     bool? hasActed,
     bool? carryingTreasure,
     Map<String, bool>? usedAbilities,
+    List<String>? statusEffects,
   }) {
     return PartyMemberState(
       id: id ?? this.id,
@@ -87,6 +93,7 @@ class PartyMemberState {
       hasActed: hasActed ?? this.hasActed,
       carryingTreasure: carryingTreasure ?? this.carryingTreasure,
       usedAbilities: usedAbilities ?? this.usedAbilities,
+      statusEffects: statusEffects ?? this.statusEffects,
     );
   }
 }
@@ -245,24 +252,32 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     // Build party from ranger + companions
     final party = <PartyMemberState>[];
     if (ranger != null) {
+      final rangerEffects = List<String>.from(
+        jsonDecode(ranger.statusEffects) as List? ?? [],
+      );
       party.add(PartyMemberState(
         id: ranger.id,
         name: ranger.name,
         type: 'ranger',
         currentHealth: ranger.currentHealth,
         maxHealth: ranger.health,
+        statusEffects: rangerEffects,
       ));
     }
     for (final comp in companions) {
       final typeKey = companionTypeKeyFromId(comp.companionTypeId);
       final type = getCompanionType(typeKey);
       final baseHealth = type?.health ?? 10;
+      final compEffects = List<String>.from(
+        jsonDecode(comp.statusEffects) as List? ?? [],
+      );
       party.add(PartyMemberState(
         id: comp.id,
         name: comp.customName,
         type: 'companion',
         currentHealth: baseHealth + comp.bonusHealth,
         maxHealth: baseHealth + comp.bonusHealth,
+        statusEffects: compEffects,
       ));
     }
 
@@ -357,6 +372,60 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
         return m;
       }).toList(),
     );
+  }
+
+  // Update status effects for a party member
+  void updateMemberStatusEffects(int memberId, String memberType, List<String> effects) {
+    state = state.copyWith(
+      party: state.party.map((m) {
+        if (m.id == memberId && m.type == memberType) {
+          return m.copyWith(statusEffects: effects);
+        }
+        return m;
+      }).toList(),
+    );
+  }
+
+  // Apply a status effect to a party member (no duplicate)
+  Future<void> applyStatusEffectToMember(int memberId, String memberType, String effectKey) async {
+    final member = state.party.where(
+      (m) => m.id == memberId && m.type == memberType,
+    ).firstOrNull;
+    if (member == null) return;
+    if (member.statusEffects.contains(effectKey)) return;
+
+    final effectName = _getStatusEffectName(effectKey);
+    updateMemberStatusEffects(memberId, memberType, [...member.statusEffects, effectKey]);
+    await _logEvent('status_effect', 'Applied $effectName to ${member.name}', member.name);
+  }
+
+  // Remove a status effect from a party member
+  Future<void> removeStatusEffectFromMember(int memberId, String memberType, String effectKey) async {
+    final member = state.party.where(
+      (m) => m.id == memberId && m.type == memberType,
+    ).firstOrNull;
+    if (member == null) return;
+
+    final effectName = _getStatusEffectName(effectKey);
+    updateMemberStatusEffects(memberId, memberType,
+      member.statusEffects.where((k) => k != effectKey).toList(),
+    );
+    await _logEvent('status_effect', 'Removed $effectName from ${member.name}', member.name);
+  }
+
+  String _getStatusEffectName(String key) {
+    // Imported lazily via domain constants — simple name map
+    const names = {
+      'poisoned': 'Poisoned',
+      'diseased': 'Diseased',
+      'hunger_1': 'Hunger/Thirst (1)',
+      'hunger_2': 'Hunger/Thirst (2)',
+      'hunger_3': 'Hunger/Thirst (3)',
+      'exhausted': 'Exhausted',
+      'blessed': 'Blessed',
+      'cursed': 'Cursed',
+    };
+    return names[key] ?? key.replaceAll('_', ' ');
   }
 
   // Toggle whether a party member is carrying a treasure
@@ -481,6 +550,37 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     final rangerMember = state.party.where((p) => p.type == 'ranger').firstOrNull;
     if (rangerMember != null) {
       await repo.updateRangerCurrentHealth(state.rangerId, rangerMember.currentHealth);
+    }
+
+    // Persist non-temporary status effects (e.g. hunger carries forward)
+    for (final member in state.party) {
+      final persistentEffects = member.statusEffects.where((key) {
+        final effect = getStatusEffect(key);
+        return effect != null && !effect.isTemporary;
+      }).toList();
+
+      if (member.type == 'ranger') {
+        await _ref.read(rangerRepositoryProvider).updateRangerFields(
+          member.id,
+          RangersCompanion(
+            statusEffects: Value(jsonEncode(persistentEffects)),
+          ),
+        );
+      } else {
+        final existing = await _ref.read(companionRepositoryProvider).getCompanionById(member.id);
+        if (existing != null) {
+          final currentDbEffects = List<String>.from(
+            jsonDecode(existing.statusEffects) as List? ?? [],
+          );
+          final merged = <String>{...currentDbEffects, ...persistentEffects}.toList();
+          await _ref.read(companionRepositoryProvider).updateCompanion(
+            RangerCompanionsCompanion(
+              id: Value(member.id),
+              statusEffects: Value(jsonEncode(merged)),
+            ),
+          );
+        }
+      }
     }
 
     state = state.copyWith(isCompleted: true);

@@ -394,7 +394,8 @@ class _AbilitiesSectionState extends ConsumerState<_AbilitiesSection> {
         Card(
           child: Column(
             children: spells.map((spell) {
-              final isSelected = state.selectedSpells.contains(spell.key);
+              final count = state.selectedSpells[spell.key] ?? 0;
+              final isSelected = count > 0;
               final canSelect = state.canSpendOnAbilities || isSelected;
               final isExpanded = _expandedKeys.contains(spell.key);
 
@@ -451,7 +452,7 @@ class _AbilitiesSectionState extends ConsumerState<_AbilitiesSection> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    '${state.selectedSpells.where((s) => s == spell.key).length}x',
+                                    '${count}x',
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),

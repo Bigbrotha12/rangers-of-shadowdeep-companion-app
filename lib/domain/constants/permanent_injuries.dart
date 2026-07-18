@@ -82,6 +82,14 @@ const List<PermanentInjury> permanentInjuries = [
   ),
 ];
 
+/// Returns true if [injuryKey] can be applied to [currentInjuries] without
+/// exceeding its [PermanentInjury.maxTimesReceived].
+bool canApplyInjury(List<String> currentInjuries, String injuryKey) {
+  final injuryDef = permanentInjuries.where((i) => i.key == injuryKey).firstOrNull;
+  final maxTimes = injuryDef?.maxTimesReceived ?? 2;
+  return currentInjuries.where((k) => k == injuryKey).length < maxTimes;
+}
+
 /// Roll on the Permanent Injury Table (d20)
 /// Returns the injury key based on die roll
 String rollPermanentInjury(int d20) {

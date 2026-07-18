@@ -7,7 +7,4 @@ class RangerAbilities extends Table {
   TextColumn get abilityType => text()(); // 'heroic_ability' or 'spell'
   TextColumn get abilityKey => text()();
   BoolColumn get isUsedThisScenario => boolean().withDefault(const Constant(false))();
-
-  @override
-  List<Set<Column>> get uniqueKeys => [{rangerId, abilityKey}];
 }

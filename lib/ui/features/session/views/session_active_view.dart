@@ -13,6 +13,9 @@ import '../../../../domain/constants/companion_types.dart';
 import '../../../../domain/constants/heroic_abilities.dart';
 import '../../../../domain/constants/spells.dart';
 import '../../../../domain/constants/skills.dart';
+import '../../../../domain/constants/status_effects.dart';
+import '../../../../domain/constants/permanent_injuries.dart';
+import '../../../../domain/services/stat_calculation_service.dart';
 
 class SessionActiveView extends ConsumerStatefulWidget {
   const SessionActiveView({required this.sessionId, super.key});
@@ -547,14 +550,44 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
         // ── Stats computation ──
         final equipMods = _computeEquipMods(memberEquip);
         StatRow stats;
+
+        // Compute combined penalties from both permanent injuries (parsed from notes)
+        // and active status effects
+        final rangerInjuryKeys = (ranger.ranger.notes.contains('[Injury]'))
+            ? RegExp(r'\[Injury\]\s*(\w+(?:_\w+)*)')
+                .allMatches(ranger.ranger.notes)
+                .map((m) => m.group(1)!)
+                .toList()
+            : <String>[];
+
         if (member.type == 'ranger') {
+          final seMove = computeStatPenalty('move',
+            permanentInjuryKeys: rangerInjuryKeys,
+            statusEffectKeys: member.statusEffects,
+          );
+          final seFight = computeStatPenalty('fight',
+            permanentInjuryKeys: rangerInjuryKeys,
+            statusEffectKeys: member.statusEffects,
+          );
+          final seShoot = computeStatPenalty('shoot',
+            permanentInjuryKeys: rangerInjuryKeys,
+            statusEffectKeys: member.statusEffects,
+          );
+          final seWill = computeStatPenalty('will',
+            permanentInjuryKeys: rangerInjuryKeys,
+            statusEffectKeys: member.statusEffects,
+          );
+          final seHealth = computeStatPenalty('health',
+            permanentInjuryKeys: rangerInjuryKeys,
+            statusEffectKeys: member.statusEffects,
+          );
           stats = StatRow(
-            move: ranger.ranger.move + (equipMods['move'] ?? 0),
-            fight: ranger.ranger.fight + (equipMods['fight'] ?? 0),
-            shoot: ranger.ranger.shoot + (equipMods['shoot'] ?? 0),
+            move: ranger.ranger.move + seMove + (equipMods['move'] ?? 0),
+            fight: ranger.ranger.fight + seFight + (equipMods['fight'] ?? 0),
+            shoot: ranger.ranger.shoot + seShoot + (equipMods['shoot'] ?? 0),
             armour: ranger.ranger.armour + (equipMods['armour'] ?? 0),
-            will: ranger.ranger.will + (equipMods['will'] ?? 0),
-            health: member.maxHealth,
+            will: ranger.ranger.will + seWill + (equipMods['will'] ?? 0),
+            health: member.maxHealth + seHealth,
             damage: equipMods['damage'],
           );
         } else {
@@ -568,26 +601,34 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
             final injuries = List<String>.from(
               jsonDecode(companion.permanentInjuries) as List? ?? [],
             );
-            int injuryPenalty(String stat) {
-              int p = 0;
-              for (final inj in injuries) {
-                if (inj == 'smashed_leg' && stat == 'move') p -= 1;
-                if (inj == 'lost_toes' && stat == 'move') p -= 1;
-                if (inj == 'crushed_arm' && stat == 'fight') p -= 1;
-                if (inj == 'lost_fingers' && stat == 'shoot') p -= 1;
-                if (inj == 'never_quite_as_strong' && stat == 'health') p -= 1;
-                if (inj == 'psychological_scars' && stat == 'will') p -= 1;
-              }
-              return p;
-            }
+            final statusEffectPenaltyMove = computeStatPenalty('move',
+              permanentInjuryKeys: injuries,
+              statusEffectKeys: member.statusEffects,
+            );
+            final statusEffectPenaltyFight = computeStatPenalty('fight',
+              permanentInjuryKeys: injuries,
+              statusEffectKeys: member.statusEffects,
+            );
+            final statusEffectPenaltyShoot = computeStatPenalty('shoot',
+              permanentInjuryKeys: injuries,
+              statusEffectKeys: member.statusEffects,
+            );
+            final statusEffectPenaltyWill = computeStatPenalty('will',
+              permanentInjuryKeys: injuries,
+              statusEffectKeys: member.statusEffects,
+            );
+            final statusEffectPenaltyHealth = computeStatPenalty('health',
+              permanentInjuryKeys: injuries,
+              statusEffectKeys: member.statusEffects,
+            );
 
             stats = StatRow(
-              move: (type?.move ?? 6) + (customSkills['move'] ?? 0) + injuryPenalty('move') + (equipMods['move'] ?? 0),
-              fight: (type?.fight ?? 0) + (customSkills['fight'] ?? 0) + injuryPenalty('fight') + (equipMods['fight'] ?? 0),
-              shoot: (type?.shoot ?? 0) + (customSkills['shoot'] ?? 0) + injuryPenalty('shoot') + (equipMods['shoot'] ?? 0),
+              move: (type?.move ?? 6) + (customSkills['move'] ?? 0) + statusEffectPenaltyMove + (equipMods['move'] ?? 0),
+              fight: (type?.fight ?? 0) + (customSkills['fight'] ?? 0) + statusEffectPenaltyFight + (equipMods['fight'] ?? 0),
+              shoot: (type?.shoot ?? 0) + (customSkills['shoot'] ?? 0) + statusEffectPenaltyShoot + (equipMods['shoot'] ?? 0),
               armour: (type?.armour ?? 10) + (equipMods['armour'] ?? 0),
-              will: (type?.will ?? 0) + (customSkills['will'] ?? 0) + injuryPenalty('will') + (equipMods['will'] ?? 0),
-              health: (type?.health ?? 10) + injuryPenalty('health') + companion.bonusHealth,
+              will: (type?.will ?? 0) + (customSkills['will'] ?? 0) + statusEffectPenaltyWill + (equipMods['will'] ?? 0),
+              health: (type?.health ?? 10) + statusEffectPenaltyHealth + companion.bonusHealth,
               damage: equipMods['damage'],
             );
           } else {
@@ -891,6 +932,33 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                         ),
                       ],
 
+                      // ── Status Effects (only when expanded) ──
+                      if (_isExpanded && !member.isDead) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Text('Status Effects', style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            )),
+                            const Spacer(),
+                            TextButton.icon(
+                              icon: const Icon(Icons.edit, size: 16),
+                              label: const Text('Manage'),
+                              onPressed: () => _showStatusEffectSheet(context, member),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        _buildStatusEffectsSection(context, member, ranger),
+                      ],
+
                       // ── Heroic Abilities (only when expanded) ──
                       if (_isExpanded && !member.isDead && memberHeroicAbilities.isNotEmpty) ...[
                         const SizedBox(height: 12),
@@ -1100,6 +1168,156 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildStatusEffectsSection(BuildContext context, PartyMemberState member, RangerDetail ranger) {
+    final displayInjuries = member.type == 'ranger'
+        ? ((ranger.ranger.notes.contains('[Injury]'))
+            ? RegExp(r'\[Injury\]\s*(\w+(?:_\w+)*)')
+                .allMatches(ranger.ranger.notes)
+                .map((m) => m.group(1)!)
+                .toList()
+            : <String>[])
+        : (ranger.companions.where((c) => c.id == member.id).firstOrNull != null
+            ? List<String>.from(
+                jsonDecode(ranger.companions
+                    .firstWhere((c) => c.id == member.id).permanentInjuries) as List? ?? [],
+              )
+            : <String>[]);
+
+    if (member.statusEffects.isEmpty && displayInjuries.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle_outline, size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text('No status effects', style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 4,
+      runSpacing: 2,
+      children: [
+        ...member.statusEffects.map((key) => _buildEffectChip(context, key, isInjury: false)),
+        ...displayInjuries.map((key) => _buildEffectChip(context, key, isInjury: true)),
+      ],
+    );
+  }
+
+  Widget _buildEffectChip(BuildContext context, String key, {required bool isInjury}) {
+    final theme = Theme.of(context);
+    final effect = getStatusEffect(key);
+    final injury = permanentInjuries.where((i) => i.key == key).firstOrNull;
+    final name = effect?.name ?? injury?.name ?? key.replaceAll('_', ' ');
+
+    Color chipColor;
+    if (isInjury) {
+      chipColor = theme.colorScheme.error;
+    } else if (effect?.category == StatusEffectCategory.positive) {
+      chipColor = Colors.green;
+    } else {
+      chipColor = theme.colorScheme.error;
+    }
+
+    return InputChip(
+      label: Text(name, style: const TextStyle(fontSize: 11, color: Colors.white)),
+      backgroundColor: chipColor,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      deleteIcon: Icon(Icons.close, size: 14, color: Colors.white70),
+      onDeleted: () => ref.read(activeSessionProvider.notifier)
+          .removeStatusEffectFromMember(widget.member.id, widget.member.type, key),
+      onPressed: () => context.push(
+        isInjury
+            ? '/reference/permanent_injuries/$key'
+            : '/reference/status_effects/$key',
+      ),
+    );
+  }
+
+  Future<void> _showStatusEffectSheet(BuildContext context, PartyMemberState member) async {
+    final currentEffects = List<String>.from(member.statusEffects);
+    final result = await showModalBottomSheet<Set<String>>(
+      context: context,
+      builder: (ctx) => _StatusEffectSheet(activeEffects: currentEffects),
+    );
+    if (result != null) {
+      ref.read(activeSessionProvider.notifier)
+          .updateMemberStatusEffects(widget.member.id, widget.member.type, result.toList());
+    }
+  }
+}
+
+class _StatusEffectSheet extends StatefulWidget {
+  final List<String> activeEffects;
+
+  const _StatusEffectSheet({required this.activeEffects});
+
+  @override
+  State<_StatusEffectSheet> createState() => _StatusEffectSheetState();
+}
+
+class _StatusEffectSheetState extends State<_StatusEffectSheet> {
+  late Set<String> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = Set<String>.from(widget.activeEffects);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Manage Status Effects',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ...statusEffects.map((effect) => CheckboxListTile(
+              title: Text(effect.name),
+              subtitle: Text(effect.description, style: theme.textTheme.bodySmall),
+              value: _selected.contains(effect.key),
+              onChanged: (checked) {
+                setState(() {
+                  if (checked == true) {
+                    _selected.add(effect.key);
+                  } else {
+                    _selected.remove(effect.key);
+                  }
+                });
+              },
+              secondary: Icon(
+                effect.category == StatusEffectCategory.positive
+                    ? Icons.arrow_upward : Icons.arrow_downward,
+                color: effect.category == StatusEffectCategory.positive
+                    ? Colors.green : theme.colorScheme.error,
+              ),
+            )),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, _selected),
+                child: const Text('Apply'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

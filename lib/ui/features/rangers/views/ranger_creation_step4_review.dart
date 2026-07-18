@@ -247,15 +247,15 @@ class _AbilitiesReview extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: state.selectedSpells.map((key) {
+                children: state.selectedSpells.entries.expand((entry) {
                   final spell = spells.firstWhere(
-                    (s) => s.key == key,
+                    (s) => s.key == entry.key,
                     orElse: () => spells.first,
                   );
-                  return Chip(
+                  return List.generate(entry.value, (_) => Chip(
                     label: Text(spell.name),
                     backgroundColor: theme.colorScheme.tertiaryContainer,
-                  );
+                  ));
                 }).toList(),
               ),
             ],

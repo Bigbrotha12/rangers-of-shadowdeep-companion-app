@@ -83,13 +83,15 @@ class _RangerCreationWizardViewState
         ));
       }
 
-      // Insert spells
-      for (final spellKey in state.selectedSpells) {
-        await repo.insertRangerAbility(RangerAbilitiesCompanion.insert(
-          rangerId: rangerId,
-          abilityType: 'spell',
-          abilityKey: spellKey,
-        ));
+      // Insert spells (one row per copy for multi-purchase)
+      for (final entry in state.selectedSpells.entries) {
+        for (int i = 0; i < entry.value; i++) {
+          await repo.insertRangerAbility(RangerAbilitiesCompanion.insert(
+            rangerId: rangerId,
+            abilityType: 'spell',
+            abilityKey: entry.key,
+          ));
+        }
       }
 
       // Insert skills

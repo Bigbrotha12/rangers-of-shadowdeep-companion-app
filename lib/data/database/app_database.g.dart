@@ -160,6 +160,18 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _statusEffectsMeta = const VerificationMeta(
+    'statusEffects',
+  );
+  @override
+  late final GeneratedColumn<String> statusEffects = GeneratedColumn<String>(
+    'status_effects',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -177,6 +189,7 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
     createdAt,
     updatedAt,
     notes,
+    statusEffects,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -306,6 +319,15 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('status_effects')) {
+      context.handle(
+        _statusEffectsMeta,
+        statusEffects.isAcceptableOrUnknown(
+          data['status_effects']!,
+          _statusEffectsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -375,6 +397,10 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       )!,
+      statusEffects: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_effects'],
+      )!,
     );
   }
 
@@ -400,6 +426,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String notes;
+  final String statusEffects;
   const Ranger({
     required this.id,
     required this.name,
@@ -416,6 +443,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     required this.createdAt,
     required this.updatedAt,
     required this.notes,
+    required this.statusEffects,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -435,6 +463,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['notes'] = Variable<String>(notes);
+    map['status_effects'] = Variable<String>(statusEffects);
     return map;
   }
 
@@ -455,6 +484,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       notes: Value(notes),
+      statusEffects: Value(statusEffects),
     );
   }
 
@@ -481,6 +511,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       notes: serializer.fromJson<String>(json['notes']),
+      statusEffects: serializer.fromJson<String>(json['statusEffects']),
     );
   }
   @override
@@ -502,6 +533,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'notes': serializer.toJson<String>(notes),
+      'statusEffects': serializer.toJson<String>(statusEffects),
     };
   }
 
@@ -521,6 +553,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? notes,
+    String? statusEffects,
   }) => Ranger(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -537,6 +570,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     notes: notes ?? this.notes,
+    statusEffects: statusEffects ?? this.statusEffects,
   );
   Ranger copyWithCompanion(RangersCompanion data) {
     return Ranger(
@@ -561,6 +595,9 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       notes: data.notes.present ? data.notes.value : this.notes,
+      statusEffects: data.statusEffects.present
+          ? data.statusEffects.value
+          : this.statusEffects,
     );
   }
 
@@ -581,7 +618,8 @@ class Ranger extends DataClass implements Insertable<Ranger> {
           ..write('currentHealth: $currentHealth, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('statusEffects: $statusEffects')
           ..write(')'))
         .toString();
   }
@@ -603,6 +641,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     createdAt,
     updatedAt,
     notes,
+    statusEffects,
   );
   @override
   bool operator ==(Object other) =>
@@ -622,7 +661,8 @@ class Ranger extends DataClass implements Insertable<Ranger> {
           other.currentHealth == this.currentHealth &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.statusEffects == this.statusEffects);
 }
 
 class RangersCompanion extends UpdateCompanion<Ranger> {
@@ -641,6 +681,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> notes;
+  final Value<String> statusEffects;
   const RangersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -657,6 +698,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.statusEffects = const Value.absent(),
   });
   RangersCompanion.insert({
     this.id = const Value.absent(),
@@ -674,6 +716,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.notes = const Value.absent(),
+    this.statusEffects = const Value.absent(),
   }) : name = Value(name),
        move = Value(move),
        fight = Value(fight),
@@ -700,6 +743,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? notes,
+    Expression<String>? statusEffects,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -718,6 +762,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (notes != null) 'notes': notes,
+      if (statusEffects != null) 'status_effects': statusEffects,
     });
   }
 
@@ -737,6 +782,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String>? notes,
+    Value<String>? statusEffects,
   }) {
     return RangersCompanion(
       id: id ?? this.id,
@@ -755,6 +801,7 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       notes: notes ?? this.notes,
+      statusEffects: statusEffects ?? this.statusEffects,
     );
   }
 
@@ -808,6 +855,9 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (statusEffects.present) {
+      map['status_effects'] = Variable<String>(statusEffects.value);
+    }
     return map;
   }
 
@@ -828,7 +878,8 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
           ..write('currentHealth: $currentHealth, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('statusEffects: $statusEffects')
           ..write(')'))
         .toString();
   }
@@ -967,10 +1018,6 @@ class $RangerAbilitiesTable extends RangerAbilities
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {rangerId, abilityKey},
-  ];
   @override
   RangerAbility map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -2436,6 +2483,18 @@ class $RangerCompanionsTable extends RangerCompanions
     requiredDuringInsert: false,
     defaultValue: const Constant('[]'),
   );
+  static const VerificationMeta _statusEffectsMeta = const VerificationMeta(
+    'statusEffects',
+  );
+  @override
+  late final GeneratedColumn<String> statusEffects = GeneratedColumn<String>(
+    'status_effects',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2453,6 +2512,7 @@ class $RangerCompanionsTable extends RangerCompanions
     bonusHealth,
     heroicAbilityKeys,
     spellKeys,
+    statusEffects,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2585,6 +2645,15 @@ class $RangerCompanionsTable extends RangerCompanions
         spellKeys.isAcceptableOrUnknown(data['spell_keys']!, _spellKeysMeta),
       );
     }
+    if (data.containsKey('status_effects')) {
+      context.handle(
+        _statusEffectsMeta,
+        statusEffects.isAcceptableOrUnknown(
+          data['status_effects']!,
+          _statusEffectsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2654,6 +2723,10 @@ class $RangerCompanionsTable extends RangerCompanions
         DriftSqlType.string,
         data['${effectivePrefix}spell_keys'],
       )!,
+      statusEffects: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_effects'],
+      )!,
     );
   }
 
@@ -2679,6 +2752,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
   final int bonusHealth;
   final String heroicAbilityKeys;
   final String spellKeys;
+  final String statusEffects;
   const RangerCompanion({
     required this.id,
     required this.rangerId,
@@ -2695,6 +2769,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     required this.bonusHealth,
     required this.heroicAbilityKeys,
     required this.spellKeys,
+    required this.statusEffects,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2716,6 +2791,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     map['bonus_health'] = Variable<int>(bonusHealth);
     map['heroic_ability_keys'] = Variable<String>(heroicAbilityKeys);
     map['spell_keys'] = Variable<String>(spellKeys);
+    map['status_effects'] = Variable<String>(statusEffects);
     return map;
   }
 
@@ -2736,6 +2812,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
       bonusHealth: Value(bonusHealth),
       heroicAbilityKeys: Value(heroicAbilityKeys),
       spellKeys: Value(spellKeys),
+      statusEffects: Value(statusEffects),
     );
   }
 
@@ -2764,6 +2841,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
       bonusHealth: serializer.fromJson<int>(json['bonusHealth']),
       heroicAbilityKeys: serializer.fromJson<String>(json['heroicAbilityKeys']),
       spellKeys: serializer.fromJson<String>(json['spellKeys']),
+      statusEffects: serializer.fromJson<String>(json['statusEffects']),
     );
   }
   @override
@@ -2789,6 +2867,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
       'bonusHealth': serializer.toJson<int>(bonusHealth),
       'heroicAbilityKeys': serializer.toJson<String>(heroicAbilityKeys),
       'spellKeys': serializer.toJson<String>(spellKeys),
+      'statusEffects': serializer.toJson<String>(statusEffects),
     };
   }
 
@@ -2808,6 +2887,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     int? bonusHealth,
     String? heroicAbilityKeys,
     String? spellKeys,
+    String? statusEffects,
   }) => RangerCompanion(
     id: id ?? this.id,
     rangerId: rangerId ?? this.rangerId,
@@ -2826,6 +2906,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     bonusHealth: bonusHealth ?? this.bonusHealth,
     heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
     spellKeys: spellKeys ?? this.spellKeys,
+    statusEffects: statusEffects ?? this.statusEffects,
   );
   RangerCompanion copyWithCompanion(RangerCompanionsCompanion data) {
     return RangerCompanion(
@@ -2862,6 +2943,9 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
           ? data.heroicAbilityKeys.value
           : this.heroicAbilityKeys,
       spellKeys: data.spellKeys.present ? data.spellKeys.value : this.spellKeys,
+      statusEffects: data.statusEffects.present
+          ? data.statusEffects.value
+          : this.statusEffects,
     );
   }
 
@@ -2882,7 +2966,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
           ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
           ..write('bonusHealth: $bonusHealth, ')
           ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
-          ..write('spellKeys: $spellKeys')
+          ..write('spellKeys: $spellKeys, ')
+          ..write('statusEffects: $statusEffects')
           ..write(')'))
         .toString();
   }
@@ -2904,6 +2989,7 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     bonusHealth,
     heroicAbilityKeys,
     spellKeys,
+    statusEffects,
   );
   @override
   bool operator ==(Object other) =>
@@ -2923,7 +3009,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
           other.hasUsedRecruitmentBonus == this.hasUsedRecruitmentBonus &&
           other.bonusHealth == this.bonusHealth &&
           other.heroicAbilityKeys == this.heroicAbilityKeys &&
-          other.spellKeys == this.spellKeys);
+          other.spellKeys == this.spellKeys &&
+          other.statusEffects == this.statusEffects);
 }
 
 class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
@@ -2942,6 +3029,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
   final Value<int> bonusHealth;
   final Value<String> heroicAbilityKeys;
   final Value<String> spellKeys;
+  final Value<String> statusEffects;
   const RangerCompanionsCompanion({
     this.id = const Value.absent(),
     this.rangerId = const Value.absent(),
@@ -2958,6 +3046,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     this.bonusHealth = const Value.absent(),
     this.heroicAbilityKeys = const Value.absent(),
     this.spellKeys = const Value.absent(),
+    this.statusEffects = const Value.absent(),
   });
   RangerCompanionsCompanion.insert({
     this.id = const Value.absent(),
@@ -2975,6 +3064,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     this.bonusHealth = const Value.absent(),
     this.heroicAbilityKeys = const Value.absent(),
     this.spellKeys = const Value.absent(),
+    this.statusEffects = const Value.absent(),
   }) : rangerId = Value(rangerId),
        companionTypeId = Value(companionTypeId),
        customName = Value(customName),
@@ -2995,6 +3085,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     Expression<int>? bonusHealth,
     Expression<String>? heroicAbilityKeys,
     Expression<String>? spellKeys,
+    Expression<String>? statusEffects,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3014,6 +3105,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
       if (bonusHealth != null) 'bonus_health': bonusHealth,
       if (heroicAbilityKeys != null) 'heroic_ability_keys': heroicAbilityKeys,
       if (spellKeys != null) 'spell_keys': spellKeys,
+      if (statusEffects != null) 'status_effects': statusEffects,
     });
   }
 
@@ -3033,6 +3125,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     Value<int>? bonusHealth,
     Value<String>? heroicAbilityKeys,
     Value<String>? spellKeys,
+    Value<String>? statusEffects,
   }) {
     return RangerCompanionsCompanion(
       id: id ?? this.id,
@@ -3052,6 +3145,7 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
       bonusHealth: bonusHealth ?? this.bonusHealth,
       heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
       spellKeys: spellKeys ?? this.spellKeys,
+      statusEffects: statusEffects ?? this.statusEffects,
     );
   }
 
@@ -3107,6 +3201,9 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     if (spellKeys.present) {
       map['spell_keys'] = Variable<String>(spellKeys.value);
     }
+    if (statusEffects.present) {
+      map['status_effects'] = Variable<String>(statusEffects.value);
+    }
     return map;
   }
 
@@ -3127,7 +3224,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
           ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
           ..write('bonusHealth: $bonusHealth, ')
           ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
-          ..write('spellKeys: $spellKeys')
+          ..write('spellKeys: $spellKeys, ')
+          ..write('statusEffects: $statusEffects')
           ..write(')'))
         .toString();
   }
@@ -5712,6 +5810,7 @@ typedef $$RangersTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<String> notes,
+      Value<String> statusEffects,
     });
 typedef $$RangersTableUpdateCompanionBuilder =
     RangersCompanion Function({
@@ -5730,6 +5829,7 @@ typedef $$RangersTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> notes,
+      Value<String> statusEffects,
     });
 
 final class $$RangersTableReferences
@@ -5937,6 +6037,11 @@ class $$RangersTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6174,6 +6279,11 @@ class $$RangersTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RangersTableAnnotationComposer
@@ -6235,6 +6345,11 @@ class $$RangersTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
+    builder: (column) => column,
+  );
 
   Expression<T> rangerAbilitiesRefs<T extends Object>(
     Expression<T> Function($$RangerAbilitiesTableAnnotationComposer a) f,
@@ -6437,6 +6552,7 @@ class $$RangersTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> notes = const Value.absent(),
+                Value<String> statusEffects = const Value.absent(),
               }) => RangersCompanion(
                 id: id,
                 name: name,
@@ -6453,6 +6569,7 @@ class $$RangersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 notes: notes,
+                statusEffects: statusEffects,
               ),
           createCompanionCallback:
               ({
@@ -6471,6 +6588,7 @@ class $$RangersTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String> notes = const Value.absent(),
+                Value<String> statusEffects = const Value.absent(),
               }) => RangersCompanion.insert(
                 id: id,
                 name: name,
@@ -6487,6 +6605,7 @@ class $$RangersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 notes: notes,
+                statusEffects: statusEffects,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7776,6 +7895,7 @@ typedef $$RangerCompanionsTableCreateCompanionBuilder =
       Value<int> bonusHealth,
       Value<String> heroicAbilityKeys,
       Value<String> spellKeys,
+      Value<String> statusEffects,
     });
 typedef $$RangerCompanionsTableUpdateCompanionBuilder =
     RangerCompanionsCompanion Function({
@@ -7794,6 +7914,7 @@ typedef $$RangerCompanionsTableUpdateCompanionBuilder =
       Value<int> bonusHealth,
       Value<String> heroicAbilityKeys,
       Value<String> spellKeys,
+      Value<String> statusEffects,
     });
 
 final class $$RangerCompanionsTableReferences
@@ -7943,6 +8064,11 @@ class $$RangerCompanionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$RangersTableFilterComposer get rangerId {
     final $$RangersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -8089,6 +8215,11 @@ class $$RangerCompanionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$RangersTableOrderingComposer get rangerId {
     final $$RangersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8199,6 +8330,11 @@ class $$RangerCompanionsTableAnnotationComposer
 
   GeneratedColumn<String> get spellKeys =>
       $composableBuilder(column: $table.spellKeys, builder: (column) => column);
+
+  GeneratedColumn<String> get statusEffects => $composableBuilder(
+    column: $table.statusEffects,
+    builder: (column) => column,
+  );
 
   $$RangersTableAnnotationComposer get rangerId {
     final $$RangersTableAnnotationComposer composer = $composerBuilder(
@@ -8321,6 +8457,7 @@ class $$RangerCompanionsTableTableManager
                 Value<int> bonusHealth = const Value.absent(),
                 Value<String> heroicAbilityKeys = const Value.absent(),
                 Value<String> spellKeys = const Value.absent(),
+                Value<String> statusEffects = const Value.absent(),
               }) => RangerCompanionsCompanion(
                 id: id,
                 rangerId: rangerId,
@@ -8337,6 +8474,7 @@ class $$RangerCompanionsTableTableManager
                 bonusHealth: bonusHealth,
                 heroicAbilityKeys: heroicAbilityKeys,
                 spellKeys: spellKeys,
+                statusEffects: statusEffects,
               ),
           createCompanionCallback:
               ({
@@ -8355,6 +8493,7 @@ class $$RangerCompanionsTableTableManager
                 Value<int> bonusHealth = const Value.absent(),
                 Value<String> heroicAbilityKeys = const Value.absent(),
                 Value<String> spellKeys = const Value.absent(),
+                Value<String> statusEffects = const Value.absent(),
               }) => RangerCompanionsCompanion.insert(
                 id: id,
                 rangerId: rangerId,
@@ -8371,6 +8510,7 @@ class $$RangerCompanionsTableTableManager
                 bonusHealth: bonusHealth,
                 heroicAbilityKeys: heroicAbilityKeys,
                 spellKeys: spellKeys,
+                statusEffects: statusEffects,
               ),
           withReferenceMapper: (p0) => p0
               .map(

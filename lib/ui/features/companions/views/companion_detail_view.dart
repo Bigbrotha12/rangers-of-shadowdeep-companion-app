@@ -13,6 +13,8 @@ import '../../../../domain/constants/magic_items.dart';
 import '../../../../domain/constants/heroic_abilities.dart';
 import '../../../../domain/constants/spells.dart';
 import '../../../../domain/constants/skills.dart';
+import '../../../../domain/constants/status_effects.dart';
+import '../../../../domain/constants/permanent_injuries.dart';
 import '../../../core/widgets/stat_display.dart';
 import '../../../core/widgets/placeholder_image.dart';
 import '../view_models/companion_provider.dart';
@@ -572,52 +574,66 @@ class _InjuriesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (companion.permanentInjuries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 64,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Injuries',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'This companion has no permanent injuries.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: companion.permanentInjuries.length,
-      itemBuilder: (context, index) {
-        final injury = companion.permanentInjuries[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Icon(
-              Icons.warning_amber,
-              color: theme.colorScheme.error,
-            ),
-            title: Text(injury.replaceAll('_', ' ').toUpperCase()),
-            subtitle: const Text('Permanent injury'),
-          ),
-        );
-      },
+      children: [
+        // ── Permanent Injuries ──
+        Text('Permanent Injuries',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        if (companion.permanentInjuries.isEmpty)
+          Card(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Icon(Icons.check_circle_outline, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Text('No permanent injuries.'),
+            ]),
+          ))
+        else
+          ...companion.permanentInjuries.map((key) {
+            final injury = permanentInjuries.where((i) => i.key == key).firstOrNull;
+            return Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: Icon(Icons.warning_amber, color: theme.colorScheme.error),
+                title: Text(injury?.name ?? key.replaceAll('_', ' ')),
+                subtitle: Text(injury?.effect ?? ''),
+              ),
+            );
+          }),
+
+        const Divider(height: 32),
+
+        // ── Temporary Status Effects ──
+        Text('Active Status Effects',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        if (companion.statusEffects.isEmpty)
+          Card(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('No active status effects.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant)),
+          ))
+        else
+          ...companion.statusEffects.map((key) {
+            final effect = getStatusEffect(key);
+            return Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: Icon(
+                  effect?.category == StatusEffectCategory.positive
+                    ? Icons.arrow_upward : Icons.arrow_downward,
+                  color: effect?.category == StatusEffectCategory.positive
+                    ? Colors.green : theme.colorScheme.error,
+                ),
+                title: Text(effect?.name ?? key),
+                subtitle: Text(effect?.description ?? ''),
+              ),
+            );
+          }),
+      ],
     );
   }
 }

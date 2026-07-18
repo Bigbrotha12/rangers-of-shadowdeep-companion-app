@@ -11,6 +11,7 @@ import '../../domain/constants/treasure_table.dart';
 import '../../domain/constants/base_stats.dart';
 import '../../domain/constants/experience_table.dart';
 import '../../domain/constants/companion_progression.dart';
+import '../../domain/constants/status_effects.dart';
 
 class ReferenceEntry {
   final String id;
@@ -112,6 +113,12 @@ final List<ReferenceCategory> referenceCategories = [
     label: 'Treasure Tables',
     icon: Icons.monetization_on,
     description: 'Treasure, herbs, weapons, and magic item tables',
+  ),
+  const ReferenceCategory(
+    key: 'status_effects',
+    label: 'Status Effects',
+    icon: Icons.science,
+    description: 'Poison, disease, hunger, exhaustion, and other temporary conditions',
   ),
 ];
 
@@ -396,6 +403,24 @@ class RulesReferenceService {
           'effect': injury.effect,
           if (injury.affectedStat != null) 'affected_stat': injury.affectedStat!,
           'max_times': '${injury.maxTimesReceived}',
+        },
+      ));
+    }
+
+    for (final effect in statusEffects) {
+      entries.add(ReferenceEntry(
+        id: effect.key,
+        title: effect.name,
+        category: 'status_effects',
+        description: effect.description,
+        metadata: {
+          'is_temporary': '${effect.isTemporary}',
+          'category': effect.category.name,
+          if (effect.statModifiers.isNotEmpty)
+            'stat_modifiers': effect.statModifiers.entries
+                .map((e) => '${e.key} ${e.value >= 0 ? '+' : ''}${e.value}')
+                .join(', '),
+          if (effect.specialRule != null) 'special_rule': effect.specialRule!,
         },
       ));
     }

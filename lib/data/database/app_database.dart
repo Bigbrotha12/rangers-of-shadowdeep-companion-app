@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -68,6 +68,27 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 7) {
             await _ensureHerbAndPotionEquipment();
+          }
+          if (from < 8) {
+            // Remove unique constraint on (ranger_id, ability_key) for multi-purchase spells
+            // SQLite doesn't support ALTER TABLE DROP CONSTRAINT, so recreate the table
+            await m.issueCustomQuery(
+              'CREATE TABLE ranger_abilities_new ('
+              'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'ranger_id INTEGER NOT NULL REFERENCES rangers(id), '
+              'ability_type TEXT NOT NULL, '
+              'ability_key TEXT NOT NULL, '
+              'is_used_this_scenario INTEGER NOT NULL DEFAULT 0'
+              ')');
+            await m.issueCustomQuery(
+              'INSERT INTO ranger_abilities_new SELECT * FROM ranger_abilities');
+            await m.issueCustomQuery('DROP TABLE ranger_abilities');
+            await m.issueCustomQuery(
+              'ALTER TABLE ranger_abilities_new RENAME TO ranger_abilities');
+          }
+          if (from < 9) {
+            await m.addColumn(rangers, rangers.statusEffects);
+            await m.addColumn(rangerCompanions, rangerCompanions.statusEffects);
           }
         },
       );

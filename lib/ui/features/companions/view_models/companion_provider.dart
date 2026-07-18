@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart' hide CompanionType;
 import '../../../../data/repositories/companion_repository_provider.dart';
 import '../../../../domain/constants/companion_types.dart';
+import '../../../../domain/constants/permanent_injuries.dart' show canApplyInjury;
+import '../../../../domain/services/stat_calculation_service.dart' show computeStatPenalty;
 
 class CompanionData {
   final int id;
@@ -21,6 +23,7 @@ class CompanionData {
   final int bonusHealth;
   final List<String> heroicAbilityKeys;
   final List<String> spellKeys;
+  final List<String> statusEffects;
 
   CompanionData({
     required this.id,
@@ -38,6 +41,7 @@ class CompanionData {
     this.bonusHealth = 0,
     this.heroicAbilityKeys = const [],
     this.spellKeys = const [],
+    this.statusEffects = const [],
   });
 
   CompanionType? get type => getCompanionType(
@@ -83,16 +87,10 @@ class CompanionData {
   }
 
   int _calculateInjuryPenalty(String stat) {
-    int penalty = 0;
-    for (final injury in permanentInjuries) {
-      if (injury == 'smashed_leg' && stat == 'move') penalty -= 1;
-      if (injury == 'lost_toes' && stat == 'move') penalty -= 1;
-      if (injury == 'crushed_arm' && stat == 'fight') penalty -= 1;
-      if (injury == 'lost_fingers' && stat == 'shoot') penalty -= 1;
-      if (injury == 'never_quite_as_strong' && stat == 'health') penalty -= 1;
-      if (injury == 'psychological_scars' && stat == 'will') penalty -= 1;
-    }
-    return penalty;
+    return computeStatPenalty(stat,
+      permanentInjuryKeys: permanentInjuries,
+      statusEffectKeys: statusEffects,
+    );
   }
 
   String _typeKeyFromId(int id) {
@@ -145,6 +143,9 @@ class CompanionData {
       spellKeys: List<String>.from(
         jsonDecode(row.spellKeys) as List? ?? [],
       ),
+      statusEffects: List<String>.from(
+        jsonDecode(row.statusEffects) as List? ?? [],
+      ),
     );
   }
 
@@ -165,6 +166,7 @@ class CompanionData {
       'bonusHealth': bonusHealth,
       'heroicAbilityKeys': heroicAbilityKeys,
       'spellKeys': spellKeys,
+      'statusEffects': statusEffects,
     };
   }
 }
@@ -206,6 +208,7 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
 
   Future<void> addPermanentInjury(String injuryKey) async {
     if (state != null) {
+      if (!canApplyInjury(state!.permanentInjuries, injuryKey)) return;
       final injuries = [...state!.permanentInjuries, injuryKey];
       state = state!.copyWith(permanentInjuries: injuries);
       await _persist();
@@ -259,6 +262,7 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       bonusHealth: Value(state!.bonusHealth),
       heroicAbilityKeys: Value(jsonEncode(state!.heroicAbilityKeys)),
       spellKeys: Value(jsonEncode(state!.spellKeys)),
+      statusEffects: Value(jsonEncode(state!.statusEffects)),
     ));
   }
 
@@ -291,6 +295,23 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       await _persist();
     }
   }
+
+  Future<void> addStatusEffect(String effectKey) async {
+    if (state == null) return;
+    if (state!.statusEffects.contains(effectKey)) return;
+    state = state!.copyWith(
+      statusEffects: [...state!.statusEffects, effectKey],
+    );
+    await _persist();
+  }
+
+  Future<void> removeStatusEffect(String effectKey) async {
+    if (state == null) return;
+    state = state!.copyWith(
+      statusEffects: state!.statusEffects.where((k) => k != effectKey).toList(),
+    );
+    await _persist();
+  }
 }
 
 extension CompanionDataCopy on CompanionData {
@@ -310,6 +331,7 @@ extension CompanionDataCopy on CompanionData {
     int? bonusHealth,
     List<String>? heroicAbilityKeys,
     List<String>? spellKeys,
+    List<String>? statusEffects,
   }) {
     return CompanionData(
       id: id ?? this.id,
@@ -327,6 +349,7 @@ extension CompanionDataCopy on CompanionData {
       bonusHealth: bonusHealth ?? this.bonusHealth,
       heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
       spellKeys: spellKeys ?? this.spellKeys,
+      statusEffects: statusEffects ?? this.statusEffects,
     );
   }
 }
