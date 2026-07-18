@@ -2411,6 +2411,31 @@ class $RangerCompanionsTable extends RangerCompanions
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _heroicAbilityKeysMeta = const VerificationMeta(
+    'heroicAbilityKeys',
+  );
+  @override
+  late final GeneratedColumn<String> heroicAbilityKeys =
+      GeneratedColumn<String>(
+        'heroic_ability_keys',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      );
+  static const VerificationMeta _spellKeysMeta = const VerificationMeta(
+    'spellKeys',
+  );
+  @override
+  late final GeneratedColumn<String> spellKeys = GeneratedColumn<String>(
+    'spell_keys',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2426,6 +2451,8 @@ class $RangerCompanionsTable extends RangerCompanions
     claimedProgressionRewards,
     hasUsedRecruitmentBonus,
     bonusHealth,
+    heroicAbilityKeys,
+    spellKeys,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2543,6 +2570,21 @@ class $RangerCompanionsTable extends RangerCompanions
         ),
       );
     }
+    if (data.containsKey('heroic_ability_keys')) {
+      context.handle(
+        _heroicAbilityKeysMeta,
+        heroicAbilityKeys.isAcceptableOrUnknown(
+          data['heroic_ability_keys']!,
+          _heroicAbilityKeysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('spell_keys')) {
+      context.handle(
+        _spellKeysMeta,
+        spellKeys.isAcceptableOrUnknown(data['spell_keys']!, _spellKeysMeta),
+      );
+    }
     return context;
   }
 
@@ -2604,6 +2646,14 @@ class $RangerCompanionsTable extends RangerCompanions
         DriftSqlType.int,
         data['${effectivePrefix}bonus_health'],
       )!,
+      heroicAbilityKeys: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}heroic_ability_keys'],
+      )!,
+      spellKeys: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}spell_keys'],
+      )!,
     );
   }
 
@@ -2627,6 +2677,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
   final String claimedProgressionRewards;
   final bool hasUsedRecruitmentBonus;
   final int bonusHealth;
+  final String heroicAbilityKeys;
+  final String spellKeys;
   const RangerCompanion({
     required this.id,
     required this.rangerId,
@@ -2641,6 +2693,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     required this.claimedProgressionRewards,
     required this.hasUsedRecruitmentBonus,
     required this.bonusHealth,
+    required this.heroicAbilityKeys,
+    required this.spellKeys,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2660,6 +2714,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     );
     map['has_used_recruitment_bonus'] = Variable<bool>(hasUsedRecruitmentBonus);
     map['bonus_health'] = Variable<int>(bonusHealth);
+    map['heroic_ability_keys'] = Variable<String>(heroicAbilityKeys);
+    map['spell_keys'] = Variable<String>(spellKeys);
     return map;
   }
 
@@ -2678,6 +2734,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
       claimedProgressionRewards: Value(claimedProgressionRewards),
       hasUsedRecruitmentBonus: Value(hasUsedRecruitmentBonus),
       bonusHealth: Value(bonusHealth),
+      heroicAbilityKeys: Value(heroicAbilityKeys),
+      spellKeys: Value(spellKeys),
     );
   }
 
@@ -2704,6 +2762,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
         json['hasUsedRecruitmentBonus'],
       ),
       bonusHealth: serializer.fromJson<int>(json['bonusHealth']),
+      heroicAbilityKeys: serializer.fromJson<String>(json['heroicAbilityKeys']),
+      spellKeys: serializer.fromJson<String>(json['spellKeys']),
     );
   }
   @override
@@ -2727,6 +2787,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
         hasUsedRecruitmentBonus,
       ),
       'bonusHealth': serializer.toJson<int>(bonusHealth),
+      'heroicAbilityKeys': serializer.toJson<String>(heroicAbilityKeys),
+      'spellKeys': serializer.toJson<String>(spellKeys),
     };
   }
 
@@ -2744,6 +2806,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     String? claimedProgressionRewards,
     bool? hasUsedRecruitmentBonus,
     int? bonusHealth,
+    String? heroicAbilityKeys,
+    String? spellKeys,
   }) => RangerCompanion(
     id: id ?? this.id,
     rangerId: rangerId ?? this.rangerId,
@@ -2760,6 +2824,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     hasUsedRecruitmentBonus:
         hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
     bonusHealth: bonusHealth ?? this.bonusHealth,
+    heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
+    spellKeys: spellKeys ?? this.spellKeys,
   );
   RangerCompanion copyWithCompanion(RangerCompanionsCompanion data) {
     return RangerCompanion(
@@ -2792,6 +2858,10 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
       bonusHealth: data.bonusHealth.present
           ? data.bonusHealth.value
           : this.bonusHealth,
+      heroicAbilityKeys: data.heroicAbilityKeys.present
+          ? data.heroicAbilityKeys.value
+          : this.heroicAbilityKeys,
+      spellKeys: data.spellKeys.present ? data.spellKeys.value : this.spellKeys,
     );
   }
 
@@ -2810,7 +2880,9 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
           ..write('createdAt: $createdAt, ')
           ..write('claimedProgressionRewards: $claimedProgressionRewards, ')
           ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
-          ..write('bonusHealth: $bonusHealth')
+          ..write('bonusHealth: $bonusHealth, ')
+          ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
+          ..write('spellKeys: $spellKeys')
           ..write(')'))
         .toString();
   }
@@ -2830,6 +2902,8 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
     claimedProgressionRewards,
     hasUsedRecruitmentBonus,
     bonusHealth,
+    heroicAbilityKeys,
+    spellKeys,
   );
   @override
   bool operator ==(Object other) =>
@@ -2847,7 +2921,9 @@ class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
           other.createdAt == this.createdAt &&
           other.claimedProgressionRewards == this.claimedProgressionRewards &&
           other.hasUsedRecruitmentBonus == this.hasUsedRecruitmentBonus &&
-          other.bonusHealth == this.bonusHealth);
+          other.bonusHealth == this.bonusHealth &&
+          other.heroicAbilityKeys == this.heroicAbilityKeys &&
+          other.spellKeys == this.spellKeys);
 }
 
 class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
@@ -2864,6 +2940,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
   final Value<String> claimedProgressionRewards;
   final Value<bool> hasUsedRecruitmentBonus;
   final Value<int> bonusHealth;
+  final Value<String> heroicAbilityKeys;
+  final Value<String> spellKeys;
   const RangerCompanionsCompanion({
     this.id = const Value.absent(),
     this.rangerId = const Value.absent(),
@@ -2878,6 +2956,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     this.claimedProgressionRewards = const Value.absent(),
     this.hasUsedRecruitmentBonus = const Value.absent(),
     this.bonusHealth = const Value.absent(),
+    this.heroicAbilityKeys = const Value.absent(),
+    this.spellKeys = const Value.absent(),
   });
   RangerCompanionsCompanion.insert({
     this.id = const Value.absent(),
@@ -2893,6 +2973,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     this.claimedProgressionRewards = const Value.absent(),
     this.hasUsedRecruitmentBonus = const Value.absent(),
     this.bonusHealth = const Value.absent(),
+    this.heroicAbilityKeys = const Value.absent(),
+    this.spellKeys = const Value.absent(),
   }) : rangerId = Value(rangerId),
        companionTypeId = Value(companionTypeId),
        customName = Value(customName),
@@ -2911,6 +2993,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     Expression<String>? claimedProgressionRewards,
     Expression<bool>? hasUsedRecruitmentBonus,
     Expression<int>? bonusHealth,
+    Expression<String>? heroicAbilityKeys,
+    Expression<String>? spellKeys,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2928,6 +3012,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
       if (hasUsedRecruitmentBonus != null)
         'has_used_recruitment_bonus': hasUsedRecruitmentBonus,
       if (bonusHealth != null) 'bonus_health': bonusHealth,
+      if (heroicAbilityKeys != null) 'heroic_ability_keys': heroicAbilityKeys,
+      if (spellKeys != null) 'spell_keys': spellKeys,
     });
   }
 
@@ -2945,6 +3031,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     Value<String>? claimedProgressionRewards,
     Value<bool>? hasUsedRecruitmentBonus,
     Value<int>? bonusHealth,
+    Value<String>? heroicAbilityKeys,
+    Value<String>? spellKeys,
   }) {
     return RangerCompanionsCompanion(
       id: id ?? this.id,
@@ -2962,6 +3050,8 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
       hasUsedRecruitmentBonus:
           hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
       bonusHealth: bonusHealth ?? this.bonusHealth,
+      heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
+      spellKeys: spellKeys ?? this.spellKeys,
     );
   }
 
@@ -3011,6 +3101,12 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
     if (bonusHealth.present) {
       map['bonus_health'] = Variable<int>(bonusHealth.value);
     }
+    if (heroicAbilityKeys.present) {
+      map['heroic_ability_keys'] = Variable<String>(heroicAbilityKeys.value);
+    }
+    if (spellKeys.present) {
+      map['spell_keys'] = Variable<String>(spellKeys.value);
+    }
     return map;
   }
 
@@ -3029,7 +3125,9 @@ class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
           ..write('createdAt: $createdAt, ')
           ..write('claimedProgressionRewards: $claimedProgressionRewards, ')
           ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
-          ..write('bonusHealth: $bonusHealth')
+          ..write('bonusHealth: $bonusHealth, ')
+          ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
+          ..write('spellKeys: $spellKeys')
           ..write(')'))
         .toString();
   }
@@ -3630,6 +3728,9 @@ class $RangerEquipmentTable extends RangerEquipment
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
     defaultValue: const Constant(true),
   );
   @override
@@ -3765,7 +3866,7 @@ class RangerEquipmentData extends DataClass
     this.currentUses,
     required this.equippedBy,
     this.slotIndex,
-    this.isActive = true,
+    required this.isActive,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7673,6 +7774,8 @@ typedef $$RangerCompanionsTableCreateCompanionBuilder =
       Value<String> claimedProgressionRewards,
       Value<bool> hasUsedRecruitmentBonus,
       Value<int> bonusHealth,
+      Value<String> heroicAbilityKeys,
+      Value<String> spellKeys,
     });
 typedef $$RangerCompanionsTableUpdateCompanionBuilder =
     RangerCompanionsCompanion Function({
@@ -7689,6 +7792,8 @@ typedef $$RangerCompanionsTableUpdateCompanionBuilder =
       Value<String> claimedProgressionRewards,
       Value<bool> hasUsedRecruitmentBonus,
       Value<int> bonusHealth,
+      Value<String> heroicAbilityKeys,
+      Value<String> spellKeys,
     });
 
 final class $$RangerCompanionsTableReferences
@@ -7828,6 +7933,16 @@ class $$RangerCompanionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get heroicAbilityKeys => $composableBuilder(
+    column: $table.heroicAbilityKeys,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get spellKeys => $composableBuilder(
+    column: $table.spellKeys,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$RangersTableFilterComposer get rangerId {
     final $$RangersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -7964,6 +8079,16 @@ class $$RangerCompanionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get heroicAbilityKeys => $composableBuilder(
+    column: $table.heroicAbilityKeys,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get spellKeys => $composableBuilder(
+    column: $table.spellKeys,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$RangersTableOrderingComposer get rangerId {
     final $$RangersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8066,6 +8191,14 @@ class $$RangerCompanionsTableAnnotationComposer
     column: $table.bonusHealth,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get heroicAbilityKeys => $composableBuilder(
+    column: $table.heroicAbilityKeys,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get spellKeys =>
+      $composableBuilder(column: $table.spellKeys, builder: (column) => column);
 
   $$RangersTableAnnotationComposer get rangerId {
     final $$RangersTableAnnotationComposer composer = $composerBuilder(
@@ -8186,6 +8319,8 @@ class $$RangerCompanionsTableTableManager
                 Value<String> claimedProgressionRewards = const Value.absent(),
                 Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
                 Value<int> bonusHealth = const Value.absent(),
+                Value<String> heroicAbilityKeys = const Value.absent(),
+                Value<String> spellKeys = const Value.absent(),
               }) => RangerCompanionsCompanion(
                 id: id,
                 rangerId: rangerId,
@@ -8200,6 +8335,8 @@ class $$RangerCompanionsTableTableManager
                 claimedProgressionRewards: claimedProgressionRewards,
                 hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
                 bonusHealth: bonusHealth,
+                heroicAbilityKeys: heroicAbilityKeys,
+                spellKeys: spellKeys,
               ),
           createCompanionCallback:
               ({
@@ -8216,6 +8353,8 @@ class $$RangerCompanionsTableTableManager
                 Value<String> claimedProgressionRewards = const Value.absent(),
                 Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
                 Value<int> bonusHealth = const Value.absent(),
+                Value<String> heroicAbilityKeys = const Value.absent(),
+                Value<String> spellKeys = const Value.absent(),
               }) => RangerCompanionsCompanion.insert(
                 id: id,
                 rangerId: rangerId,
@@ -8230,6 +8369,8 @@ class $$RangerCompanionsTableTableManager
                 claimedProgressionRewards: claimedProgressionRewards,
                 hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
                 bonusHealth: bonusHealth,
+                heroicAbilityKeys: heroicAbilityKeys,
+                spellKeys: spellKeys,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -8717,6 +8858,7 @@ typedef $$RangerEquipmentTableCreateCompanionBuilder =
       Value<int?> currentUses,
       Value<String> equippedBy,
       Value<int?> slotIndex,
+      Value<bool> isActive,
     });
 typedef $$RangerEquipmentTableUpdateCompanionBuilder =
     RangerEquipmentCompanion Function({
@@ -8726,6 +8868,7 @@ typedef $$RangerEquipmentTableUpdateCompanionBuilder =
       Value<int?> currentUses,
       Value<String> equippedBy,
       Value<int?> slotIndex,
+      Value<bool> isActive,
     });
 
 final class $$RangerEquipmentTableReferences
@@ -8809,6 +8952,11 @@ class $$RangerEquipmentTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$RangersTableFilterComposer get rangerId {
     final $$RangersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -8885,6 +9033,11 @@ class $$RangerEquipmentTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$RangersTableOrderingComposer get rangerId {
     final $$RangersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8956,6 +9109,9 @@ class $$RangerEquipmentTableAnnotationComposer
 
   GeneratedColumn<int> get slotIndex =>
       $composableBuilder(column: $table.slotIndex, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
 
   $$RangersTableAnnotationComposer get rangerId {
     final $$RangersTableAnnotationComposer composer = $composerBuilder(
@@ -9040,6 +9196,7 @@ class $$RangerEquipmentTableTableManager
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
                 Value<int?> slotIndex = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
               }) => RangerEquipmentCompanion(
                 id: id,
                 rangerId: rangerId,
@@ -9047,6 +9204,7 @@ class $$RangerEquipmentTableTableManager
                 currentUses: currentUses,
                 equippedBy: equippedBy,
                 slotIndex: slotIndex,
+                isActive: isActive,
               ),
           createCompanionCallback:
               ({
@@ -9056,6 +9214,7 @@ class $$RangerEquipmentTableTableManager
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
                 Value<int?> slotIndex = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
               }) => RangerEquipmentCompanion.insert(
                 id: id,
                 rangerId: rangerId,
@@ -9063,6 +9222,7 @@ class $$RangerEquipmentTableTableManager
                 currentUses: currentUses,
                 equippedBy: equippedBy,
                 slotIndex: slotIndex,
+                isActive: isActive,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -10,6 +10,9 @@ import '../../../../data/database/app_database.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../rangers/view_models/ranger_detail_provider.dart';
 import '../../../../domain/constants/companion_types.dart';
+import '../../../../domain/constants/heroic_abilities.dart';
+import '../../../../domain/constants/spells.dart';
+import '../../../../domain/constants/skills.dart';
 
 class SessionActiveView extends ConsumerStatefulWidget {
   const SessionActiveView({required this.sessionId, super.key});
@@ -594,9 +597,94 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
           }
         }
 
+        // ── Abilities, spells, and skills for expanded view ──
+        List<_NamedAbility> memberHeroicAbilities = [];
+        List<_NamedAbility> memberSpells = [];
+        List<_NamedSkill> memberSkills = [];
+
+        if (member.type == 'ranger') {
+          memberHeroicAbilities = ranger.heroicAbilities.map((a) {
+            final data = heroicAbilities.firstWhere(
+              (h) => h.key == a.abilityKey,
+              orElse: () => heroicAbilities.first,
+            );
+            return _NamedAbility(key: a.abilityKey, name: data.name, description: data.description);
+          }).toList();
+
+          memberSpells = ranger.spells.map((s) {
+            final data = spells.firstWhere(
+              (sp) => sp.key == s.abilityKey,
+              orElse: () => spells.first,
+            );
+            return _NamedAbility(key: s.abilityKey, name: data.name, description: data.description);
+          }).toList();
+
+          memberSkills = ranger.skillBonuses
+            .where((s) => s.value > 0)
+            .map((s) {
+              final skill = skills.firstWhere(
+                (sk) => sk.key == s.skillKey,
+                orElse: () => skills.first,
+              );
+              return _NamedSkill(key: s.skillKey, name: skill.name, value: s.value);
+            }).toList();
+        } else {
+          final companion = ranger.companions.where((c) => c.id == member.id).firstOrNull;
+          if (companion != null) {
+            final typeKey = companionTypeKeyFromId(companion.companionTypeId);
+            final type = getCompanionType(typeKey);
+
+            final heroicKeys = List<String>.from(
+              const JsonDecoder().convert(companion.heroicAbilityKeys) as List? ?? [],
+            );
+            final spellKeys = List<String>.from(
+              const JsonDecoder().convert(companion.spellKeys) as List? ?? [],
+            );
+
+            memberHeroicAbilities = heroicKeys.map((key) {
+              final data = heroicAbilities.firstWhere(
+                (h) => h.key == key,
+                orElse: () => heroicAbilities.first,
+              );
+              return _NamedAbility(key: key, name: data.name, description: data.description);
+            }).toList();
+
+            memberSpells = spellKeys.map((key) {
+              final data = spells.firstWhere(
+                (sp) => sp.key == key,
+                orElse: () => spells.first,
+              );
+              return _NamedAbility(key: key, name: data.name, description: data.description);
+            }).toList();
+
+            final companionSkillValues = <String, int>{};
+            if (type != null) companionSkillValues.addAll(type.baseSkills);
+            final customSkills = Map<String, int>.from(
+              const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
+            );
+            for (final e in customSkills.entries) {
+              companionSkillValues[e.key] = (companionSkillValues[e.key] ?? 0) + e.value;
+            }
+
+            memberSkills = companionSkillValues.entries
+              .where((e) => e.value > 0)
+              .map((e) {
+                final skill = skills.firstWhere(
+                  (sk) => sk.key == e.key,
+                  orElse: () => skills.first,
+                );
+                return _NamedSkill(key: e.key, name: skill.name, value: e.value);
+              }).toList();
+          }
+        }
+
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          color: member.isDead ? theme.colorScheme.errorContainer.withValues(alpha: 0.3) : null,
+          color: member.isDead
+              ? theme.colorScheme.errorContainer.withValues(alpha: 0.3)
+              : member.hasActed
+                  ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                  : null,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: InkWell(
@@ -655,6 +743,13 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                               ],
                             ),
                           ),
+
+                          // Treasure indicator (visible in collapsed state)
+                          if (member.carryingTreasure) ...[
+                            const SizedBox(width: 4),
+                            Icon(Icons.diamond, color: Colors.amber, size: 20),
+                            const SizedBox(width: 4),
+                          ],
 
                           // Stats table (inline in header when wide enough)
                           if (wideEnough && !member.isDead) ...[
@@ -723,6 +818,207 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                           const SizedBox(height: 12),
                           _StatTable(stats: stats),
                         ],
+                      ],
+
+                      // ── Round Status (only when expanded) ──
+                      if (_isExpanded && !member.isDead) ...[
+                        const SizedBox(height: 12),
+                        Text('Round Status', style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 4),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  member.hasActed ? Icons.check_circle : Icons.check_circle_outline,
+                                  color: member.hasActed ? statusGreen(theme) : theme.colorScheme.onSurfaceVariant,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    member.hasActed ? 'Activated this turn' : 'Not yet activated',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: member.hasActed
+                                      ? null
+                                      : () => ref.read(activeSessionProvider.notifier)
+                                          .markPartyActed(member.id, member.type),
+                                  child: Text(member.hasActed ? 'Done' : 'Activate'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.diamond,
+                                  color: member.carryingTreasure
+                                      ? Colors.amber
+                                      : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    member.carryingTreasure ? 'Carrying a treasure' : 'Not carrying treasure',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => ref.read(activeSessionProvider.notifier)
+                                      .toggleCarryingTreasure(member.id, member.type),
+                                  child: Text(member.carryingTreasure ? 'Remove' : 'Carry'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      // ── Heroic Abilities (only when expanded) ──
+                      if (_isExpanded && !member.isDead && memberHeroicAbilities.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('Heroic Abilities', style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 4),
+                        ...memberHeroicAbilities.map((ability) {
+                          final isUsed = member.usedAbilities[ability.key] ?? false;
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => context.push('/reference/heroic_abilities/${ability.key}'),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.star, size: 18, color: theme.colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            ability.name,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            ability.description,
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Checkbox(
+                                      value: isUsed,
+                                      onChanged: (_) => ref.read(activeSessionProvider.notifier).toggleAbilityUsed(member.id, member.type, ability.key),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+
+                      // ── Spells (only when expanded) ──
+                      if (_isExpanded && !member.isDead && memberSpells.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('Spells', style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 4),
+                        ...memberSpells.map((spell) {
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => context.push('/reference/spells/${spell.key}'),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.auto_awesome, size: 18, color: theme.colorScheme.tertiary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            spell.name,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            spell.description,
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+
+                      // ── Skills (only when expanded) ──
+                      if (_isExpanded && !member.isDead && memberSkills.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('Skills', style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: memberSkills.map((skill) {
+                            return ActionChip(
+                              label: Text('${skill.name} +${skill.value}'),
+                              onPressed: () => context.push('/reference/skills/${skill.key}'),
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                            );
+                          }).toList(),
+                        ),
                       ],
 
                       // ── Equipment rows (only when expanded) ──
@@ -910,6 +1206,20 @@ class StatRow {
     required this.health,
     this.damage,
   });
+}
+
+class _NamedAbility {
+  final String key;
+  final String name;
+  final String description;
+  const _NamedAbility({required this.key, required this.name, required this.description});
+}
+
+class _NamedSkill {
+  final String key;
+  final String name;
+  final int value;
+  const _NamedSkill({required this.key, required this.name, required this.value});
 }
 
 // Creature Panel

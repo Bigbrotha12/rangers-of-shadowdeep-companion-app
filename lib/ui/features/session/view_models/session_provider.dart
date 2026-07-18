@@ -51,6 +51,8 @@ class PartyMemberState {
   final int maxHealth;
   final bool isDead;
   final bool hasActed;
+  final bool carryingTreasure;
+  final Map<String, bool> usedAbilities; // abilityKey → used this scenario
 
   const PartyMemberState({
     required this.id,
@@ -60,6 +62,8 @@ class PartyMemberState {
     required this.maxHealth,
     this.isDead = false,
     this.hasActed = false,
+    this.carryingTreasure = false,
+    this.usedAbilities = const {},
   });
 
   PartyMemberState copyWith({
@@ -70,6 +74,8 @@ class PartyMemberState {
     int? maxHealth,
     bool? isDead,
     bool? hasActed,
+    bool? carryingTreasure,
+    Map<String, bool>? usedAbilities,
   }) {
     return PartyMemberState(
       id: id ?? this.id,
@@ -79,6 +85,8 @@ class PartyMemberState {
       maxHealth: maxHealth ?? this.maxHealth,
       isDead: isDead ?? this.isDead,
       hasActed: hasActed ?? this.hasActed,
+      carryingTreasure: carryingTreasure ?? this.carryingTreasure,
+      usedAbilities: usedAbilities ?? this.usedAbilities,
     );
   }
 }
@@ -337,6 +345,31 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     );
   }
 
+  // Toggle whether a heroic ability has been used this scenario
+  void toggleAbilityUsed(int memberId, String memberType, String abilityKey) {
+    state = state.copyWith(
+      party: state.party.map((m) {
+        if (m.id == memberId && m.type == memberType) {
+          final updated = Map<String, bool>.from(m.usedAbilities);
+          updated[abilityKey] = !(updated[abilityKey] ?? false);
+          return m.copyWith(usedAbilities: updated);
+        }
+        return m;
+      }).toList(),
+    );
+  }
+
+  // Toggle whether a party member is carrying a treasure
+  void toggleCarryingTreasure(int memberId, String memberType) {
+    state = state.copyWith(
+      party: state.party.map((m) =>
+        m.id == memberId && m.type == memberType
+          ? m.copyWith(carryingTreasure: !m.carryingTreasure)
+          : m
+      ).toList(),
+    );
+  }
+
   // Add a creature
   void addCreature(String name, int health) {
     final creature = CreatureData(
@@ -432,11 +465,16 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     if (state.sessionId == null) return;
 
     final repo = _ref.read(sessionRepositoryProvider);
+
+    // Save treasure count from carrying members
+    final treasureCount = state.party.where((m) => m.carryingTreasure).length;
+    final sessionNotes = treasureCount > 0 ? 'Treasure Found: $treasureCount' : notes;
+
     await repo.completeSession(
       state.sessionId!,
       outcome: outcome,
       experienceEarned: experienceEarned,
-      notes: notes,
+      notes: sessionNotes,
     );
 
     // Update ranger's current health from session

@@ -16,4 +16,6 @@ class RangerCompanions extends Table {
   TextColumn get claimedProgressionRewards => text().withDefault(const Constant('[]'))();
   BoolColumn get hasUsedRecruitmentBonus => boolean().withDefault(const Constant(false))();
   IntColumn get bonusHealth => integer().withDefault(const Constant(0))();
+  TextColumn get heroicAbilityKeys => text().withDefault(const Constant('[]'))();
+  TextColumn get spellKeys => text().withDefault(const Constant('[]'))();
 }

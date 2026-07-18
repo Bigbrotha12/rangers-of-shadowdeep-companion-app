@@ -36,7 +36,7 @@ class RecruitmentState {
   }
 
   int get spentRecruitmentPoints {
-    return currentCompanions.fold(0, (sum, c) => sum + c.rpCost);
+    return currentCompanions.fold(0, (sum, c) => sum + c.effectiveRpCost);
   }
 
   int get availableRecruitmentPoints {
@@ -67,15 +67,24 @@ class CompanionEntry {
   final String name;
   final int rpCost;
   final int? existingId;
+  final bool hasPurchasedThirdSpell;
 
   const CompanionEntry({
     required this.companionTypeId,
     required this.name,
     required this.rpCost,
     this.existingId,
+    this.hasPurchasedThirdSpell = false,
   });
 
   String get key => companionTypeKeyFromId(companionTypeId);
+
+  int get effectiveRpCost {
+    if (key == 'conjuror' && hasPurchasedThirdSpell) {
+      return rpCost + 10;
+    }
+    return rpCost;
+  }
 }
 
 final recruitmentProvider = StateNotifierProvider.family<RecruitmentNotifier, RecruitmentState, int>((ref, rangerId) {
@@ -151,6 +160,7 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
       companionTypeId: _typeKeyToId(type.key),
       name: type.name,
       rpCost: type.rpCost,
+      hasPurchasedThirdSpell: type.key == 'conjuror' ? false : false,
     );
 
     state = RecruitmentState(
@@ -162,6 +172,34 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
     );
 
     return true;
+  }
+
+  void toggleThirdSpell(int index) {
+    if (index < 0 || index >= state.currentCompanions.length) return;
+    final entry = state.currentCompanions[index];
+    if (entry.key != 'conjuror') return;
+
+    // If turning on, check there's enough RP
+    if (!entry.hasPurchasedThirdSpell && state.availableRecruitmentPoints < 10) return;
+
+    final updated = CompanionEntry(
+      companionTypeId: entry.companionTypeId,
+      name: entry.name,
+      rpCost: entry.rpCost,
+      existingId: entry.existingId,
+      hasPurchasedThirdSpell: !entry.hasPurchasedThirdSpell,
+    );
+
+    final companions = List<CompanionEntry>.from(state.currentCompanions);
+    companions[index] = updated;
+
+    state = RecruitmentState(
+      rangerId: state.rangerId,
+      baseRecruitmentPoints: state.baseRecruitmentPoints,
+      leadershipBonus: state.leadershipBonus,
+      playerCount: state.playerCount,
+      currentCompanions: companions,
+    );
   }
 
   void removeCompanion(int index) {

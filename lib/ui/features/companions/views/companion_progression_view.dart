@@ -314,13 +314,7 @@ class CompanionProgressionView extends ConsumerWidget {
     String abilityKey,
   ) async {
     final notifier = ref.read(companionProvider(companion.id).notifier);
-    // Store heroic ability in customSkills with 'heroic_' prefix
-    final currentAbilities = Map<String, int>.from(companion.customSkills);
-    currentAbilities['heroic_$abilityKey'] = 1;
-    // Persist all custom skills
-    for (final entry in currentAbilities.entries) {
-      await notifier.updateCustomSkill(entry.key, entry.value);
-    }
+    await notifier.updateHeroicAbilityKeys([...companion.heroicAbilityKeys, abilityKey]);
     await notifier.markProgressionRewardClaimed(reward.threshold.toString());
   }
 

@@ -19,6 +19,8 @@ class CompanionData {
   final List<String> claimedProgressionRewards;
   final bool hasUsedRecruitmentBonus;
   final int bonusHealth;
+  final List<String> heroicAbilityKeys;
+  final List<String> spellKeys;
 
   CompanionData({
     required this.id,
@@ -34,6 +36,8 @@ class CompanionData {
     this.claimedProgressionRewards = const [],
     this.hasUsedRecruitmentBonus = false,
     this.bonusHealth = 0,
+    this.heroicAbilityKeys = const [],
+    this.spellKeys = const [],
   });
 
   CompanionType? get type => getCompanionType(
@@ -135,6 +139,12 @@ class CompanionData {
       ),
       hasUsedRecruitmentBonus: row.hasUsedRecruitmentBonus,
       bonusHealth: row.bonusHealth,
+      heroicAbilityKeys: List<String>.from(
+        jsonDecode(row.heroicAbilityKeys) as List? ?? [],
+      ),
+      spellKeys: List<String>.from(
+        jsonDecode(row.spellKeys) as List? ?? [],
+      ),
     );
   }
 
@@ -153,6 +163,8 @@ class CompanionData {
       'claimedProgressionRewards': claimedProgressionRewards,
       'hasUsedRecruitmentBonus': hasUsedRecruitmentBonus,
       'bonusHealth': bonusHealth,
+      'heroicAbilityKeys': heroicAbilityKeys,
+      'spellKeys': spellKeys,
     };
   }
 }
@@ -245,7 +257,39 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       claimedProgressionRewards: Value(jsonEncode(state!.claimedProgressionRewards)),
       hasUsedRecruitmentBonus: Value(state!.hasUsedRecruitmentBonus),
       bonusHealth: Value(state!.bonusHealth),
+      heroicAbilityKeys: Value(jsonEncode(state!.heroicAbilityKeys)),
+      spellKeys: Value(jsonEncode(state!.spellKeys)),
     ));
+  }
+
+  Future<void> updateHeroicAbilityKeys(List<String> keys) async {
+    if (state != null) {
+      state = state!.copyWith(heroicAbilityKeys: keys);
+      await _persist();
+    }
+  }
+
+  Future<void> addSpellKey(String key) async {
+    if (state != null) {
+      final updated = [...state!.spellKeys, key];
+      state = state!.copyWith(spellKeys: updated);
+      await _persist();
+    }
+  }
+
+  Future<void> removeSpellKey(String key) async {
+    if (state != null) {
+      final updated = state!.spellKeys.where((k) => k != key).toList();
+      state = state!.copyWith(spellKeys: updated);
+      await _persist();
+    }
+  }
+
+  Future<void> setSpellKeys(List<String> keys) async {
+    if (state != null) {
+      state = state!.copyWith(spellKeys: keys);
+      await _persist();
+    }
   }
 }
 
@@ -264,6 +308,8 @@ extension CompanionDataCopy on CompanionData {
     List<String>? claimedProgressionRewards,
     bool? hasUsedRecruitmentBonus,
     int? bonusHealth,
+    List<String>? heroicAbilityKeys,
+    List<String>? spellKeys,
   }) {
     return CompanionData(
       id: id ?? this.id,
@@ -279,6 +325,8 @@ extension CompanionDataCopy on CompanionData {
       claimedProgressionRewards: claimedProgressionRewards ?? this.claimedProgressionRewards,
       hasUsedRecruitmentBonus: hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
       bonusHealth: bonusHealth ?? this.bonusHealth,
+      heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
+      spellKeys: spellKeys ?? this.spellKeys,
     );
   }
 }

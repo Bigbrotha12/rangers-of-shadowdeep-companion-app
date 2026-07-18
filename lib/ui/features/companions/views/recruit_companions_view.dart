@@ -286,10 +286,11 @@ class _CurrentCompanionsList extends ConsumerWidget {
         itemCount: state.currentCompanions.length,
         itemBuilder: (context, index) {
           final companion = state.currentCompanions[index];
+          final isConjuror = companion.key == 'conjuror';
           return Card(
             margin: const EdgeInsets.only(right: 8),
             child: SizedBox(
-              width: 100,
+              width: isConjuror ? 140 : 100,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -309,11 +310,40 @@ class _CurrentCompanionsList extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    'RP: ${companion.rpCost}',
+                    'RP: ${companion.effectiveRpCost}',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.primary,
+                      color: companion.hasPurchasedThirdSpell
+                          ? theme.colorScheme.tertiary
+                          : theme.colorScheme.primary,
                     ),
                   ),
+                  if (isConjuror)
+                    TextButton.icon(
+                      icon: Icon(
+                        companion.hasPurchasedThirdSpell
+                            ? Icons.check_box
+                            : Icons.check_box_outline_blank,
+                        size: 14,
+                      ),
+                      label: Text(
+                        '3rd Spell',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: companion.hasPurchasedThirdSpell
+                              ? theme.colorScheme.tertiary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      onPressed: () {
+                        ref.read(recruitmentProvider(rangerId).notifier)
+                            .toggleThirdSpell(index);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline, size: 20),
                     onPressed: () {

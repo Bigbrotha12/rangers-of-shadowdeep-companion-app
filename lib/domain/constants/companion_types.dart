@@ -15,6 +15,8 @@ class CompanionType {
     this.baseSkills = const {},
     this.allowedSkillRolls,
     this.specialRules,
+    this.allowedWeaponTypes = const [],
+    this.allowedArmourTypes = const [],
   });
 
   final String key;
@@ -32,6 +34,8 @@ class CompanionType {
   final Map<String, int> baseSkills;
   final List<String>? allowedSkillRolls;
   final String? specialRules;
+  final List<String> allowedWeaponTypes;
+  final List<String> allowedArmourTypes;
 }
 
 const List<CompanionType> companionTypes = [
@@ -49,6 +53,7 @@ const List<CompanionType> companionTypes = [
     notes: 'Hand Weapon, Ancient Lore +5, Read Runes +5',
     isAnimal: false,
     baseSkills: {'ancient_lore': 5, 'read_runes': 5},
+    allowedWeaponTypes: ['hand_weapon'],
   ),
   CompanionType(
     key: 'archer',
@@ -63,6 +68,8 @@ const List<CompanionType> companionTypes = [
     health: 10,
     notes: 'Bow OR Crossbow, Dagger, Light Armour, Quiver',
     isAnimal: false,
+    allowedWeaponTypes: ['bow', 'crossbow', 'dagger'],
+    allowedArmourTypes: ['light_armour'],
   ),
   CompanionType(
     key: 'barbarian',
@@ -78,6 +85,8 @@ const List<CompanionType> companionTypes = [
     notes: 'Hand Weapon, Shield, Strength +5',
     isAnimal: false,
     baseSkills: {'strength': 5},
+    allowedWeaponTypes: ['hand_weapon'],
+    allowedArmourTypes: ['shield'],
   ),
   CompanionType(
     key: 'conjuror',
@@ -93,6 +102,7 @@ const List<CompanionType> companionTypes = [
     notes: 'Staff OR Hand Weapon, 2 Spells, 3rd Spell (+10 RP)',
     isAnimal: false,
     specialRules: 'Can select 2 spells (or 3 for +10 RP). Casts spells using same rules as rangers.',
+    allowedWeaponTypes: ['staff', 'hand_weapon'],
   ),
   CompanionType(
     key: 'guardsman',
@@ -107,6 +117,8 @@ const List<CompanionType> companionTypes = [
     health: 12,
     notes: 'Two-Handed Weapon, Light Armour',
     isAnimal: false,
+    allowedWeaponTypes: ['two_handed_weapon'],
+    allowedArmourTypes: ['light_armour'],
   ),
   CompanionType(
     key: 'hound',
@@ -169,6 +181,8 @@ const List<CompanionType> companionTypes = [
     notes: 'Hand Weapon, Shield, Heavy Armour, Strength +4',
     isAnimal: false,
     baseSkills: {'strength': 4},
+    allowedWeaponTypes: ['hand_weapon'],
+    allowedArmourTypes: ['shield', 'heavy_armour'],
   ),
   CompanionType(
     key: 'man_at_arms',
@@ -183,6 +197,8 @@ const List<CompanionType> companionTypes = [
     health: 12,
     notes: 'Hand Weapon, Shield, Light Armour',
     isAnimal: false,
+    allowedWeaponTypes: ['hand_weapon'],
+    allowedArmourTypes: ['shield', 'light_armour'],
   ),
   CompanionType(
     key: 'raptor',
@@ -214,6 +230,7 @@ const List<CompanionType> companionTypes = [
     health: 10,
     notes: 'Hand Weapon',
     isAnimal: false,
+    allowedWeaponTypes: ['hand_weapon'],
   ),
   CompanionType(
     key: 'rogue',
@@ -229,6 +246,7 @@ const List<CompanionType> companionTypes = [
     notes: 'Dagger, Throwing Knife, Climb +2, Perception +2, Pick Lock +5, Traps +5, Stealth +5',
     isAnimal: false,
     baseSkills: {'climb': 2, 'perception': 2, 'pick_lock': 5, 'traps': 5, 'stealth': 5},
+    allowedWeaponTypes: ['dagger', 'throwing_knife'],
   ),
   CompanionType(
     key: 'savage',
@@ -244,6 +262,7 @@ const List<CompanionType> companionTypes = [
     notes: 'Two-Handed Weapon, Strength +5',
     isAnimal: false,
     baseSkills: {'strength': 5},
+    allowedWeaponTypes: ['two_handed_weapon'],
   ),
   CompanionType(
     key: 'swordsman',
@@ -258,6 +277,8 @@ const List<CompanionType> companionTypes = [
     health: 12,
     notes: 'Hand Weapon, Dagger, Light Armour',
     isAnimal: false,
+    allowedWeaponTypes: ['hand_weapon', 'dagger'],
+    allowedArmourTypes: ['light_armour'],
   ),
   CompanionType(
     key: 'templar',
@@ -273,6 +294,8 @@ const List<CompanionType> companionTypes = [
     notes: 'Two-Handed Weapon, Heavy Armour, Strength +4',
     isAnimal: false,
     baseSkills: {'strength': 4},
+    allowedWeaponTypes: ['two_handed_weapon'],
+    allowedArmourTypes: ['heavy_armour'],
   ),
   CompanionType(
     key: 'tracker',
@@ -288,6 +311,8 @@ const List<CompanionType> companionTypes = [
     notes: 'Staff, Bow, Quiver, Light Armour, Tracking +5',
     isAnimal: false,
     baseSkills: {'track': 5},
+    allowedWeaponTypes: ['staff', 'bow'],
+    allowedArmourTypes: ['light_armour'],
   ),
 ];
 

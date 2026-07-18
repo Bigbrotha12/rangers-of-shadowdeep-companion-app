@@ -22,8 +22,7 @@ class RangerRepository {
   }
 
   Future<bool> updateRanger(RangersCompanion companion) async {
-    final updated = await _db.update(_db.rangers).replace(companion);
-    return updated;
+    return await _db.update(_db.rangers).replace(companion);
   }
 
   Future<void> updateRangerFields(int rangerId, RangersCompanion companion) async {

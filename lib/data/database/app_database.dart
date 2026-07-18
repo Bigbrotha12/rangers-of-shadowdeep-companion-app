@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +61,13 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 5) {
             await _migrateEquipmentEffects();
+          }
+          if (from < 6) {
+            await m.addColumn(rangerCompanions, rangerCompanions.heroicAbilityKeys);
+            await m.addColumn(rangerCompanions, rangerCompanions.spellKeys);
+          }
+          if (from < 7) {
+            await _ensureHerbAndPotionEquipment();
           }
         },
       );
@@ -201,6 +208,24 @@ class AppDatabase extends _$AppDatabase {
         .write(EquipmentCompanion(
           effects: Value(item.effects),
         ));
+    }
+  }
+
+  // Ensure herbs and potions are in the equipment catalog
+  Future<void> _ensureHerbAndPotionEquipment() async {
+    final existing = await (select(equipment)..where((e) => e.category.equals('herb_potion'))).get();
+    if (existing.isNotEmpty) return;
+
+    for (final h in herbsAndPotions) {
+      await into(equipment).insert(EquipmentCompanion.insert(
+        itemKey: h.key,
+        name: h.name,
+        category: 'herb_potion',
+        description: Value(h.description),
+        effects: Value(h.effects),
+        hasUses: const Value(true),
+        maxUses: const Value(1),
+      ));
     }
   }
 }

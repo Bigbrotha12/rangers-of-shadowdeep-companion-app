@@ -31,8 +31,8 @@ class SessionRepository {
     return results;
   }
 
-  Future<bool> updateSession(SessionsCompanion session) async {
-    return await _db.update(_db.sessions).replace(session);
+  Future<void> updateSession(int sessionId, SessionsCompanion session) async {
+    await (_db.update(_db.sessions)..where((s) => s.id.equals(sessionId))).write(session);
   }
 
   Future<int> deleteSession(int id) async {

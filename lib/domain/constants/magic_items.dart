@@ -7,6 +7,7 @@ class MagicItem {
     required this.effects,
     this.maxUses,
     this.replacesWeaponType,
+    this.replacesArmourType,
   });
 
   final String key;
@@ -15,7 +16,8 @@ class MagicItem {
   final String category; // 'magic_weapon', 'magic_armour', 'magic_item'
   final String effects; // JSON string with mechanical effects
   final int? maxUses;
-  final String? replacesWeaponType; // For Light weapons
+  final String? replacesWeaponType; // For magic weapons (maps to BasicEquipment key)
+  final String? replacesArmourType; // For magic armour (maps to BasicEquipment key)
 }
 
 const List<MagicItem> magicItemsList = [
@@ -106,6 +108,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":1,"brightness":true}',
     maxUses: 5,
+    replacesArmourType: 'shield',
   ),
   MagicItem(
     key: 'brightness_light_armour',
@@ -114,6 +117,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":1,"brightness":true}',
     maxUses: 5,
+    replacesArmourType: 'light_armour',
   ),
   MagicItem(
     key: 'brightness_heavy_armour',
@@ -122,6 +126,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":2,"move_penalty":-1,"brightness":true}',
     maxUses: 5,
+    replacesArmourType: 'heavy_armour',
   ),
   // Elemental Strike (additional 5 elemental magic damage)
   MagicItem(
@@ -159,6 +164,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":1,"blocking":true}',
     maxUses: 1,
+    replacesArmourType: 'shield',
   ),
   MagicItem(
     key: 'blocking_light_armour',
@@ -167,6 +173,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":1,"blocking":true}',
     maxUses: 1,
+    replacesArmourType: 'light_armour',
   ),
   MagicItem(
     key: 'blocking_heavy_armour',
@@ -175,6 +182,7 @@ const List<MagicItem> magicItemsList = [
     category: 'magic_armour',
     effects: '{"armour_bonus":2,"move_penalty":-1,"blocking":true}',
     maxUses: 1,
+    replacesArmourType: 'heavy_armour',
   ),
   MagicItem(
     key: 'blocking_hand_weapon',

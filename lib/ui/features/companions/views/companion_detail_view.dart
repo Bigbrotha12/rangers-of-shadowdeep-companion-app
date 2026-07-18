@@ -9,6 +9,9 @@ import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
 import '../../../../domain/constants/basic_equipment.dart';
 import '../../../../domain/constants/companion_types.dart';
+import '../../../../domain/constants/magic_items.dart';
+import '../../../../domain/constants/heroic_abilities.dart';
+import '../../../../domain/constants/spells.dart';
 import '../../../../domain/constants/skills.dart';
 import '../../../core/widgets/stat_display.dart';
 import '../../../core/widgets/placeholder_image.dart';
@@ -100,7 +103,7 @@ class CompanionDetailView extends ConsumerWidget {
         ],
       ),
       body: DefaultTabController(
-        length: 5,
+        length: 6,
         child: Column(
           children: [
             _CompanionHeader(companion: companion, type: type),
@@ -110,6 +113,7 @@ class CompanionDetailView extends ConsumerWidget {
               tabs: [
                 Tab(text: 'Stats'),
                 Tab(text: 'Skills'),
+                Tab(text: 'Abilities'),
                 Tab(text: 'Injuries'),
                 Tab(text: 'Info'),
                 Tab(text: 'Equipment'),
@@ -125,12 +129,20 @@ class CompanionDetailView extends ConsumerWidget {
                     companionId: companionId,
                   ),
                   _SkillsTab(companion: companion, type: type),
+                  _AbilitiesTab(
+                    companion: companion,
+                    type: type,
+                    rangerId: rangerId,
+                  ),
                   _InjuriesTab(companion: companion),
                   _InfoTab(companion: companion, type: type),
-                  _CompanionEquipmentTab(
-                    rangerId: rangerId,
-                    companionId: companionId,
-                  ),
+                  type.isAnimal
+                      ? const _AnimalEquipmentDisabled()
+                      : _CompanionEquipmentTab(
+                          rangerId: rangerId,
+                          companionId: companionId,
+                          type: type,
+                        ),
                 ],
               ),
             ),
@@ -474,44 +486,75 @@ class _SkillsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Get all skills with their values
-    final skillValues = <String, int>{};
-    for (final skill in skills) {
+    // Get skills with values > 0
+    final skillEntries = skills.map((skill) {
       final baseValue = type.baseSkills[skill.key] ?? 0;
       final customValue = companion.customSkills[skill.key] ?? 0;
-      skillValues[skill.key] = baseValue + customValue;
+      return (skill: skill, value: baseValue + customValue);
+    }).where((e) => e.value > 0).toList();
+
+    if (skillEntries.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.school,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No skills',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This companion has no skills yet.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: skills.length,
+      itemCount: skillEntries.length,
       itemBuilder: (context, index) {
-        final skill = skills[index];
-        final value = skillValues[skill.key] ?? 0;
+        final entry = skillEntries[index];
+        final skill = entry.skill;
+        final value = entry.value;
 
-        return ListTile(
-          title: Text(skill.name),
-          subtitle: Text(
-            skill.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: value > 0
-                  ? theme.colorScheme.primaryContainer
-                  : theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
+        return Card(
+          margin: const EdgeInsets.only(bottom: 6),
+          child: ListTile(
+            title: Text(skill.name),
+            subtitle: Text(
+              skill.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            child: Text(
-              value > 0 ? '+$value' : '+0',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: value > 0
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSurfaceVariant,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(16),
               ),
+              child: Text(
+                '+$value',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            onTap: () => context.push(
+              '/reference/skills/${skill.key}',
             ),
           ),
         );
@@ -652,34 +695,391 @@ class _InfoSection extends StatelessWidget {
   }
 }
 
+class _AbilitiesTab extends ConsumerWidget {
+  const _AbilitiesTab({
+    required this.companion,
+    required this.type,
+    required this.rangerId,
+  });
+
+  final CompanionData companion;
+  final CompanionType type;
+  final int rangerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isConjuror = type.key == 'conjuror';
+    final maxSpells = isConjuror ? 3 : null;
+
+    final hasHeroic = companion.heroicAbilityKeys.isNotEmpty;
+    final hasSpells = isConjuror;
+    final hasSkillBonuses = companion.customSkills.isNotEmpty;
+
+    if (!hasHeroic && !hasSpells && !hasSkillBonuses) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.auto_awesome,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No abilities',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Earn abilities through progression rewards.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Heroic Abilities ──
+          if (hasHeroic) ...[
+            Text(
+              'Heroic Abilities',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...companion.heroicAbilityKeys.map((key) {
+              final data = heroicAbilities.firstWhere(
+                (a) => a.key == key,
+                orElse: () => heroicAbilities.first,
+              );
+              return Card(
+                margin: const EdgeInsets.only(bottom: 6),
+                child: ListTile(
+                  leading: Icon(Icons.star, color: theme.colorScheme.primary),
+                  title: Text(data.name),
+                  subtitle: Text(
+                    data.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => context.push(
+                    '/reference/heroic_abilities/$key',
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+
+          if (isConjuror) ...[
+            // ── Spells ──
+            Text(
+              'Spells',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (companion.spellKeys.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'No spells selected.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            else
+              ...companion.spellKeys.map((key) {
+                final data = spells.firstWhere(
+                  (s) => s.key == key,
+                  orElse: () => spells.first,
+                );
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  child: ListTile(
+                    leading: Icon(Icons.auto_awesome, color: theme.colorScheme.tertiary),
+                    title: Text(data.name),
+                    subtitle: Text(
+                      data.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          onPressed: () => context.push(
+                            '/reference/spells/$key',
+                          ),
+                          tooltip: 'View details',
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.remove_circle_outline,
+                            size: 20,
+                            color: theme.colorScheme.error,
+                          ),
+                          onPressed: () {
+                            ref.read(companionProvider(companion.id).notifier)
+                                .removeSpellKey(key);
+                          },
+                          tooltip: 'Remove spell',
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            const SizedBox(height: 8),
+            if (companion.spellKeys.length < maxSpells!)
+              OutlinedButton.icon(
+                onPressed: () => _showSpellPicker(context, ref, isConjuror),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(
+                  'Select Spell (${companion.spellKeys.length}/$maxSpells)',
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'Conjuror can select up to $maxSpells spell${maxSpells == 1 ? '' : 's'}.',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // ── Skills from customSkills ──
+          if (hasSkillBonuses) ...[
+            Text(
+              'Skill Bonuses',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: companion.customSkills.entries.map((entry) {
+                final skill = skills.firstWhere(
+                  (s) => s.key == entry.key,
+                  orElse: () => skills.first,
+                );
+                return ActionChip(
+                  avatar: const Icon(Icons.school, size: 14),
+                  label: Text(
+                    '${skill.name} +${entry.value}',
+                    style: theme.textTheme.labelSmall,
+                  ),
+                  onPressed: () => context.push(
+                    '/reference/skills/${entry.key}',
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showSpellPicker(BuildContext context, WidgetRef ref, bool isConjuror) {
+    final existing = [...companion.spellKeys];
+    final selected = Set<String>.from(existing);
+    final max = isConjuror ? 3 : 999;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(isConjuror
+              ? 'Select Spells (max $max)'
+              : 'Select Spells'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: spells.length,
+              itemBuilder: (ctx, i) {
+                final spell = spells[i];
+                final isSelected = selected.contains(spell.key);
+                final atMax = selected.length >= max && !isSelected;
+
+                return CheckboxListTile(
+                  value: isSelected,
+                  onChanged: atMax
+                      ? null
+                      : (checked) {
+                          setState(() {
+                            if (checked == true) {
+                              selected.add(spell.key);
+                            } else {
+                              selected.remove(spell.key);
+                            }
+                          });
+                        },
+                  title: Text(spell.name),
+                  subtitle: Text(
+                    spell.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                ref.read(companionProvider(companion.id).notifier)
+                    .setSpellKeys(selected.toList());
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimalEquipmentDisabled extends StatelessWidget {
+  const _AnimalEquipmentDisabled();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.pets,
+            size: 64,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Animals cannot carry treasure or items.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CompanionEquipmentTab extends ConsumerStatefulWidget {
   const _CompanionEquipmentTab({
     required this.rangerId,
     required this.companionId,
+    required this.type,
   });
 
   final int rangerId;
   final int companionId;
+  final CompanionType type;
 
   @override
   ConsumerState<_CompanionEquipmentTab> createState() => _CompanionEquipmentTabState();
 }
 
 class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> {
+  /// Safely reads a non-nullable Drift column that may contain null at runtime
+  String _safeDbKey(EquipmentData e) {
+    try {
+      return e.itemKey;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  bool _canCompanionEquip(String itemKey, String category) {
+    if (itemKey.isEmpty) return false;
+    final type = widget.type;
+    return switch (category) {
+      'basic_weapon' => type.allowedWeaponTypes.contains(itemKey),
+      'magic_weapon' => type.allowedWeaponTypes.contains(
+        getMagicItem(itemKey)?.replacesWeaponType ?? itemKey),
+      'basic_armour' => type.allowedArmourTypes.contains(itemKey),
+      'magic_armour' => type.allowedArmourTypes.contains(
+        getMagicItem(itemKey)?.replacesArmourType ?? itemKey),
+      'basic_gear' => itemKey == 'shield'
+        ? type.allowedArmourTypes.contains('shield')
+        : true,
+      _ => true,
+    };
+  }
+
   Future<void> _equipItem(RangerEquipmentData item) async {
     final repo = ref.read(rangerRepositoryProvider);
+    final equipment = await repo.getEquipmentById(item.equipmentId);
+    if (equipment == null) return;
+
+    final itemKey = _safeDbKey(equipment);
+    if (itemKey.isEmpty) return;
+    if (!_canCompanionEquip(itemKey, equipment.category)) return;
+
     final ranger = await ref.read(rangerDetailProvider(widget.rangerId).future);
     if (ranger == null) return;
-    final equipped = ranger.equipment
+
+    final companionEquipped = ranger.equipment
       .where((e) => e.slotIndex != null)
       .where((e) => e.equipment.equippedBy == widget.companionId.toString())
       .toList();
-    final usedSlots = equipped.map((e) => e.slotIndex!).toSet();
+    final usedSlots = companionEquipped.map((e) => e.slotIndex!).toSet();
+
+    // Auto-replace: unequip mundane versions replaced by magic items
+    final magicItem = getMagicItem(itemKey);
+    final replacesType = magicItem?.replacesWeaponType ?? magicItem?.replacesArmourType;
+    if (replacesType != null) {
+      final toReplace = companionEquipped.where((e) => e.itemKey == replacesType).toList();
+      for (final old in toReplace) {
+        usedSlots.remove(old.slotIndex);
+        await repo.updateRangerEquipment(RangerEquipmentCompanion(
+          id: Value(old.equipment.id),
+          slotIndex: const Value(null),
+          equippedBy: const Value('pool'),
+        ));
+      }
+    }
+
     for (int i = 0; i < maxCompanionEquipmentSlots; i++) {
       if (!usedSlots.contains(i)) {
         await repo.updateRangerEquipment(RangerEquipmentCompanion(
           id: Value(item.id),
           slotIndex: Value(i),
+          equippedBy: Value(widget.companionId.toString()),
         ));
         ref.invalidate(rangerDetailProvider(widget.rangerId));
         return;
@@ -692,6 +1092,7 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
     await repo.updateRangerEquipment(RangerEquipmentCompanion(
       id: Value(item.id),
       slotIndex: const Value(null),
+      equippedBy: const Value('pool'),
     ));
     ref.invalidate(rangerDetailProvider(widget.rangerId));
   }
@@ -708,7 +1109,7 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
     await repo.insertRangerEquipment(RangerEquipmentCompanion.insert(
       rangerId: widget.rangerId,
       equipmentId: equipmentId,
-      equippedBy: Value(widget.companionId.toString()),
+      equippedBy: const Value('pool'),
       currentUses: equipment?.hasUses == true ? Value(equipment!.maxUses) : const Value(null),
     ));
     ref.invalidate(rangerDetailProvider(widget.rangerId));
@@ -761,6 +1162,10 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final rangerAsync = ref.watch(rangerDetailProvider(widget.rangerId));
+    final type = widget.type;
+
+    final standardWeaponKeys = type.allowedWeaponTypes;
+    final standardArmourKeys = type.allowedArmourTypes;
 
     return rangerAsync.when(
       data: (ranger) {
@@ -769,7 +1174,7 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
         }
 
         final companionItems = ranger.equipment
-          .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+          .where((e) => e.equipment.equippedBy == widget.companionId.toString() || e.equipment.equippedBy == 'pool')
           .toList();
 
         final equipped = List<RangerEquipmentWithName?>.generate(
@@ -784,11 +1189,47 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
         );
         final inventory = companionItems.where((e) => e.slotIndex == null).toList();
 
+        // Determine which standard items are replaced by a magic equipped item
+        final replacedKeys = <String>{};
+        for (final slot in equipped) {
+          if (slot == null) continue;
+          if (slot.itemKey.isEmpty) continue;
+          final magicItem = getMagicItem(slot.itemKey);
+          if (magicItem != null) {
+            final r = magicItem.replacesWeaponType ?? magicItem.replacesArmourType;
+            if (r != null) replacedKeys.add(r);
+          }
+        }
+
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // ── Equipment Slots ──
-            Text('Equipment (${equipped.where((e) => e != null).length}/$maxCompanionEquipmentSlots Slots)',
+            // ── Standard Equipment (always carried, no slot cost) ──
+            if (standardWeaponKeys.isNotEmpty || standardArmourKeys.isNotEmpty) ...[
+              Text('Standard Equipment (always carried)',
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              ...standardWeaponKeys.map((key) {
+                final name = getBasicEquipment(key)?.name ?? key;
+                return _standardItemTile(
+                  theme: theme,
+                  name: name,
+                  replaced: replacedKeys.contains(key),
+                );
+              }),
+              ...standardArmourKeys.map((key) {
+                final name = getBasicEquipment(key)?.name ?? key;
+                return _standardItemTile(
+                  theme: theme,
+                  name: name,
+                  replaced: replacedKeys.contains(key),
+                );
+              }),
+              const SizedBox(height: 16),
+            ],
+
+            // ── Additional Equipment Slots ──
+            Text('Additional Slots (${equipped.where((e) => e != null).length}/$maxCompanionEquipmentSlots)',
                 style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ...List.generate(maxCompanionEquipmentSlots, (i) {
@@ -877,51 +1318,93 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
                 )),
               )
             else
-              ...inventory.map((item) => Card(
-                margin: const EdgeInsets.only(bottom: 6),
-                child: ListTile(
-                  dense: true,
-                  leading: Icon(Icons.inventory_2, size: 20, color: theme.colorScheme.onSurfaceVariant),
-                  title: Text(item.name, style: const TextStyle(fontSize: 14)),
-                  subtitle: item.equipment.currentUses != null
-                      ? Text('Uses: ${item.equipment.currentUses}', style: const TextStyle(fontSize: 12))
-                      : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
-                        TextButton.icon(
-                          icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
-                          label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
-                          onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
+              ...inventory.map((item) {
+                final canEquip = _canCompanionEquip(item.itemKey, item.category) 
+                  && equipped.where((e) => e != null).length < maxCompanionEquipmentSlots;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.inventory_2, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                    title: Text(item.name, style: const TextStyle(fontSize: 14)),
+                    subtitle: item.equipment.currentUses != null
+                        ? Text('Uses: ${item.equipment.currentUses}', style: const TextStyle(fontSize: 12))
+                        : null,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.equipment.currentUses != null && item.equipment.currentUses! > 0)
+                          TextButton.icon(
+                            icon: const Icon(Icons.remove_circle_outline, size: 24, color: Colors.red),
+                            label: const Text('Use', style: TextStyle(fontSize: 17, color: Colors.red)),
+                            onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
                           ),
-                        ),
-                      const SizedBox(width: 8),
-                      if (equipped.where((e) => e != null).length < maxCompanionEquipmentSlots)
+                        const SizedBox(width: 8),
+                        if (canEquip)
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left, size: 20),
+                            onPressed: () => _equipItem(item.equipment),
+                            tooltip: 'Equip',
+                          ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_left, size: 20),
-                          onPressed: () => _equipItem(item.equipment),
-                          tooltip: 'Equip',
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          onPressed: () => _removeItem(item.equipment.id),
+                          tooltip: 'Remove',
                         ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        onPressed: () => _removeItem(item.equipment.id),
-                        tooltip: 'Remove',
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              )),
+                );
+              }),
           ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Error: $error')),
+    );
+  }
+
+  Widget _standardItemTile({
+    required ThemeData theme,
+    required String name,
+    required bool replaced,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(
+            replaced ? Icons.swap_horiz : Icons.check_circle,
+            size: 18,
+            color: replaced ? theme.colorScheme.tertiary : theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 14,
+              decoration: replaced ? TextDecoration.lineThrough : null,
+              color: replaced ? theme.colorScheme.onSurfaceVariant : null,
+            ),
+          ),
+          if (replaced) ...[
+            const SizedBox(width: 4),
+            Text(
+              '(replaced)',
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.tertiary,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -931,9 +1414,22 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
     final ranger = await ref.read(rangerDetailProvider(widget.rangerId).future);
     if (ranger == null) return;
     final ownedIds = ranger.equipment
-      .where((e) => e.equipment.equippedBy == widget.companionId.toString())
       .map((e) => e.equipment.equipmentId)
       .toSet();
+
+    // Safely resolve itemKey from EquipmentData (Drift may have null for non-nullable columns)
+    String safeItemKey(EquipmentData e) {
+      try {
+        return e.itemKey;
+      } catch (_) {
+        return '';
+      }
+    }
+
+    final eligible = allEquipment
+      .where((e) => !ownedIds.contains(e.id))
+      .where((e) => _canCompanionEquip(safeItemKey(e), e.category))
+      .toList();
 
     if (!context.mounted) return;
     showDialog(
@@ -942,21 +1438,30 @@ class _CompanionEquipmentTabState extends ConsumerState<_CompanionEquipmentTab> 
         title: const Text('Add Item'),
         content: SizedBox(
           width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: allEquipment
-              .where((e) => !ownedIds.contains(e.id))
-              .map((e) => ListTile(
-                dense: true,
-                title: Text(e.name, style: const TextStyle(fontSize: 14)),
-                subtitle: Text(e.category, style: const TextStyle(fontSize: 12)),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _addItem(e.id);
-                },
-              ))
-              .toList(),
-          ),
+          child: eligible.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'No eligible items available.',
+                  style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            : ListView(
+                shrinkWrap: true,
+                children: eligible
+                  .map((e) => ListTile(
+                    dense: true,
+                    title: Text(e.name, style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(e.category, style: const TextStyle(fontSize: 12)),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      _addItem(e.id);
+                    },
+                  ))
+                  .toList(),
+              ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),

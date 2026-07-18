@@ -3,6 +3,7 @@ import 'dart:math' show Random;
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/database/app_database.dart' hide CompanionType;
+import '../../rangers/view_models/ranger_detail_provider.dart';
 import '../../../../data/repositories/session_repository_provider.dart';
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
@@ -380,6 +381,16 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
       ));
     }
 
+    // Parse treasure count from session notes
+    int treasureCount = 0;
+    if (session.notes.startsWith('__treasure_count:')) {
+      treasureCount = int.tryParse(session.notes.substring('__treasure_count:'.length)) ?? 0;
+    } else if (session.notes.startsWith('Treasure Found:')) {
+      final afterPrefix = session.notes.substring('Treasure Found:'.length).trim();
+      final spaceIdx = afterPrefix.indexOf(' ');
+      treasureCount = int.tryParse(spaceIdx > 0 ? afterPrefix.substring(0, spaceIdx) : afterPrefix) ?? 0;
+    }
+
     state = PostGameState(
       sessionId: sessionId,
       rangerId: ranger.id,
@@ -401,7 +412,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
       levelUpApplied: false,
       ranger: ranger,
       companionPpGains: companionPpList,
-      treasureCount: 0,
+      treasureCount: treasureCount,
       availableRp: rp,
       currentCompanions: companionList,
       releasedCompanionIds: const {},
@@ -723,6 +734,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
             claimedProgressionRewards: Value(existing.claimedProgressionRewards),
             hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
             bonusHealth: Value(existing.bonusHealth),
+            heroicAbilityKeys: Value(existing.heroicAbilityKeys),
+            spellKeys: Value(existing.spellKeys),
+
           ));
         }
       }
@@ -746,6 +760,8 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),
+        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
+        spellKeys: Value(existing.spellKeys),
       ));
     }
 
@@ -806,8 +822,55 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),
+        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
+        spellKeys: Value(existing.spellKeys),
       ));
     }
+
+    // ── Enrich session notes with outcomes ──────────────────
+    final buffer = StringBuffer('Treasure Found: ${state!.treasureResults.length}');
+    for (final tr in state!.treasureResults) {
+      if (tr.category == 'gold') {
+        final choice = tr.isGoldChoiceMade
+            ? (tr.goldChoseXp ? ', chose +10 XP' : ', chose +1 PP')
+            : '';
+        buffer.writeln('\n  - Gold and Jewels$choice');
+      } else {
+        buffer.writeln('\n  - ${tr.categoryName}: ${tr.name}');
+      }
+    }
+
+    final survivalLines = <String>[];
+    for (final target in state!.survivalTargets) {
+      if (target.result == null) continue;
+      switch (target.result!) {
+        case SurvivalResult.dead:
+          survivalLines.add('${target.name}: Dead');
+        case SurvivalResult.permanentInjury:
+          final injuryName = target.injury?.name ?? 'Unknown Injury';
+          survivalLines.add('${target.name}: $injuryName');
+        case SurvivalResult.badlyWounded:
+          survivalLines.add('${target.name}: Badly Wounded');
+        case SurvivalResult.closeCall:
+          survivalLines.add('${target.name}: Close Call');
+        case SurvivalResult.fullRecovery:
+          break;
+      }
+    }
+    if (survivalLines.isNotEmpty) {
+      buffer.writeln();
+      buffer.write('Survival:');
+      for (final line in survivalLines) {
+        buffer.writeln('\n  - $line');
+      }
+    }
+
+    await sessionRepo.updateSession(state!.sessionId, SessionsCompanion(
+      notes: Value(buffer.toString()),
+    ));
+
+    // Invalidate ranger detail so inventory reflects newly added treasure
+    _ref.invalidate(rangerDetailProvider(state!.rangerId));
 
     state = state!.copyWith(isFinalized: true);
   }

@@ -75,6 +75,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
         await repo.updateRangerEquipment(RangerEquipmentCompanion(
           id: Value(item.id),
           slotIndex: Value(i),
+          equippedBy: const Value('ranger'),
         ));
         ref.invalidate(rangerDetailProvider(widget.rangerId));
         return;
@@ -84,10 +85,11 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
 
   Future<void> _unequipItem(RangerEquipmentData item) async {
     final repo = ref.read(rangerRepositoryProvider);
-    await repo.updateRangerEquipment(RangerEquipmentCompanion(
-      id: Value(item.id),
-      slotIndex: const Value(null),
-    ));
+        await repo.updateRangerEquipment(RangerEquipmentCompanion(
+          id: Value(item.id),
+          slotIndex: const Value(null),
+          equippedBy: const Value('pool'),
+        ));
     ref.invalidate(rangerDetailProvider(widget.rangerId));
   }
 
@@ -103,6 +105,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
     await repo.insertRangerEquipment(RangerEquipmentCompanion.insert(
       rangerId: widget.rangerId,
       equipmentId: equipmentId,
+      equippedBy: const Value('pool'),
       currentUses: equipment?.hasUses == true ? Value(equipment!.maxUses) : const Value(null),
     ));
     ref.invalidate(rangerDetailProvider(widget.rangerId));
@@ -140,6 +143,9 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                     case 'rename':
                       _showRenameDialog(context, ref, ranger);
                       break;
+                    case 'notes':
+                      _showNotesDialog(context, ref, ranger);
+                      break;
                     case 'companions':
                       context.push('/rangers/${widget.rangerId}/companions');
                       break;
@@ -154,6 +160,13 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                     child: ListTile(
                       leading: Icon(Icons.edit),
                       title: Text('Rename'),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'notes',
+                    child: ListTile(
+                      leading: Icon(ranger.ranger.notes.isEmpty ? Icons.note_add : Icons.edit_note),
+                      title: Text(ranger.ranger.notes.isEmpty ? 'Add Note' : 'Edit Notes'),
                     ),
                   ),
                   const PopupMenuItem(
@@ -197,6 +210,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                       _StatsTab(
                         ranger: ranger,
                         statModifiers: _computeStatModifiers(ranger),
+                        onEditNotes: () => _showNotesDialog(context, ref, ranger),
                       ),
                       _AbilitiesTab(ranger: ranger),
                       _SkillsTab(ranger: ranger),
@@ -255,12 +269,67 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
               if (newName.isEmpty) return;
               
               final repo = ref.read(rangerRepositoryProvider);
-              await repo.updateRanger(RangersCompanion(
-                id: Value(ranger.ranger.id),
+              await repo.updateRangerFields(ranger.ranger.id, RangersCompanion(
                 name: Value(newName),
                 updatedAt: Value(DateTime.now()),
               ));
               
+              if (context.mounted) {
+                Navigator.pop(context);
+                ref.invalidate(rangerDetailProvider(widget.rangerId));
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNotesDialog(BuildContext context, WidgetRef ref, RangerDetail ranger) {
+    final controller = TextEditingController(text: ranger.ranger.notes);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(ranger.ranger.notes.isEmpty ? 'Add Note' : 'Edit Note'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 5,
+          decoration: const InputDecoration(
+            labelText: 'Notes',
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          if (ranger.ranger.notes.isNotEmpty)
+            TextButton(
+              onPressed: () async {
+                final repo = ref.read(rangerRepositoryProvider);
+                await repo.updateRangerFields(ranger.ranger.id, RangersCompanion(
+                  notes: const Value(''),
+                  updatedAt: Value(DateTime.now()),
+                ));
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ref.invalidate(rangerDetailProvider(widget.rangerId));
+                }
+              },
+              child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ),
+          TextButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              final repo = ref.read(rangerRepositoryProvider);
+              await repo.updateRangerFields(ranger.ranger.id, RangersCompanion(
+                notes: Value(text),
+                updatedAt: Value(DateTime.now()),
+              ));
               if (context.mounted) {
                 Navigator.pop(context);
                 ref.invalidate(rangerDetailProvider(widget.rangerId));
@@ -358,10 +427,11 @@ class _RangerHeader extends StatelessWidget {
 }
 
 class _StatsTab extends StatelessWidget {
-  const _StatsTab({required this.ranger, required this.statModifiers});
+  const _StatsTab({required this.ranger, required this.statModifiers, this.onEditNotes});
 
   final RangerDetail ranger;
   final Map<String, int> statModifiers;
+  final VoidCallback? onEditNotes;
 
   @override
   Widget build(BuildContext context) {
@@ -441,20 +511,39 @@ class _StatsTab extends StatelessWidget {
               ],
             ),
           ),
-          if (r.notes.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text(
-              'Notes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Text(
+                'Notes',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const Spacer(),
+              IconButton(
+                icon: Icon(
+                  r.notes.isEmpty ? Icons.add : Icons.edit,
+                  size: 20,
+                ),
+                onPressed: onEditNotes,
+                tooltip: r.notes.isEmpty ? 'Add note' : 'Edit note',
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (r.notes.isNotEmpty)
             Text(
               r.notes,
               style: Theme.of(context).textTheme.bodyMedium,
+            )
+          else
+            Text(
+              'No notes added.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ],
         ],
       ),
     );
@@ -668,12 +757,13 @@ class _EquipmentTab extends ConsumerWidget {
     final theme = Theme.of(context);
     final equipped = List<RangerEquipmentWithName?>.generate(6, (i) {
       try {
-        return ranger.equipment.firstWhere((e) => e.slotIndex == i);
+        return ranger.equipment.firstWhere((e) => e.slotIndex == i && e.equipment.equippedBy == 'ranger');
       } catch (_) {
         return null;
       }
     });
-    final inventory = ranger.equipment.where((e) => e.slotIndex == null).toList();
+    final inventory = ranger.equipment.where((e) =>
+      e.slotIndex == null && (e.equipment.equippedBy == 'ranger' || e.equipment.equippedBy == 'pool')).toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1162,60 +1252,7 @@ class _CompanionsTab extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            if (companionEquip.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 4,
-                                children: companionEquip.map((item) {
-                                  final hasUses = item.equipment.currentUses != null && item.equipment.currentUses! > 0;
-                                  final eff = Map<String, dynamic>.from(
-                                    const JsonDecoder().convert(item.effects) as Map,
-                                  );
-                                  final dmg = eff['damage_modifier'] as int?;
-                                  final arm = eff['armour_bonus'] as int?;
-                                  final lbl = StringBuffer(item.name);
-                                  if (hasUses) lbl.write(' (${item.equipment.currentUses})');
-                                  if (dmg != null) lbl.write(' ${dmg >= 0 ? '+' : ''}$dmg');
-                                  if (arm != null) lbl.write(' ${arm >= 0 ? '+' : ''}$arm');
 
-                                  if (hasUses) {
-                                    return ActionChip(
-                                      avatar: const Icon(Icons.remove_circle_outline, size: 14, color: Colors.red),
-                                      label: Text(lbl.toString(), style: theme.textTheme.labelSmall),
-                                      onPressed: () {
-                                        final repo = ref.read(rangerRepositoryProvider);
-                                        repo.useEquipmentCharge(item.equipment.id);
-                                        ref.invalidate(rangerDetailProvider(rangerId));
-                                      },
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    );
-                                  }
-
-                                  return ActionChip(
-                                    avatar: Icon(
-                                      item.isActive ? Icons.check_circle : Icons.radio_button_unchecked,
-                                      size: 14,
-                                      color: item.isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    label: Text(lbl.toString(), style: theme.textTheme.labelSmall),
-                                    onPressed: () {
-                                      final repo = ref.read(rangerRepositoryProvider);
-                                      repo.updateRangerEquipment(RangerEquipmentCompanion(
-                                        id: Value(item.equipment.id),
-                                        isActive: Value(!item.isActive),
-                                      ));
-                                      ref.invalidate(rangerDetailProvider(rangerId));
-                                    },
-                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    visualDensity: VisualDensity.compact,
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
                           ],
                         ),
                       ),

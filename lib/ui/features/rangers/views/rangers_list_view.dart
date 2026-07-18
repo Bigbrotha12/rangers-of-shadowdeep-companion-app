@@ -98,6 +98,7 @@ class _RangerCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   PlaceholderImage(
                     assetPath: 'assets/images/rangers/default_ranger.png',
@@ -125,18 +126,17 @@ class _RangerCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  StatTable(
+                    labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+                    values: [ranger.move, ranger.fight, ranger.shoot, ranger.armour, ranger.will, ranger.health],
+                  ),
+                  const SizedBox(width: 8),
                   Icon(
                     Icons.chevron_right,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: StatTable(
-                  labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
-                  values: [ranger.move, ranger.fight, ranger.shoot, ranger.armour, ranger.will, ranger.health],
-                ),
               ),
               if (ranger.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),
