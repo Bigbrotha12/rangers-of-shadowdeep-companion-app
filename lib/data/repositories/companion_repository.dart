@@ -16,9 +16,12 @@ class CompanionRepository {
     return await query.getSingleOrNull();
   }
 
-  Future<List<RangerCompanion>> getCompanionsByRanger(int rangerId) async {
+  Future<List<RangerCompanion>> getCompanionsByRanger(int rangerId, {bool? isActive}) async {
     final query = _db.select(_db.rangerCompanions)
       ..where((c) => c.rangerId.equals(rangerId));
+    if (isActive != null) {
+      query.where((c) => c.isActive.equals(isActive));
+    }
     return await query.get();
   }
 

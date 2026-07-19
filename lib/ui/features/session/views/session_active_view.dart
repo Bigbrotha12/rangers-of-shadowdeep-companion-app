@@ -250,6 +250,9 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.secondary,
+              ),
               child: const Text('Cancel'),
             ),
             FilledButton(
@@ -792,6 +795,20 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                             const SizedBox(width: 4),
                           ],
 
+                          // Undo death
+                          if (member.isDead)
+                            TextButton.icon(
+                              icon: const Icon(Icons.restore, size: 18),
+                              label: const Text('Restore'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: theme.colorScheme.secondary,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, member.maxHealth),
+                            ),
+
                           // Stats table (inline in header when wide enough)
                           if (wideEnough && !member.isDead) ...[
                             const SizedBox(width: 8),
@@ -893,6 +910,9 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                                       ? null
                                       : () => ref.read(activeSessionProvider.notifier)
                                           .markPartyActed(member.id, member.type),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: theme.colorScheme.secondary,
+                                  ),
                                   child: Text(member.hasActed ? 'Done' : 'Activate'),
                                 ),
                               ],
@@ -924,6 +944,9 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                                 TextButton(
                                   onPressed: () => ref.read(activeSessionProvider.notifier)
                                       .toggleCarryingTreasure(member.id, member.type),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: theme.colorScheme.secondary,
+                                  ),
                                   child: Text(member.carryingTreasure ? 'Remove' : 'Carry'),
                                 ),
                               ],
@@ -947,6 +970,7 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                               label: const Text('Manage'),
                               onPressed: () => _showStatusEffectSheet(context, member),
                               style: TextButton.styleFrom(
+                                foregroundColor: theme.colorScheme.secondary,
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,

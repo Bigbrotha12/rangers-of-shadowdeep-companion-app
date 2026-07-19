@@ -230,7 +230,10 @@ class _AbilitiesReview extends StatelessWidget {
                   );
                   return Chip(
                     label: Text(ability.name),
-                    backgroundColor: theme.colorScheme.secondaryContainer,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    labelStyle: TextStyle(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
                   );
                 }).toList(),
               ),
@@ -254,7 +257,10 @@ class _AbilitiesReview extends StatelessWidget {
                   );
                   return List.generate(entry.value, (_) => Chip(
                     label: Text(spell.name),
-                    backgroundColor: theme.colorScheme.tertiaryContainer,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    labelStyle: TextStyle(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
                   ));
                 }).toList(),
               ),
@@ -289,6 +295,9 @@ class _SkillsReview extends StatelessWidget {
             return Chip(
               label: Text('${skill.name} +${entry.value}'),
               backgroundColor: theme.colorScheme.primaryContainer,
+              labelStyle: TextStyle(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
             );
           }).toList(),
         ),
@@ -318,7 +327,10 @@ class _EquipmentReview extends StatelessWidget {
 
             return Chip(
               label: Text(item.name),
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              backgroundColor: theme.colorScheme.primaryContainer,
+              labelStyle: TextStyle(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
             );
           }).toList(),
         ),

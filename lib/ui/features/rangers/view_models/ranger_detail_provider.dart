@@ -61,7 +61,7 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
   final abilities = await repo.getRangerAbilities(rangerId);
   final skillBonuses = await repo.getRangerSkills(rangerId);
   final equipmentRows = await repo.getRangerEquipment(rangerId);
-  final companions = await companionRepo.getCompanionsByRanger(rangerId);
+  final companions = await companionRepo.getCompanionsByRanger(rangerId, isActive: true);
 
   // Load equipment names
   String safeItemKey(EquipmentData? data) {

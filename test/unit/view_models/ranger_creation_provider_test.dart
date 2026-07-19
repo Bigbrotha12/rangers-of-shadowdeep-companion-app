@@ -159,35 +159,35 @@ void main() {
   });
 
   group('spells', () {
-    test('toggleSpell uses spellKey parameter', () {
-      notifier.toggleSpell('heal');
+    test('addSpell uses spellKey parameter', () {
+      notifier.addSpell('heal');
       expect(notifier.state.selectedSpells.containsKey('heal'), isTrue);
     });
 
-    test('toggleSpell adds to selectedSpells not selectedHeroicAbilities', () {
-      notifier.toggleSpell('heal');
+    test('addSpell adds to selectedSpells not selectedHeroicAbilities', () {
+      notifier.addSpell('heal');
       expect(notifier.state.selectedHeroicAbilities, isEmpty);
     });
 
-    test('toggleSpell adds a copy when within BP limit', () {
-      notifier.toggleSpell('heal');
+    test('addSpell adds a copy when within BP limit', () {
+      notifier.addSpell('heal');
       expect(notifier.state.selectedSpells.containsKey('heal'), isTrue);
       expect(notifier.state.selectedSpells['heal'], 1);
-      notifier.toggleSpell('heal');
+      notifier.addSpell('heal');
       expect(notifier.state.selectedSpells['heal'], 2);
     });
 
     test('spells and heroic abilities are tracked independently', () {
       notifier.toggleHeroicAbility('dash');
-      notifier.toggleSpell('heal');
+      notifier.addSpell('heal');
       expect(notifier.state.selectedHeroicAbilities, contains('dash'));
       expect(notifier.state.selectedSpells.containsKey('heal'), isTrue);
       expect(notifier.state.abilityPointsSpent, 2);
     });
 
     test('RULEBOOK: same spell can be selected multiple times', () {
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal');
       expect(
         notifier.state.selectedSpells['heal'],
         greaterThanOrEqualTo(2),
@@ -195,25 +195,25 @@ void main() {
       );
     });
 
-    test('RULEBOOK: toggle at BP limit removes one copy, not all', () {
+    test('RULEBOOK: removeSpell at BP limit removes one copy, not all', () {
       // Fill BP limit with spells (max 5 for abilities+spells combined)
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal'); // 5 copies, BP pool full
-      // Next toggle should remove one copy since canSpendOnAbilities = false
-      notifier.toggleSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal'); // 5 copies, BP pool full
+      // removeSpell should remove one copy
+      notifier.removeSpell('heal');
       expect(
         notifier.state.selectedSpells['heal'],
         4,
-        reason: 'Toggling at BP limit should remove only one copy',
+        reason: 'removeSpell at BP limit should remove only one copy',
       );
     });
 
     test('RULEBOOK: multiple spell copies deduct 1 BP per copy', () {
-      notifier.toggleSpell('heal');
-      notifier.toggleSpell('heal');
+      notifier.addSpell('heal');
+      notifier.addSpell('heal');
       expect(notifier.state.abilityPointsSpent, 2,
           reason: 'Two copies of same spell should cost 2 BP');
     });

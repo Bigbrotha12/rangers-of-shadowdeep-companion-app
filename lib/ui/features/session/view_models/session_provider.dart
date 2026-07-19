@@ -247,7 +247,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     // Load ranger data for party
     final rangerRepo = _ref.read(rangerRepositoryProvider);
     final ranger = await rangerRepo.getRangerById(session.rangerId);
-    final companions = await _ref.read(companionRepositoryProvider).getCompanionsByRanger(session.rangerId);
+    final companions = await _ref.read(companionRepositoryProvider).getCompanionsByRanger(session.rangerId, isActive: true);
 
     // Build party from ranger + companions
     final party = <PartyMemberState>[];
@@ -336,6 +336,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
         return member.copyWith(
           currentHealth: newHealth,
           isDead: newHealth <= 0,
+          carryingTreasure: member.carryingTreasure && newHealth > 0,
         );
       }
       return member;
@@ -606,3 +607,9 @@ final sessionDetailProvider = FutureProvider.family<Session?, int>((ref, session
   final repo = ref.watch(sessionRepositoryProvider);
   return await repo.getSessionById(sessionId);
 });
+
+Future<void> deleteSession(WidgetRef ref, int sessionId) async {
+  final repo = ref.read(sessionRepositoryProvider);
+  await repo.deleteSession(sessionId);
+  ref.invalidate(sessionHistoryProvider);
+}

@@ -7,6 +7,8 @@ import '../../../../data/database/app_database.dart' show RangerCompanion;
 import '../../../../data/repositories/ranger_repository_provider.dart';
 import '../../../../data/repositories/companion_repository_provider.dart';
 import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import '../../../../domain/services/stat_calculation_service.dart' show computeStatPenalty;
+import '../../../core/widgets/stat_display.dart' show StatTable;
 import '../../rangers/view_models/rangers_provider.dart';
 import '../view_models/session_provider.dart';
 
@@ -185,7 +187,7 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
       final ranger = await rangerRepo.getRangerById(_selectedRangerId!);
       if (ranger == null) return;
 
-      final companionRows = await companionRepo.getCompanionsByRanger(_selectedRangerId!);
+      final companionRows = await companionRepo.getCompanionsByRanger(_selectedRangerId!, isActive: true);
 
       // Build party
       final rangerEffects = List<String>.from(
@@ -206,12 +208,23 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
         final compEffects = List<String>.from(
           jsonDecode(comp.statusEffects) as List? ?? [],
         );
+        final compInjuries = List<String>.from(
+          jsonDecode(comp.permanentInjuries) as List? ?? [],
+        );
+        final compTypeKey = companionTypeKeyFromId(comp.companionTypeId);
+        final compType = getCompanionType(compTypeKey);
+        final baseHealth = compType?.health ?? 10;
+        final injuryPenalty = computeStatPenalty('health',
+          permanentInjuryKeys: compInjuries,
+          statusEffectKeys: compEffects,
+        );
+        final effectiveHP = baseHealth + injuryPenalty + comp.bonusHealth;
         party.add(PartyMemberState(
           id: comp.id,
           name: comp.customName,
           type: 'companion',
-          currentHealth: 1 + comp.bonusHealth,
-          maxHealth: 1 + comp.bonusHealth,
+          currentHealth: effectiveHP,
+          maxHealth: effectiveHP,
           statusEffects: compEffects,
         ));
       }
@@ -255,7 +268,7 @@ class _PartyPreview extends ConsumerWidget {
         if (ranger == null) return const SizedBox.shrink();
 
         return FutureBuilder<List<RangerCompanion>>(
-          future: companionRepo.getCompanionsByRanger(rangerId),
+          future: companionRepo.getCompanionsByRanger(rangerId, isActive: true),
           builder: (context, snapshot) {
             final companions = snapshot.data ?? <RangerCompanion>[];
 
@@ -288,18 +301,19 @@ class _PartyPreview extends ConsumerWidget {
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    // Stats preview
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _StatChip(label: 'M', value: ranger.move),
-                        _StatChip(label: 'F', value: ranger.fight),
-                        _StatChip(label: 'S', value: ranger.shoot),
-                        _StatChip(label: 'A', value: ranger.armour),
-                        _StatChip(label: 'W', value: ranger.will),
+                        const SizedBox(width: 8),
+                        StatTable(
+                          labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+                          values: [
+                            ranger.move,
+                            ranger.fight,
+                            ranger.shoot,
+                            ranger.armour,
+                            ranger.will,
+                            ranger.health,
+                          ],
+                          highlightLast: true,
+                        ),
                       ],
                     ),
                     // Companions
@@ -316,6 +330,35 @@ class _PartyPreview extends ConsumerWidget {
                       ...companions.map((comp) {
                         final typeKey = companionTypeKeyFromId(comp.companionTypeId);
                         final type = getCompanionType(typeKey);
+                        final previewInjuries = List<String>.from(
+                          jsonDecode(comp.permanentInjuries) as List? ?? [],
+                        );
+                        final previewEffects = List<String>.from(
+                          jsonDecode(comp.statusEffects) as List? ?? [],
+                        );
+                        final compBaseHealth = type?.health ?? 10;
+                        final healthPenalty = computeStatPenalty('health',
+                          permanentInjuryKeys: previewInjuries,
+                          statusEffectKeys: previewEffects,
+                        );
+                        final effectiveHP = compBaseHealth + healthPenalty + comp.bonusHealth;
+                        final compMove = (type?.move ?? 6) + computeStatPenalty('move',
+                          permanentInjuryKeys: previewInjuries,
+                          statusEffectKeys: previewEffects,
+                        );
+                        final compFight = (type?.fight ?? 0) + computeStatPenalty('fight',
+                          permanentInjuryKeys: previewInjuries,
+                          statusEffectKeys: previewEffects,
+                        );
+                        final compShoot = (type?.shoot ?? 0) + computeStatPenalty('shoot',
+                          permanentInjuryKeys: previewInjuries,
+                          statusEffectKeys: previewEffects,
+                        );
+                        final compArmour = type?.armour ?? 10;
+                        final compWill = (type?.will ?? 0) + computeStatPenalty('will',
+                          permanentInjuryKeys: previewInjuries,
+                          statusEffectKeys: previewEffects,
+                        );
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
@@ -335,12 +378,25 @@ class _PartyPreview extends ConsumerWidget {
                                     ),
                                     Text(
                                       '${type?.name ?? 'Companion'} • '
-                                      'HP: ${1 + comp.bonusHealth}/${1 + comp.bonusHealth} '
+                                      'HP: $effectiveHP/$effectiveHP '
                                       '• PP: ${comp.progressionPoints}',
                                       style: theme.textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
+                              ),
+                              const SizedBox(width: 8),
+                              StatTable(
+                                labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+                                values: [
+                                  compMove,
+                                  compFight,
+                                  compShoot,
+                                  compArmour,
+                                  compWill,
+                                  effectiveHP,
+                                ],
+                                highlightLast: true,
                               ),
                             ],
                           ),
@@ -360,26 +416,3 @@ class _PartyPreview extends ConsumerWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value});
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '$label: $value',
-        style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}

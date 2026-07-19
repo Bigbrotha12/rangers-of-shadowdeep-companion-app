@@ -185,6 +185,7 @@ class PostGameState {
   final int availableRp;
   final List<CompanionWithType> currentCompanions;
   final Set<int> releasedCompanionIds;
+  final Set<int> reactivatedCompanionIds;
 
   // Finalization
   final bool isFinalized;
@@ -218,6 +219,7 @@ class PostGameState {
     this.availableRp = 100,
     this.currentCompanions = const [],
     this.releasedCompanionIds = const {},
+    this.reactivatedCompanionIds = const {},
     this.isFinalized = false,
   });
 
@@ -250,6 +252,7 @@ class PostGameState {
     int? availableRp,
     List<CompanionWithType>? currentCompanions,
     Set<int>? releasedCompanionIds,
+    Set<int>? reactivatedCompanionIds,
     bool? isFinalized,
   }) {
     return PostGameState(
@@ -281,6 +284,7 @@ class PostGameState {
       availableRp: availableRp ?? this.availableRp,
       currentCompanions: currentCompanions ?? this.currentCompanions,
       releasedCompanionIds: releasedCompanionIds ?? this.releasedCompanionIds,
+      reactivatedCompanionIds: reactivatedCompanionIds ?? this.reactivatedCompanionIds,
       isFinalized: isFinalized ?? this.isFinalized,
     );
   }
@@ -612,14 +616,28 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
   /* ── Step 4: Reorganize Companions ─────────────────────── */
   void releaseCompanion(int companionId) {
     if (state == null) return;
-    final ids = {...state!.releasedCompanionIds, companionId};
-    state = state!.copyWith(releasedCompanionIds: ids);
+    final releasedIds = {...state!.releasedCompanionIds, companionId};
+    final reactivatedIds = {...state!.reactivatedCompanionIds}..remove(companionId);
+    state = state!.copyWith(
+      releasedCompanionIds: releasedIds,
+      reactivatedCompanionIds: reactivatedIds,
+    );
   }
 
   void undoReleaseCompanion(int companionId) {
     if (state == null) return;
-    final ids = {...state!.releasedCompanionIds}..remove(companionId);
-    state = state!.copyWith(releasedCompanionIds: ids);
+    final releasedIds = {...state!.releasedCompanionIds}..remove(companionId);
+    final reactivatedIds = {...state!.reactivatedCompanionIds};
+    // If companion was released in a previous session (isActive == false),
+    // add to reactivated set so it shows as active and gets persisted
+    final companion = state!.currentCompanions.where((c) => c.id == companionId).firstOrNull;
+    if (companion != null && !companion.isActive) {
+      reactivatedIds.add(companionId);
+    }
+    state = state!.copyWith(
+      releasedCompanionIds: releasedIds,
+      reactivatedCompanionIds: reactivatedIds,
+    );
   }
 
   /* ── Finalize ──────────────────────────────────────────── */
@@ -802,6 +820,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
           await rangerRepo.insertRangerEquipment(RangerEquipmentCompanion.insert(
             rangerId: state!.rangerId,
             equipmentId: match.id,
+            equippedBy: const Value('pool'),
             currentUses: match.hasUses ? Value(match.maxUses) : const Value(null),
           ));
         } else {
@@ -847,6 +866,28 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         permanentInjuries: Value(existing.permanentInjuries),
         customSkills: Value(existing.customSkills),
         isActive: const Value(false),
+        claimedProgressionRewards: Value(existing.claimedProgressionRewards),
+        hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
+        bonusHealth: Value(existing.bonusHealth),
+        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
+        spellKeys: Value(existing.spellKeys),
+      ));
+    }
+
+    // ── Process companion reactivations ─────────────────────
+    for (final reactivatedId in state!.reactivatedCompanionIds) {
+      final existing = await companionRepo.getCompanionById(reactivatedId);
+      if (existing == null) continue;
+      await companionRepo.updateCompanion(RangerCompanionsCompanion(
+        id: Value(existing.id),
+        rangerId: Value(existing.rangerId),
+        companionTypeId: Value(existing.companionTypeId),
+        customName: Value(existing.customName),
+        progressionPoints: Value(existing.progressionPoints),
+        isAlive: Value(existing.isAlive),
+        permanentInjuries: Value(existing.permanentInjuries),
+        customSkills: Value(existing.customSkills),
+        isActive: const Value(true),
         claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),

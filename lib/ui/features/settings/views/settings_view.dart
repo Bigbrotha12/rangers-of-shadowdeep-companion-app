@@ -26,7 +26,7 @@ class SettingsView extends ConsumerWidget {
                 ListTile(
                   leading: Icon(
                     Icons.upload,
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.secondary,
                   ),
                   title: const Text('Export backup'),
                   subtitle: const Text(
@@ -38,7 +38,7 @@ class SettingsView extends ConsumerWidget {
                 ListTile(
                   leading: Icon(
                     Icons.download,
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.secondary,
                   ),
                   title: const Text('Import backup'),
                   subtitle: const Text(
@@ -59,7 +59,7 @@ class SettingsView extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.palette, color: theme.colorScheme.primary),
+                      Icon(Icons.palette, color: theme.colorScheme.secondary),
                       const SizedBox(width: 12),
                       Text('Appearance', style: theme.textTheme.bodyLarge),
                     ],
@@ -104,7 +104,7 @@ class SettingsView extends ConsumerWidget {
                   ),
                   const Divider(height: 1, indent: 16),
                   const Text(
-                    'A companion app for the tabletop RPG\nRangers of Shadow Deep.',
+                    'A companion app for the tabletop RPG Rangers of Shadow Deep.',
                     style: TextStyle(fontSize: 14, height: 1.4),
                   ),
                   const SizedBox(height: 8),
@@ -126,21 +126,6 @@ class SettingsView extends ConsumerWidget {
                       color: theme.colorScheme.tertiary,
                     ),
                   ),
-                  Wrap(
-                    alignment: WrapAlignment.start,
-                    runAlignment: WrapAlignment.start,
-                    children: [
-                      _infoChip(context, '© ${DateTime.now().year}'),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Official game by ',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      _appLinkChip(context, 'Dungeon Delve'),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -156,7 +141,7 @@ class SettingsView extends ConsumerWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.secondary,
             ),
       ),
     );

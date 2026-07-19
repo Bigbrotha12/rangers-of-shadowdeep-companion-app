@@ -125,11 +125,14 @@ class _BuildPointsHeader extends StatelessWidget {
                 '$total',
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer
                 ),
               ),
               Text(
                 'Total Build Points',
-                style: theme.textTheme.labelMedium,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
               ),
             ],
           ),
@@ -439,7 +442,6 @@ class _AbilitiesSectionState extends ConsumerState<_AbilitiesSection> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -455,17 +457,38 @@ class _AbilitiesSectionState extends ConsumerState<_AbilitiesSection> {
                                     '${count}x',
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onPrimaryContainer,
                                     ),
                                   ),
                                 ),
                               const SizedBox(width: 8),
-                              Checkbox(
-                                value: isSelected,
-                                onChanged: canSelect
-                                    ? (value) {
+                              IconButton(
+                                icon: Icon(
+                                  Icons.remove,
+                                  color: isSelected
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.surfaceContainerHighest,
+                                ),
+                                onPressed: isSelected
+                                    ? () {
                                         ref
                                             .read(rangerCreationProvider.notifier)
-                                            .toggleSpell(spell.key);
+                                            .removeSpell(spell.key);
+                                      }
+                                    : null,
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.add,
+                                  color: state.canSpendOnAbilities
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.surfaceContainerHighest,
+                                ),
+                                onPressed: state.canSpendOnAbilities
+                                    ? () {
+                                        ref
+                                            .read(rangerCreationProvider.notifier)
+                                            .addSpell(spell.key);
                                       }
                                     : null,
                               ),

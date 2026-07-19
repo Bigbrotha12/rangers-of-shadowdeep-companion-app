@@ -82,6 +82,7 @@ class SessionListView extends ConsumerWidget {
                   session: session,
                   isActive: true,
                   onTap: () => context.go('/session/active/${session.id}'),
+                  onDelete: () => _confirmDeleteActive(context, ref, session),
                 )),
               ],
 
@@ -129,6 +130,37 @@ class SessionListView extends ConsumerWidget {
       ),
     );
   }
+
+  void _confirmDeleteActive(BuildContext context, WidgetRef ref, Session session) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Session'),
+        content: Text(
+          'Delete "${session.scenarioName}"? This will permanently delete this active session. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+            ),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              deleteSession(ref, session.id);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SessionCard extends StatelessWidget {
@@ -136,11 +168,13 @@ class _SessionCard extends StatelessWidget {
     required this.session,
     required this.isActive,
     required this.onTap,
+    this.onDelete,
   });
 
   final Session session;
   final bool isActive;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -265,6 +299,12 @@ class _SessionCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
+              if (isActive)
+                IconButton(
+                  icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error.withValues(alpha: 0.7)),
+                  onPressed: onDelete,
+                  tooltip: 'Delete session',
                 ),
             ],
           ),
@@ -397,6 +437,19 @@ class _SessionSummarySheet extends ConsumerWidget {
                     ),
                   ),
                 ],
+
+                // Delete
+                const SizedBox(height: 24),
+                Center(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.delete_forever, size: 18),
+                    label: const Text('Delete Session'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                    onPressed: () => _confirmDelete(context, ref, session.id),
+                  ),
+                ),
               ],
             ),
           ),
@@ -407,6 +460,38 @@ class _SessionSummarySheet extends ConsumerWidget {
 
   String _formatDateTime(DateTime date) {
     return '${date.month}/${date.day}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _confirmDelete(BuildContext context, WidgetRef ref, int sessionId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Session'),
+        content: const Text(
+          'This will permanently delete this session and all associated events. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+            ),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context); // close the bottom sheet
+              deleteSession(ref, sessionId);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -119,7 +119,7 @@ class _SelectedEquipmentList extends ConsumerWidget {
 
         return Chip(
           label: Text(item.name),
-          deleteIcon: const Icon(Icons.close, size: 18),
+          deleteIcon: Icon(Icons.close, size: 18, color: theme.colorScheme.onPrimaryContainer),
           onDeleted: () {
             ref.read(rangerCreationProvider.notifier).toggleEquipment(key);
           },
@@ -186,6 +186,7 @@ class _AvailableEquipmentList extends ConsumerWidget {
                     child: Text(
                       '2H',
                       style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSecondaryContainer,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

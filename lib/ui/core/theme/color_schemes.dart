@@ -4,7 +4,7 @@ class ColorSchemes {
   ColorSchemes._();
 
   static const String _rangersBlue = '#1a365d';
-  static const String _rangersRed = '#c53030';
+  static const String _rangersRed = '#b04f4f';
   static const String _rangersGold = '#d69e2e';
 
   static ThemeData get light {
@@ -20,7 +20,7 @@ class ColorSchemes {
         onSecondary: Colors.white,
         onTertiary: Colors.black,
         onSurface: _hexToColor('#1a1a1a'),
-        error: _hexToColor('#dc2626'),
+        error: _hexToColor('#b34d4d'),
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: _hexToColor('#f8f9fa'),
@@ -36,6 +36,11 @@ class ColorSchemes {
         selectedItemColor: _hexToColor(_rangersBlue),
         unselectedItemColor: _hexToColor('#4b5563'),
         type: BottomNavigationBarType.fixed,
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: _hexToColor(_rangersRed),
+        unselectedLabelColor: _hexToColor('#4b5563'),
+        indicatorColor: _hexToColor(_rangersRed),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -98,7 +103,7 @@ class ColorSchemes {
       cardColor: _hexToColor('#1a1a2e'),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: _hexToColor('#16162a'),
+        color: _hexToColor('#000000'),
         shadowColor: _hexToColor(_rangersBlue).withValues(alpha: 0.3),
       ),
       appBarTheme: AppBarTheme(
@@ -113,6 +118,11 @@ class ColorSchemes {
         selectedItemColor: _hexToColor(_rangersBlue),
         unselectedItemColor: _hexToColor('#9ca3af'),
         type: BottomNavigationBarType.fixed,
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: _hexToColor(_rangersRed),
+        unselectedLabelColor: _hexToColor('#9ca3af'),
+        indicatorColor: _hexToColor(_rangersRed),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

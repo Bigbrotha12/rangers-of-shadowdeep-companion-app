@@ -202,26 +202,26 @@ class RangerCreationNotifier extends StateNotifier<RangerCreationState> {
   }
 
   // Spells: 1 BP each, max 5 BP
-  bool toggleSpell(String spellKey) {
+  bool addSpell(String spellKey) {
+    if (!state.canSpendOnAbilities) return false;
     final currentCount = state.selectedSpells[spellKey] ?? 0;
-    if (currentCount > 0 && !state.canSpendOnAbilities) {
-      // Remove one copy when at BP limit
-      final newSpells = Map<String, int>.from(state.selectedSpells);
-      if (currentCount <= 1) {
-        newSpells.remove(spellKey);
-      } else {
-        newSpells[spellKey] = currentCount - 1;
-      }
-      _updateState(selectedSpells: newSpells);
-      return true;
-    } else if (state.canSpendOnAbilities) {
-      // Add one copy
-      final newSpells = Map<String, int>.from(state.selectedSpells);
-      newSpells[spellKey] = currentCount + 1;
-      _updateState(selectedSpells: newSpells);
-      return true;
+    final newSpells = Map<String, int>.from(state.selectedSpells);
+    newSpells[spellKey] = currentCount + 1;
+    _updateState(selectedSpells: newSpells);
+    return true;
+  }
+
+  bool removeSpell(String spellKey) {
+    final currentCount = state.selectedSpells[spellKey] ?? 0;
+    if (currentCount <= 0) return false;
+    final newSpells = Map<String, int>.from(state.selectedSpells);
+    if (currentCount <= 1) {
+      newSpells.remove(spellKey);
+    } else {
+      newSpells[spellKey] = currentCount - 1;
     }
-    return false;
+    _updateState(selectedSpells: newSpells);
+    return true;
   }
 
   // Skills: 1 BP = +1 to 8 skills, max 5 BP

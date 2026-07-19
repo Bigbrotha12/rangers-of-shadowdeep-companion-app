@@ -105,6 +105,9 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
                 if (postGame.currentStep > 0)
                   TextButton(
                     onPressed: details.onStepCancel,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.secondary,
+                    ),
                     child: const Text('Back'),
                   ),
               ],
@@ -347,27 +350,16 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
                       ],
                     ),
                   ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: const Text('Treasure Table'),
+                    onPressed: () => context.push('/reference/treasure_tables'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.secondary,
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // ── Treasure Reference Table ──────────────────────
-          Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Treasure Table (d20)', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('1-6: Gold & Jewels  7-12: Herb/Potion  13-16: Weapon/Armour  17-20: Magic Item'),
-              ],
             ),
           ),
 
@@ -414,12 +406,15 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
 
   /* ── Step 4: Reorganize Companions ────────────────────────── */
   Widget _buildStep4(PostGameState postGame, ThemeData theme) {
-    final notifier = ref.read(postGameProvider.notifier);
     final activeCompanions = postGame.currentCompanions
-      .where((c) => c.isActive && !postGame.releasedCompanionIds.contains(c.id))
+      .where((c) =>
+        (c.isActive || postGame.reactivatedCompanionIds.contains(c.id)) &&
+        !postGame.releasedCompanionIds.contains(c.id))
       .toList();
     final releasedCompanions = postGame.currentCompanions
-      .where((c) => !c.isActive || postGame.releasedCompanionIds.contains(c.id))
+      .where((c) =>
+        (!c.isActive && !postGame.reactivatedCompanionIds.contains(c.id)) ||
+        postGame.releasedCompanionIds.contains(c.id))
       .toList();
     final usedRp = activeCompanions.fold(0, (sum, c) => sum + c.rpCost);
     final remainingRp = postGame.availableRp - usedRp;
@@ -479,7 +474,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
             companion: comp,
             isReleased: false,
             theme: theme,
-            onToggle: () => notifier.releaseCompanion(comp.id),
+            onToggle: () => ref.read(postGameProvider.notifier).releaseCompanion(comp.id),
           )),
 
         // ── Released Companions ─────────────────────────────
@@ -491,7 +486,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
             companion: comp,
             isReleased: true,
             theme: theme,
-            onToggle: () => notifier.undoReleaseCompanion(comp.id),
+            onToggle: () => ref.read(postGameProvider.notifier).undoReleaseCompanion(comp.id),
           )),
         ],
 
@@ -510,6 +505,9 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
                 ),
               );
             },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.secondary,
+            ),
             icon: const Icon(Icons.person_add),
             label: const Text('Recruit New Companion'),
           ),
@@ -1125,7 +1123,7 @@ class _TreasureCountSetupState extends State<_TreasureCountSetup> {
                   child: TextField(
                     controller: _controller,
                     decoration: const InputDecoration(
-                      labelText: 'Treasure Count',
+                      labelText: 'Treasure',
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
@@ -1196,12 +1194,9 @@ class _TreasurePendingCardState extends State<_TreasurePendingCard> {
                   child: Text('${widget.index + 1}', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 12),
-                Text('Treasure ${widget.index + 1}', style: widget.theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
+                Expanded(
+                  child: Text('Treasure ${widget.index + 1}', style: widget.theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                ),
                 FilledButton.tonalIcon(
                   onPressed: widget.onRoll,
                   icon: const Icon(Icons.casino),
@@ -1217,33 +1212,33 @@ class _TreasurePendingCardState extends State<_TreasurePendingCard> {
             Row(
               children: [
                 SizedBox(
-                  width: 70,
+                  width: 100,
                   child: TextField(
                     controller: _mainController,
                     decoration: const InputDecoration(
-                      labelText: 'Main d20',
+                      hintText: '1-20',
+                      labelText: 'Main',
                       border: OutlineInputBorder(),
-                      isDense: true,
                     ),
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 SizedBox(
-                  width: 70,
+                  width: 100,
                   child: TextField(
                     controller: _subController,
                     decoration: const InputDecoration(
-                      labelText: 'Sub d20',
+                      hintText: '1-20',
+                      labelText: 'Sub',
                       border: OutlineInputBorder(),
-                      isDense: true,
                     ),
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 FilledButton.tonal(
                   onPressed: () {
                     final main = int.tryParse(_mainController.text);
@@ -1334,6 +1329,9 @@ class _TreasureResultCard extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => ref.read(postGameProvider.notifier).setTreasureGoldChoice(index, true),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.secondary,
+                      ),
                       icon: const Icon(Icons.star, size: 18),
                       label: const Text('+10 XP'),
                     ),
@@ -1342,6 +1340,9 @@ class _TreasureResultCard extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => ref.read(postGameProvider.notifier).setTreasureGoldChoice(index, false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.secondary,
+                      ),
                       icon: const Icon(Icons.people, size: 18),
                       label: const Text('+1 PP to Companion'),
                     ),
@@ -1465,13 +1466,13 @@ class _CompanionCard extends StatelessWidget {
             ),
             Text('${companion.rpCost} RP', style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isReleased ? theme.colorScheme.error : theme.colorScheme.primary,
+              color: isReleased ? theme.colorScheme.error : theme.colorScheme.secondary,
             )),
             const SizedBox(width: 8),
             IconButton(
               icon: Icon(
                 isReleased ? Icons.undo : Icons.person_remove,
-                color: isReleased ? theme.colorScheme.primary : theme.colorScheme.error,
+                color: isReleased ? theme.colorScheme.secondary : theme.colorScheme.error,
               ),
               onPressed: onToggle,
               tooltip: isReleased ? 'Keep in company' : 'Release to reserve',
