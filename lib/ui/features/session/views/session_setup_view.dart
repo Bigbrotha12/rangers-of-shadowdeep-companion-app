@@ -223,6 +223,7 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
           id: comp.id,
           name: comp.customName,
           type: 'companion',
+          isAnimal: compType?.isAnimal ?? false,
           currentHealth: effectiveHP,
           maxHealth: effectiveHP,
           statusEffects: compEffects,

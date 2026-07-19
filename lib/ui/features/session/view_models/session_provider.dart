@@ -55,6 +55,7 @@ class PartyMemberState {
   final bool isDead;
   final bool hasActed;
   final bool carryingTreasure;
+  final bool isAnimal;
   final Map<String, bool> usedAbilities; // abilityKey → used this scenario
   final List<String> statusEffects;
 
@@ -67,6 +68,7 @@ class PartyMemberState {
     this.isDead = false,
     this.hasActed = false,
     this.carryingTreasure = false,
+    this.isAnimal = false,
     this.usedAbilities = const {},
     this.statusEffects = const [],
   });
@@ -80,6 +82,7 @@ class PartyMemberState {
     bool? isDead,
     bool? hasActed,
     bool? carryingTreasure,
+    bool? isAnimal,
     Map<String, bool>? usedAbilities,
     List<String>? statusEffects,
   }) {
@@ -92,6 +95,7 @@ class PartyMemberState {
       isDead: isDead ?? this.isDead,
       hasActed: hasActed ?? this.hasActed,
       carryingTreasure: carryingTreasure ?? this.carryingTreasure,
+      isAnimal: isAnimal ?? this.isAnimal,
       usedAbilities: usedAbilities ?? this.usedAbilities,
       statusEffects: statusEffects ?? this.statusEffects,
     );
@@ -273,6 +277,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
         id: comp.id,
         name: comp.customName,
         type: 'companion',
+        isAnimal: type?.isAnimal ?? false,
         currentHealth: baseHealth + comp.bonusHealth,
         maxHealth: baseHealth + comp.bonusHealth,
         statusEffects: compEffects,
@@ -428,6 +433,10 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
 
   // Toggle whether a party member is carrying a treasure
   void toggleCarryingTreasure(int memberId, String memberType) {
+    final member = state.party.where(
+      (m) => m.id == memberId && m.type == memberType,
+    ).firstOrNull;
+    if (member == null || member.isAnimal) return;
     state = state.copyWith(
       party: state.party.map((m) =>
         m.id == memberId && m.type == memberType

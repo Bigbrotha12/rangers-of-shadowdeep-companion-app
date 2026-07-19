@@ -334,7 +334,7 @@ class BackupService {
     ];
     for (final table in requiredTables) {
       if (!data.containsKey(table) || data[table] is! List) {
-        throw ArgumentError('Invalid backup: missing or invalid "$table".');
+        throw FormatException('Invalid backup: missing or invalid "$table".');
       }
     }
   }
