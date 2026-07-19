@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/database/app_database.dart';
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../../../../data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
 
 class RangerEquipmentWithName {
   final RangerEquipmentData equipment;
@@ -68,7 +68,7 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
     if (data == null) return '';
     try {
       return data.itemKey;
-    } catch (_) {
+    } on Exception catch (_) {
       return '';
     }
   }

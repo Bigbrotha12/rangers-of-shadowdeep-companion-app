@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../view_models/ranger_creation_provider.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
 
 class RangerCreationStep1Name extends ConsumerStatefulWidget {
   const RangerCreationStep1Name({super.key});

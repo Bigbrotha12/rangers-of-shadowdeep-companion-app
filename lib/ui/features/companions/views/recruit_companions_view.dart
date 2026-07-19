@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../domain/constants/companion_types.dart';
-import '../../../core/widgets/placeholder_image.dart';
-import '../view_models/recruitment_provider.dart';
-import '../../rangers/view_models/ranger_detail_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/ui/core/widgets/placeholder_image.dart';
+import 'package:rangers_mobile/ui/features/companions/view_models/recruitment_provider.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
 class RecruitCompanionsView extends ConsumerStatefulWidget {
   const RecruitCompanionsView({
@@ -60,7 +60,7 @@ class _RecruitCompanionsViewState extends ConsumerState<RecruitCompanionsView> {
                     setState(() => _isSaving = true);
                     await ref.read(recruitmentProvider(widget.rangerId).notifier).saveCompanions();
                     ref.invalidate(rangerDetailProvider(widget.rangerId));
-                    if (mounted) {
+                    if (context.mounted) {
                       context.pop();
                     }
                   },
@@ -389,7 +389,6 @@ class _AvailableCompanionsList extends ConsumerWidget {
               category: 'companion',
               width: 40,
               height: 40,
-              borderRadius: 8,
             ),
           title: Text(type.name),
             subtitle: Text(

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
-import '../../../../data/services/backup_service_provider.dart';
-import '../../../core/theme/preferences.dart';
+import 'package:rangers_mobile/data/services/backup_service_provider.dart';
+import 'package:rangers_mobile/ui/core/theme/preferences.dart';
+import 'package:rangers_mobile/ui/core/theme/spacing.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -103,11 +104,11 @@ class SettingsView extends ConsumerWidget {
                         ),
                   ),
                   const Divider(height: 1, indent: 16),
-                  const Text(
+                  Text(
                     'A companion app for the tabletop RPG Rangers of Shadow Deep.',
-                    style: TextStyle(fontSize: 14, height: 1.4),
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'Features:\n'
                     '• Create and manage rangers\n'
@@ -115,13 +116,12 @@ class SettingsView extends ConsumerWidget {
                     '• Track game sessions in real-time\n'
                     '• Post-game bookkeeping\n'
                     '• Rules reference',
-                    style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Text(
                     'This app stores all data locally with no authentication or cloud syncing.',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontStyle: FontStyle.italic,
                       color: theme.colorScheme.tertiary,
                     ),
@@ -137,7 +137,7 @@ class SettingsView extends ConsumerWidget {
 
   Widget _sectionHeader(BuildContext context, String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+      padding: const EdgeInsets.only(top: Spacing.lg, bottom: Spacing.sm, left: Spacing.xs),
       child: Text(
         text,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -173,43 +173,6 @@ class SettingsView extends ConsumerWidget {
     }
   }
 
-  Widget _infoChip(BuildContext context, String text) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          text,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onPrimaryContainer,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _appLinkChip(BuildContext context, String text) {
-    final theme = Theme.of(context);
-    return TextButton(
-      onPressed: null,
-      style: TextButton.styleFrom(
-        foregroundColor: theme.colorScheme.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelSmall,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      ),
-    );
-  }
-
   Future<void> _importBackup(BuildContext context, WidgetRef ref) async {
     final backupService = ref.read(backupServiceProvider);
     final files = await backupService.listBackupFiles();
@@ -226,6 +189,7 @@ class SettingsView extends ConsumerWidget {
       return;
     }
 
+    if (!context.mounted) return;
     final selectedPath = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -266,15 +230,15 @@ class SettingsView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.tertiary, size: 48),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'This will replace ALL existing rangers, companions, '
               'sessions, and other data with the contents of the '
               'backup file. This cannot be undone.',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 12),
-            Text(
+            const SizedBox(height: 12),
+            const Text(
               'Recommendation: Export a backup of your current data '
               'first before proceeding.',
             ),

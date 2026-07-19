@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../view_models/reference_provider.dart';
-import '../../../../data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
+import 'package:rangers_mobile/data/services/rules_reference_service.dart';
 
 class ReferenceCategoryView extends ConsumerWidget {
   const ReferenceCategoryView({super.key, required this.categoryKey});

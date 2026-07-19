@@ -1,5 +1,5 @@
-class CompanionType {
-  const CompanionType({
+class CompanionTypeDefinition {
+  const CompanionTypeDefinition({
     required this.key,
     required this.name,
     required this.description,
@@ -38,8 +38,8 @@ class CompanionType {
   final List<String> allowedArmourTypes;
 }
 
-const List<CompanionType> companionTypes = [
-  CompanionType(
+const List<CompanionTypeDefinition> companionTypes = [
+  CompanionTypeDefinition(
     key: 'arcanist',
     name: 'Arcanist',
     description: 'Arcanists are students of ancient lore and languages. Although they are not the best fighters, their knowledge of myths and legends and their ability to translate ancient writings can often prove vital on missions in the Shadow Deep.',
@@ -55,7 +55,7 @@ const List<CompanionType> companionTypes = [
     baseSkills: {'ancient_lore': 5, 'read_runes': 5},
     allowedWeaponTypes: ['hand_weapon'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'archer',
     name: 'Archer',
     description: 'Hand-to-hand combat is always a risky proposition – better to shoot down evil creatures before they get anywhere near you. A ranger can choose an archer armed with either a bow or a crossbow.',
@@ -71,7 +71,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['bow', 'crossbow', 'dagger'],
     allowedArmourTypes: ['light_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'barbarian',
     name: 'Barbarian',
     description: 'Born and bred beyond the bounds of civilized regions, Barbarians are fearsome warriors who rely on natural strength and toughness instead of armour to win their battles.',
@@ -88,7 +88,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['hand_weapon'],
     allowedArmourTypes: ['shield'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'conjuror',
     name: 'Conjuror',
     description: 'While most wizards lock themselves away in libraries, conjurors like to put their magic abilities to practical use. Before each scenario, the player may select two spells for the conjuror (or three spells for an extra cost of +10RP).',
@@ -104,7 +104,7 @@ const List<CompanionType> companionTypes = [
     specialRules: 'Can select 2 spells (or 3 for +10 RP). Casts spells using same rules as rangers.',
     allowedWeaponTypes: ['staff', 'hand_weapon'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'guardsman',
     name: 'Guardsman',
     description: 'One of the soldiers of the kingdom, trained to fight with larger two-handed weapons, such as halberds, battle axes, and two-handed swords.',
@@ -120,7 +120,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['two_handed_weapon'],
     allowedArmourTypes: ['light_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'hound',
     name: 'Hound',
     description: 'By far the most common animal companion is the hound. These dogs are truly man\'s best friend. Faithful to the last, they will gladly lay their lives down for their masters.',
@@ -135,7 +135,7 @@ const List<CompanionType> companionTypes = [
     isAnimal: true,
     allowedSkillRolls: ['acrobatics', 'climb', 'perception', 'stealth', 'swim', 'track'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'warhound',
     name: 'Warhound',
     description: 'A larger, more aggressive variety of hound bred for combat.',
@@ -150,7 +150,7 @@ const List<CompanionType> companionTypes = [
     isAnimal: true,
     allowedSkillRolls: ['acrobatics', 'climb', 'perception', 'stealth', 'swim', 'track'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'bloodhound',
     name: 'Bloodhound',
     description: 'A tracking hound with an exceptional nose for scent. The bloodhound has Tracking +5, and whenever a ranger makes a Tracking Roll with his hound within 2" he receives a +2 bonus to the roll.',
@@ -167,7 +167,7 @@ const List<CompanionType> companionTypes = [
     allowedSkillRolls: ['acrobatics', 'climb', 'perception', 'stealth', 'swim', 'track'],
     specialRules: 'Ranger gets +2 to Tracking Rolls when bloodhound is within 2".',
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'knight',
     name: 'Knight',
     description: 'The elite fighting men of the kingdom, knights are heavily armoured and highly skilled in melee combat.',
@@ -184,7 +184,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['hand_weapon'],
     allowedArmourTypes: ['shield', 'heavy_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'man_at_arms',
     name: 'Man-at-Arms',
     description: 'The basic soldier of the kingdom, the man-at-arms is trained and equipped for fighting the enemy at close quarters.',
@@ -200,7 +200,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['hand_weapon'],
     allowedArmourTypes: ['shield', 'light_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'raptor',
     name: 'Raptor',
     description: 'Some rangers bring trained hawks, falcons, or other birds of prey with them on their missions. Although these animals are small and fragile, their ability to fly allows them to ignore all movement penalties for terrain.',
@@ -217,7 +217,7 @@ const List<CompanionType> companionTypes = [
     allowedSkillRolls: ['acrobatics', 'perception', 'stealth'],
     specialRules: 'Automatically passes Climb and Swim Rolls. Ignores terrain movement penalties.',
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'recruit',
     name: 'Recruit',
     description: 'Recruits are the newest members of the Rangers. They are generally young, unskilled, and sometimes as much trouble as they are worth. Sometimes, however, they are all that is available.',
@@ -232,7 +232,7 @@ const List<CompanionType> companionTypes = [
     isAnimal: false,
     allowedWeaponTypes: ['hand_weapon'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'rogue',
     name: 'Rogue',
     description: 'Rogues aren\'t the best fighters, but they are highly skilled individuals, who can be invaluable if you need a lock picked or a trap disarmed.',
@@ -248,7 +248,7 @@ const List<CompanionType> companionTypes = [
     baseSkills: {'climb': 2, 'perception': 2, 'pick_lock': 5, 'traps': 5, 'stealth': 5},
     allowedWeaponTypes: ['dagger', 'throwing_knife'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'savage',
     name: 'Savage',
     description: 'Like barbarians, savages are ferocious fighters who like to wade into the thick of a battle with brutal two-handed weapons.',
@@ -264,7 +264,7 @@ const List<CompanionType> companionTypes = [
     baseSkills: {'strength': 5},
     allowedWeaponTypes: ['two_handed_weapon'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'swordsman',
     name: 'Swordsman',
     description: 'Swordsmen are highly trained in the art of wielding a blade and have learned to defend themselves without recourse to heavy armour or shields.',
@@ -280,7 +280,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['hand_weapon', 'dagger'],
     allowedArmourTypes: ['light_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'templar',
     name: 'Templar',
     description: 'A subclass of knights that have trained in fighting with two-handed weapons. They are usually called upon to fight larger creatures such as trolls and ogres.',
@@ -297,7 +297,7 @@ const List<CompanionType> companionTypes = [
     allowedWeaponTypes: ['two_handed_weapon'],
     allowedArmourTypes: ['heavy_armour'],
   ),
-  CompanionType(
+  CompanionTypeDefinition(
     key: 'tracker',
     name: 'Tracker',
     description: 'Recruited from the countryside in times of need, these specialist huntsmen are not warriors by trade, but they are skilled with a bow and useful for staying on the trail of the agents of evil.',
@@ -317,7 +317,7 @@ const List<CompanionType> companionTypes = [
 ];
 
 /// Look up a companion type by key
-CompanionType? getCompanionType(String key) {
+CompanionTypeDefinition? getCompanionType(String key) {
   for (final type in companionTypes) {
     if (type.key == key) return type;
   }
@@ -349,9 +349,9 @@ String companionTypeKeyFromId(int id) {
 }
 
 /// Get all non-animal companion types
-List<CompanionType> get humanCompanionTypes =>
+List<CompanionTypeDefinition> get humanCompanionTypes =>
     companionTypes.where((c) => !c.isAnimal).toList();
 
 /// Get all animal companion types
-List<CompanionType> get animalCompanionTypes =>
+List<CompanionTypeDefinition> get animalCompanionTypes =>
     companionTypes.where((c) => c.isAnimal).toList();

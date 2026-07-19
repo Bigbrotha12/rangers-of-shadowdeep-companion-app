@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' show Value;
-import '../../../../domain/constants/base_stats.dart';
-import '../../../../data/database/app_database.dart';
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../view_models/ranger_creation_provider.dart';
-import '../view_models/rangers_provider.dart';
-import 'ranger_creation_step1_name.dart';
-import 'ranger_creation_step2_build_points.dart';
-import 'ranger_creation_step3_equipment.dart';
-import 'ranger_creation_step4_review.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
+import 'package:rangers_mobile/ui/features/rangers/views/ranger_creation_step1_name.dart';
+import 'package:rangers_mobile/ui/features/rangers/views/ranger_creation_step2_build_points.dart';
+import 'package:rangers_mobile/ui/features/rangers/views/ranger_creation_step3_equipment.dart';
+import 'package:rangers_mobile/ui/features/rangers/views/ranger_creation_step4_review.dart';
 
 class RangerCreationWizardView extends ConsumerStatefulWidget {
   const RangerCreationWizardView({super.key});
@@ -124,7 +124,7 @@ class _RangerCreationWizardViewState
         ref.invalidate(rangersListProvider);
         context.go('/rangers');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

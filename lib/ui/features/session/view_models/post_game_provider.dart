@@ -2,293 +2,16 @@ import 'dart:convert';
 import 'dart:math' show Random, max;
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/database/app_database.dart' hide CompanionType;
-import '../../rangers/view_models/ranger_detail_provider.dart';
-import '../../../../data/repositories/session_repository_provider.dart';
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../data/services/post_game_service.dart';
-import '../../../../domain/constants/experience_table.dart' show LevelBonusType, getStatMaxValue;
-import '../../../../domain/constants/permanent_injuries.dart' show PermanentInjury, canApplyInjury;
-import '../../../../domain/constants/companion_progression.dart' show ProgressionReward, getUnclaimedRewards;
-
-enum SurvivalOutcomeState { pending, rolled }
-
-const _Unset = Object();
-
-class SurvivalTargetState {
-  final int id;
-  final String name;
-  final bool isRanger;
-  final int? survivalRoll;
-  final int? survivalRollModified;
-  final SurvivalResult? result;
-  final PermanentInjury? injury;
-  final int? injuryRoll;
-  final SurvivalOutcomeState outcomeState;
-
-  const SurvivalTargetState({
-    required this.id,
-    required this.name,
-    required this.isRanger,
-    this.survivalRoll,
-    this.survivalRollModified,
-    this.result,
-    this.injury,
-    this.injuryRoll,
-    this.outcomeState = SurvivalOutcomeState.pending,
-  });
-
-  SurvivalTargetState copyWith({
-    int? id,
-    String? name,
-    bool? isRanger,
-    int? survivalRoll,
-    int? survivalRollModified,
-    SurvivalResult? result,
-    PermanentInjury? injury,
-    int? injuryRoll,
-    SurvivalOutcomeState? outcomeState,
-  }) {
-    return SurvivalTargetState(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      isRanger: isRanger ?? this.isRanger,
-      survivalRoll: survivalRoll ?? this.survivalRoll,
-      survivalRollModified: survivalRollModified ?? this.survivalRollModified,
-      result: result ?? this.result,
-      injury: injury ?? this.injury,
-      injuryRoll: injuryRoll ?? this.injuryRoll,
-      outcomeState: outcomeState ?? this.outcomeState,
-    );
-  }
-}
-
-class TreasureResultState {
-  final int treasureIndex;
-  final int mainRoll;
-  final int subRoll;
-  final String name;
-  final String category;
-  final String categoryName;
-  final bool goldChoseXp; // for gold: true = +10 XP, false = +1 PP to companion
-  final bool isGoldChoiceMade;
-
-  const TreasureResultState({
-    required this.treasureIndex,
-    required this.mainRoll,
-    required this.subRoll,
-    required this.name,
-    required this.category,
-    required this.categoryName,
-    this.goldChoseXp = false,
-    this.isGoldChoiceMade = false,
-  });
-
-  TreasureResultState copyWith({
-    int? treasureIndex,
-    int? mainRoll,
-    int? subRoll,
-    String? name,
-    String? category,
-    String? categoryName,
-    bool? goldChoseXp,
-    bool? isGoldChoiceMade,
-  }) {
-    return TreasureResultState(
-      treasureIndex: treasureIndex ?? this.treasureIndex,
-      mainRoll: mainRoll ?? this.mainRoll,
-      subRoll: subRoll ?? this.subRoll,
-      name: name ?? this.name,
-      category: category ?? this.category,
-      categoryName: categoryName ?? this.categoryName,
-      goldChoseXp: goldChoseXp ?? this.goldChoseXp,
-      isGoldChoiceMade: isGoldChoiceMade ?? this.isGoldChoiceMade,
-    );
-  }
-}
-
-class CompanionPpState {
-  final int id;
-  final String name;
-  final int oldPp;
-  final int newPp;
-  final List<ProgressionReward> unclaimedRewards;
-
-  const CompanionPpState({
-    required this.id,
-    required this.name,
-    required this.oldPp,
-    required this.newPp,
-    this.unclaimedRewards = const [],
-  });
-}
-
-class CompanionWithType {
-  final int id;
-  final String name;
-  final String typeName;
-  final int rpCost;
-  final bool isActive;
-  final int progressionPoints;
-
-  const CompanionWithType({
-    required this.id,
-    required this.name,
-    required this.typeName,
-    required this.rpCost,
-    required this.isActive,
-    required this.progressionPoints,
-  });
-}
-
-class PostGameState {
-  final int currentStep;
-
-  // Session info
-  final int sessionId;
-  final int rangerId;
-  final String rangerName;
-  final String scenarioName;
-  final String outcome;
-  final int xpEarned;
-
-  // Step 1: Injury & Death
-  final List<SurvivalTargetState> survivalTargets;
-
-  // Step 2: XP & Level
-  final int oldXp;
-  final int newXp;
-  final int oldLevel;
-  final int newLevel;
-  final bool didLevelUp;
-  final LevelBonusType? bonusType;
-
-  // Step 2: Level-up selections
-  final Map<String, int> skillAllocations; // skillKey → points to add (total 5)
-  final int remainingSkillPoints;
-  final String? selectedStat;
-  final String? selectedHeroicAbility;
-  final List<RangerSkill> rangerSkills;
-  final List<RangerAbility> rangerAbilities;
-  final bool levelUpApplied;
-  final Ranger? ranger; // current ranger data for stat lookups
-
-  // Step 2: Companion progression
-  final List<CompanionPpState> companionPpGains;
-
-  // Step 3: Treasure
-  final int treasureCount;
-  final List<TreasureResultState> treasureResults;
-
-  // Step 4: Companions
-  final int availableRp;
-  final List<CompanionWithType> currentCompanions;
-  final Set<int> releasedCompanionIds;
-  final Set<int> reactivatedCompanionIds;
-
-  // Finalization
-  final bool isFinalized;
-
-  const PostGameState({
-    this.currentStep = 0,
-    required this.sessionId,
-    required this.rangerId,
-    required this.rangerName,
-    this.scenarioName = '',
-    this.outcome = '',
-    this.xpEarned = 0,
-    this.survivalTargets = const [],
-    this.oldXp = 0,
-    this.newXp = 0,
-    this.oldLevel = 0,
-    this.newLevel = 0,
-    this.didLevelUp = false,
-    this.bonusType,
-    this.skillAllocations = const {},
-    this.remainingSkillPoints = 0,
-    this.selectedStat,
-    this.selectedHeroicAbility,
-    this.rangerSkills = const [],
-    this.rangerAbilities = const [],
-    this.levelUpApplied = false,
-    this.ranger,
-    this.companionPpGains = const [],
-    this.treasureCount = 0,
-    this.treasureResults = const [],
-    this.availableRp = 100,
-    this.currentCompanions = const [],
-    this.releasedCompanionIds = const {},
-    this.reactivatedCompanionIds = const {},
-    this.isFinalized = false,
-  });
-
-  PostGameState copyWith({
-    int? currentStep,
-    int? sessionId,
-    int? rangerId,
-    String? rangerName,
-    String? scenarioName,
-    String? outcome,
-    int? xpEarned,
-    List<SurvivalTargetState>? survivalTargets,
-    int? oldXp,
-    int? newXp,
-    int? oldLevel,
-    int? newLevel,
-    bool? didLevelUp,
-    Object? bonusType = _Unset,
-    Map<String, int>? skillAllocations,
-    int? remainingSkillPoints,
-    Object? selectedStat = _Unset,
-    Object? selectedHeroicAbility = _Unset,
-    List<RangerSkill>? rangerSkills,
-    List<RangerAbility>? rangerAbilities,
-    bool? levelUpApplied,
-    Object? ranger = _Unset,
-    List<CompanionPpState>? companionPpGains,
-    int? treasureCount,
-    List<TreasureResultState>? treasureResults,
-    int? availableRp,
-    List<CompanionWithType>? currentCompanions,
-    Set<int>? releasedCompanionIds,
-    Set<int>? reactivatedCompanionIds,
-    bool? isFinalized,
-  }) {
-    return PostGameState(
-      currentStep: currentStep ?? this.currentStep,
-      sessionId: sessionId ?? this.sessionId,
-      rangerId: rangerId ?? this.rangerId,
-      rangerName: rangerName ?? this.rangerName,
-      scenarioName: scenarioName ?? this.scenarioName,
-      outcome: outcome ?? this.outcome,
-      xpEarned: xpEarned ?? this.xpEarned,
-      survivalTargets: survivalTargets ?? this.survivalTargets,
-      oldXp: oldXp ?? this.oldXp,
-      newXp: newXp ?? this.newXp,
-      oldLevel: oldLevel ?? this.oldLevel,
-      newLevel: newLevel ?? this.newLevel,
-      didLevelUp: didLevelUp ?? this.didLevelUp,
-      bonusType: identical(bonusType, _Unset) ? this.bonusType : bonusType as LevelBonusType?,
-      skillAllocations: skillAllocations ?? this.skillAllocations,
-      remainingSkillPoints: remainingSkillPoints ?? this.remainingSkillPoints,
-      selectedStat: identical(selectedStat, _Unset) ? this.selectedStat : selectedStat as String?,
-      selectedHeroicAbility: identical(selectedHeroicAbility, _Unset) ? this.selectedHeroicAbility : selectedHeroicAbility as String?,
-      rangerSkills: rangerSkills ?? this.rangerSkills,
-      rangerAbilities: rangerAbilities ?? this.rangerAbilities,
-      levelUpApplied: levelUpApplied ?? this.levelUpApplied,
-      ranger: identical(ranger, _Unset) ? this.ranger : ranger as Ranger?,
-      companionPpGains: companionPpGains ?? this.companionPpGains,
-      treasureCount: treasureCount ?? this.treasureCount,
-      treasureResults: treasureResults ?? this.treasureResults,
-      availableRp: availableRp ?? this.availableRp,
-      currentCompanions: currentCompanions ?? this.currentCompanions,
-      releasedCompanionIds: releasedCompanionIds ?? this.releasedCompanionIds,
-      reactivatedCompanionIds: reactivatedCompanionIds ?? this.reactivatedCompanionIds,
-      isFinalized: isFinalized ?? this.isFinalized,
-    );
-  }
-}
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
+import 'package:rangers_mobile/data/repositories/session_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/data/services/post_game_service.dart';
+import 'package:rangers_mobile/domain/constants/experience_table.dart' show LevelBonusType, getStatMaxValue;
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
+import 'package:rangers_mobile/domain/constants/companion_progression.dart' show getUnclaimedRewards;
+import 'package:rangers_mobile/ui/features/session/view_models/post_game_state.dart';
 
 class PostGameNotifier extends StateNotifier<PostGameState?> {
   PostGameNotifier(this._ref) : super(null);
@@ -415,13 +138,11 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
       remainingSkillPoints: initialRemaining,
       rangerSkills: rangerSkills,
       rangerAbilities: rangerAbilities,
-      levelUpApplied: false,
       ranger: ranger,
       companionPpGains: companionPpList,
       treasureCount: treasureCount,
       availableRp: rp,
       currentCompanions: companionList,
-      releasedCompanionIds: const {},
     );
   }
 
@@ -429,7 +150,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     if (raw == null || raw.isEmpty) return {};
     try {
       return Set<int>.from(jsonDecode(raw) as List);
-    } catch (_) {
+    } on FormatException catch (_) {
       return {};
     }
   }
@@ -451,7 +172,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     final oldRemaining = state!.remainingSkillPoints;
     final newPoints = (current + points).clamp(0, 2);
     final delta = newPoints - current;
-    if (delta > 0 && oldRemaining < delta) return; // not enough points
+    if (delta > 0 && oldRemaining < delta) return;
     if (newPoints == current) return;
 
     final newAllocations = Map<String, int>.from(state!.skillAllocations);
@@ -628,8 +349,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     if (state == null) return;
     final releasedIds = {...state!.releasedCompanionIds}..remove(companionId);
     final reactivatedIds = {...state!.reactivatedCompanionIds};
-    // If companion was released in a previous session (isActive == false),
-    // add to reactivated set so it shows as active and gets persisted
     final companion = state!.currentCompanions.where((c) => c.id == companionId).firstOrNull;
     if (companion != null && !companion.isActive) {
       reactivatedIds.add(companionId);
@@ -644,86 +363,105 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
   Future<void> finalize() async {
     if (state == null) return;
 
-    final rangerRepo = _ref.read(rangerRepositoryProvider);
-    final companionRepo = _ref.read(companionRepositoryProvider);
-    final sessionRepo = _ref.read(sessionRepositoryProvider);
+    await _updateXpAndLevel();
+    await _applyLevelUpBonus();
+    await _applyHealthPenalties();
+    await _processSurvivalOutcomes();
+    await _applyCompanionPpGains();
+    await _processTreasure();
+    await _stripCloseCallEquipment();
+    await _releaseCompanions();
+    await _reactivateCompanions();
+    await _enrichSessionNotes();
 
-    // ── Update ranger XP and level ──────────────────────────
+    _ref.invalidate(rangerDetailProvider(state!.rangerId));
+    state = state!.copyWith(isFinalized: true);
+  }
+
+  Future<void> _updateXpAndLevel() async {
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
     await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
       level: Value(state!.newLevel),
       experiencePoints: Value(state!.newXp),
     ));
+  }
 
-    // ── Heal ranger to full ─────────────────────────────────
+  Future<void> _applyLevelUpBonus() async {
+    if (!state!.didLevelUp || !state!.levelUpApplied) return;
+
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
+    final bonus = state!.bonusType;
     final ranger = await rangerRepo.getRangerById(state!.rangerId);
 
-    // ── Apply level-up choices ──────────────────────────────
-    final bonus = state!.bonusType;
-    if (state!.didLevelUp && state!.levelUpApplied) {
-      if (bonus == LevelBonusType.gainRecruitmentPoints && ranger != null) {
-        await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
-          baseRecruitmentPoints: Value(ranger.baseRecruitmentPoints + 10),
-        ));
-      } else if (bonus == LevelBonusType.improveSkills) {
-        for (final entry in state!.skillAllocations.entries) {
-          final existing = state!.rangerSkills.where((s) => s.skillKey == entry.key).firstOrNull;
-          final newValue = (existing?.value ?? 0) + entry.value;
-          if (existing != null) {
-            await rangerRepo.updateRangerSkill(RangerSkillsCompanion(
-              id: Value(existing.id),
-              rangerId: Value(existing.rangerId),
-              skillKey: Value(existing.skillKey),
-              value: Value(newValue),
-            ));
-          } else {
-            await rangerRepo.insertRangerSkill(RangerSkillsCompanion(
-              rangerId: Value(state!.rangerId),
-              skillKey: Value(entry.key),
-              value: Value(newValue),
-            ));
-          }
+    if (bonus == LevelBonusType.gainRecruitmentPoints && ranger != null) {
+      await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
+        baseRecruitmentPoints: Value(ranger.baseRecruitmentPoints + 10),
+      ));
+    } else if (bonus == LevelBonusType.improveSkills) {
+      for (final entry in state!.skillAllocations.entries) {
+        final existing = state!.rangerSkills.where((s) => s.skillKey == entry.key).firstOrNull;
+        final newValue = (existing?.value ?? 0) + entry.value;
+        if (existing != null) {
+          await rangerRepo.updateRangerSkill(RangerSkillsCompanion(
+            id: Value(existing.id),
+            rangerId: Value(existing.rangerId),
+            skillKey: Value(existing.skillKey),
+            value: Value(newValue),
+          ));
+        } else {
+          await rangerRepo.insertRangerSkill(RangerSkillsCompanion(
+            rangerId: Value(state!.rangerId),
+            skillKey: Value(entry.key),
+            value: Value(newValue),
+          ));
         }
-      } else if (bonus == LevelBonusType.improveStats && state!.selectedStat != null && ranger != null) {
-        final stat = state!.selectedStat!;
-        final currentValue = _getRangerStat(ranger, stat);
-        final maxValue = getStatMaxValue(stat);
-        final newValue = (currentValue + 1).clamp(0, maxValue);
-        await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
-          move: stat == 'move' ? Value(newValue) : Value.absent(),
-          fight: stat == 'fight' ? Value(newValue) : Value.absent(),
-          shoot: stat == 'shoot' ? Value(newValue) : Value.absent(),
-          will: stat == 'will' ? Value(newValue) : Value.absent(),
-          health: stat == 'health' ? Value(newValue) : Value.absent(),
-        ));
-      } else if (bonus == LevelBonusType.newHeroicAbilityOrSpell && state!.selectedHeroicAbility != null) {
-        await rangerRepo.insertRangerAbility(RangerAbilitiesCompanion(
-          rangerId: Value(state!.rangerId),
-          abilityKey: Value(state!.selectedHeroicAbility!),
-          abilityType: const Value('heroic_ability'),
-        ));
       }
+    } else if (bonus == LevelBonusType.improveStats && state!.selectedStat != null && ranger != null) {
+      final stat = state!.selectedStat!;
+      final currentValue = _getRangerStat(ranger, stat);
+      final maxValue = getStatMaxValue(stat);
+      final newValue = (currentValue + 1).clamp(0, maxValue);
+      await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
+        move: stat == 'move' ? Value(newValue) : const Value.absent(),
+        fight: stat == 'fight' ? Value(newValue) : const Value.absent(),
+        shoot: stat == 'shoot' ? Value(newValue) : const Value.absent(),
+        will: stat == 'will' ? Value(newValue) : const Value.absent(),
+        health: stat == 'health' ? Value(newValue) : const Value.absent(),
+      ));
+    } else if (bonus == LevelBonusType.newHeroicAbilityOrSpell && state!.selectedHeroicAbility != null) {
+      await rangerRepo.insertRangerAbility(RangerAbilitiesCompanion(
+        rangerId: Value(state!.rangerId),
+        abilityKey: Value(state!.selectedHeroicAbility!),
+        abilityType: const Value('heroic_ability'),
+      ));
     }
+  }
 
-    // Heal ranger to full after stat improvements, except for badly wounded
-    if (ranger != null) {
-      final badlyWounded = state!.survivalTargets
-          .any((t) => t.isRanger && t.result == SurvivalResult.badlyWounded);
-      if (badlyWounded) {
-        final reducedHealth = max(1, ranger.health - 5);
-        await sessionRepo.updateRangerCurrentHealth(state!.rangerId, reducedHealth);
-      } else {
-        await sessionRepo.updateRangerCurrentHealth(state!.rangerId, ranger.health);
-      }
+  Future<void> _applyHealthPenalties() async {
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
+    final sessionRepo = _ref.read(sessionRepositoryProvider);
+    final ranger = await rangerRepo.getRangerById(state!.rangerId);
+    if (ranger == null) return;
+
+    final badlyWounded = state!.survivalTargets
+        .any((t) => t.isRanger && t.result == SurvivalResult.badlyWounded);
+    if (badlyWounded) {
+      final reducedHealth = max(1, ranger.health - 5);
+      await sessionRepo.updateRangerCurrentHealth(state!.rangerId, reducedHealth);
+    } else {
+      await sessionRepo.updateRangerCurrentHealth(state!.rangerId, ranger.health);
     }
+  }
 
-    // ── Process survival outcomes ───────────────────────────
+  Future<void> _processSurvivalOutcomes() async {
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
+    final companionRepo = _ref.read(companionRepositoryProvider);
+
     for (final target in state!.survivalTargets) {
       if (target.result == null) continue;
 
       if (target.isRanger) {
-        if (target.result == SurvivalResult.dead) {
-          // Game over for ranger
-        } else if (target.result == SurvivalResult.permanentInjury && target.injury != null) {
+        if (target.result == SurvivalResult.permanentInjury && target.injury != null) {
           final existing = await rangerRepo.getRangerById(target.id);
           if (existing != null) {
             final notes = '${existing.notes}\n[Injury] ${target.injury!.name}: ${target.injury!.effect}';
@@ -742,7 +480,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
           List<String> injuries = [];
           try {
             injuries = List<String>.from(jsonDecode(existing.permanentInjuries) as List? ?? []);
-          } catch (_) {}
+          } on FormatException catch (_) {}
 
           if (target.result == SurvivalResult.permanentInjury && target.injury != null) {
             if (canApplyInjury(injuries, target.injury!.key)) {
@@ -769,13 +507,15 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
             bonusHealth: Value(newBonusHealth),
             heroicAbilityKeys: Value(existing.heroicAbilityKeys),
             spellKeys: Value(existing.spellKeys),
-
           ));
         }
       }
     }
+  }
 
-    // ── Apply companion PP gains ───────────────────────────
+  Future<void> _applyCompanionPpGains() async {
+    final companionRepo = _ref.read(companionRepositoryProvider);
+
     for (final ppState in state!.companionPpGains) {
       final existing = await companionRepo.getCompanionById(ppState.id);
       if (existing == null) continue;
@@ -797,14 +537,16 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         spellKeys: Value(existing.spellKeys),
       ));
     }
+  }
 
-    // ── Process treasure results ────────────────────────────
+  Future<void> _processTreasure() async {
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
+
     final collectedItems = <String>[];
     final allEquipment = await rangerRepo.getAllEquipment();
     for (final tr in state!.treasureResults) {
       if (tr.category == 'gold') {
         if (tr.isGoldChoiceMade && tr.goldChoseXp) {
-          // Apply +10 XP to ranger
           final currentRanger = await rangerRepo.getRangerById(state!.rangerId);
           if (currentRanger != null) {
             await rangerRepo.updateRangerFields(state!.rangerId, RangersCompanion(
@@ -813,7 +555,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
           }
         }
       } else {
-        // Try to match treasure name to equipment catalog
         final cleanName = tr.name.replaceAll(RegExp(r' \(\d+\)$'), '');
         final match = allEquipment.where((e) => e.name == cleanName).firstOrNull;
         if (match != null) {
@@ -838,21 +579,26 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         ));
       }
     }
+  }
 
-    // ── Process Close Call equipment stripping ────────────────
+  Future<void> _stripCloseCallEquipment() async {
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
     final hasCloseCall = state!.survivalTargets
         .any((t) => t.result == SurvivalResult.closeCall);
-    if (hasCloseCall) {
-      final equipment = await rangerRepo.getRangerEquipment(state!.rangerId);
-      for (final eq in equipment) {
-        final eqDef = await rangerRepo.getEquipmentById(eq.equipmentId);
-        if (eqDef != null && !eqDef.category.startsWith('basic_')) {
-          await rangerRepo.deleteRangerEquipment(eq.id);
-        }
+    if (!hasCloseCall) return;
+
+    final equipment = await rangerRepo.getRangerEquipment(state!.rangerId);
+    for (final eq in equipment) {
+      final eqDef = await rangerRepo.getEquipmentById(eq.equipmentId);
+      if (eqDef != null && !eqDef.category.startsWith('basic_')) {
+        await rangerRepo.deleteRangerEquipment(eq.id);
       }
     }
+  }
 
-    // ── Process companion releases ─────────────────────────
+  Future<void> _releaseCompanions() async {
+    final companionRepo = _ref.read(companionRepositoryProvider);
+
     for (final releasedId in state!.releasedCompanionIds) {
       final existing = await companionRepo.getCompanionById(releasedId);
       if (existing == null) continue;
@@ -873,8 +619,11 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         spellKeys: Value(existing.spellKeys),
       ));
     }
+  }
 
-    // ── Process companion reactivations ─────────────────────
+  Future<void> _reactivateCompanions() async {
+    final companionRepo = _ref.read(companionRepositoryProvider);
+
     for (final reactivatedId in state!.reactivatedCompanionIds) {
       final existing = await companionRepo.getCompanionById(reactivatedId);
       if (existing == null) continue;
@@ -895,8 +644,11 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         spellKeys: Value(existing.spellKeys),
       ));
     }
+  }
 
-    // ── Enrich session notes with outcomes ──────────────────
+  Future<void> _enrichSessionNotes() async {
+    final sessionRepo = _ref.read(sessionRepositoryProvider);
+
     final buffer = StringBuffer('Treasure Found: ${state!.treasureResults.length}');
     for (final tr in state!.treasureResults) {
       if (tr.category == 'gold') {
@@ -937,11 +689,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
     await sessionRepo.updateSession(state!.sessionId, SessionsCompanion(
       notes: Value(buffer.toString()),
     ));
-
-    // Invalidate ranger detail so inventory reflects newly added treasure
-    _ref.invalidate(rangerDetailProvider(state!.rangerId));
-
-    state = state!.copyWith(isFinalized: true);
   }
 
   int _getRangerStat(Ranger ranger, String stat) {

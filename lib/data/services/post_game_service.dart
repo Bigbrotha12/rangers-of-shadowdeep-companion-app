@@ -1,7 +1,7 @@
 import 'dart:math';
-import '../../domain/constants/permanent_injuries.dart';
-import '../../domain/constants/experience_table.dart';
-import '../../domain/constants/treasure_table.dart';
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
+import 'package:rangers_mobile/domain/constants/experience_table.dart';
+import 'package:rangers_mobile/domain/constants/treasure_table.dart';
 
 /* ── Survival Table (d20) ────────────────────────────────────
    Die Roll | Result

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/base_stats.dart';
-import '../../../../domain/constants/heroic_abilities.dart';
-import '../../../../domain/constants/spells.dart';
-import '../../../../domain/constants/skills.dart';
-import '../view_models/ranger_creation_provider.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/domain/constants/spells.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
 
 class RangerCreationStep2BuildPoints extends ConsumerWidget {
   const RangerCreationStep2BuildPoints({super.key});
@@ -610,7 +610,7 @@ class _RecruitmentPointsSection extends ConsumerWidget {
                         style: theme.textTheme.labelMedium,
                       ),
                       Text(
-                        '${startingBaseRecruitmentPoints}',
+                        '$startingBaseRecruitmentPoints',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),

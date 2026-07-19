@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../domain/constants/companion_types.dart';
-import '../../../core/widgets/stat_display.dart';
-import '../view_models/companion_types_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
+import 'package:rangers_mobile/ui/features/companions/view_models/companion_types_provider.dart';
 
 class CompanionTypesBrowser extends ConsumerWidget {
   const CompanionTypesBrowser({required this.rangerId, super.key});
@@ -47,7 +47,7 @@ class _CompanionList extends StatelessWidget {
   const _CompanionList({required this.rangerId, required this.companions});
 
   final int rangerId;
-  final List<CompanionType> companions;
+  final List<CompanionTypeDefinition> companions;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class _CompanionCard extends StatelessWidget {
   const _CompanionCard({required this.rangerId, required this.companion});
 
   final int rangerId;
-  final CompanionType companion;
+  final CompanionTypeDefinition companion;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +167,7 @@ class _TypeDetailSheet extends StatelessWidget {
   });
 
   final int rangerId;
-  final CompanionType companion;
+  final CompanionTypeDefinition companion;
   final ScrollController scrollController;
 
   @override

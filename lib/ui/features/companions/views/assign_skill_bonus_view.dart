@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../domain/constants/skills.dart';
-import '../view_models/companion_provider.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
 
 class AssignSkillBonusView extends ConsumerStatefulWidget {
   const AssignSkillBonusView({

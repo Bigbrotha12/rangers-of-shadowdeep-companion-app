@@ -9,7 +9,6 @@ import 'package:rangers_mobile/ui/features/companions/views/companion_detail_vie
 import '../../fixtures/companion_data.dart' show createTestCompanionCompanion;
 import '../../fixtures/ranger_data.dart' show createTestRangerCompanion;
 import '../../helpers/test_database.dart';
-import '../../helpers/mock_shared_preferences.dart';
 import '../../helpers/test_providers.dart';
 
 void main() {

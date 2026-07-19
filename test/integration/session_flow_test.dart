@@ -3,17 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:drift/drift.dart' show Value;
 import 'package:rangers_mobile/data/database/app_database.dart';
 import 'package:rangers_mobile/data/repositories/ranger_repository.dart';
 import 'package:rangers_mobile/data/repositories/session_repository.dart';
 import 'package:rangers_mobile/router.dart';
-import 'package:rangers_mobile/ui/features/session/views/session_list_view.dart';
-import 'package:rangers_mobile/ui/features/session/views/session_setup_view.dart';
-import 'package:rangers_mobile/ui/features/session/views/session_active_view.dart';
 import '../fixtures/ranger_data.dart';
 import '../helpers/test_database.dart';
-import '../helpers/mock_shared_preferences.dart';
 import '../helpers/test_providers.dart';
 
 GoRouter createTestRouter({String initialLocation = '/session'}) => GoRouter(

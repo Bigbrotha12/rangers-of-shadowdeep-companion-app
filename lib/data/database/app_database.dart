@@ -5,18 +5,18 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'tables/rangers.dart';
-import 'tables/ranger_abilities.dart';
-import 'tables/ranger_skills.dart';
-import 'tables/companion_types.dart';
-import 'tables/ranger_companions.dart';
-import 'tables/equipment.dart';
-import 'tables/ranger_equipment.dart';
-import 'tables/injuries.dart';
-import 'tables/sessions.dart';
-import 'tables/session_events.dart';
-import '../../domain/constants/magic_items.dart';
-import '../../domain/constants/herbs_potions.dart';
+import 'package:rangers_mobile/data/database/tables/companion_types.dart';
+import 'package:rangers_mobile/data/database/tables/equipment.dart';
+import 'package:rangers_mobile/data/database/tables/injuries.dart';
+import 'package:rangers_mobile/data/database/tables/ranger_abilities.dart';
+import 'package:rangers_mobile/data/database/tables/ranger_companions.dart';
+import 'package:rangers_mobile/data/database/tables/ranger_equipment.dart';
+import 'package:rangers_mobile/data/database/tables/ranger_skills.dart';
+import 'package:rangers_mobile/data/database/tables/rangers.dart';
+import 'package:rangers_mobile/data/database/tables/session_events.dart';
+import 'package:rangers_mobile/data/database/tables/sessions.dart';
+import 'package:rangers_mobile/domain/constants/herbs_potions.dart';
+import 'package:rangers_mobile/domain/constants/magic_items.dart';
 
 part 'app_database.g.dart';
 
@@ -72,7 +72,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) {
             // Remove unique constraint on (ranger_id, ability_key) for multi-purchase spells
             // SQLite doesn't support ALTER TABLE DROP CONSTRAINT, so recreate the table
-            await m.issueCustomQuery(
+            await customStatement(
               'CREATE TABLE ranger_abilities_new ('
               'id INTEGER PRIMARY KEY AUTOINCREMENT, '
               'ranger_id INTEGER NOT NULL REFERENCES rangers(id), '
@@ -80,10 +80,10 @@ class AppDatabase extends _$AppDatabase {
               'ability_key TEXT NOT NULL, '
               'is_used_this_scenario INTEGER NOT NULL DEFAULT 0'
               ')');
-            await m.issueCustomQuery(
+            await customStatement(
               'INSERT INTO ranger_abilities_new SELECT * FROM ranger_abilities');
-            await m.issueCustomQuery('DROP TABLE ranger_abilities');
-            await m.issueCustomQuery(
+            await customStatement('DROP TABLE ranger_abilities');
+            await customStatement(
               'ALTER TABLE ranger_abilities_new RENAME TO ranger_abilities');
           }
           if (from < 9) {

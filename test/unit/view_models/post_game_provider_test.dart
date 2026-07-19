@@ -9,6 +9,7 @@ import 'package:rangers_mobile/data/repositories/session_repository_provider.dar
 import 'package:rangers_mobile/data/services/post_game_service.dart';
 import 'package:rangers_mobile/domain/constants/experience_table.dart';
 import 'package:rangers_mobile/ui/features/session/view_models/post_game_provider.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/post_game_state.dart';
 import '../../fixtures/ranger_data.dart';
 import '../../helpers/test_database.dart';
 import '../../helpers/test_providers.dart';
@@ -67,7 +68,7 @@ void main() {
     setUp(() {
       container = ProviderContainer();
       notifier = container.read(postGameProvider.notifier);
-      notifier.state = PostGameState(
+      notifier.state = const PostGameState(
         sessionId: 1,
         rangerId: 1,
         rangerName: 'Hero',
@@ -100,7 +101,7 @@ void main() {
       test('rollSurvival sets roll and modifies for ranger (+1)', () {
         notifier.state = notifier.state!.copyWith(
           survivalTargets: [
-            SurvivalTargetState(id: 1, name: 'Hero', isRanger: true),
+            const SurvivalTargetState(id: 1, name: 'Hero', isRanger: true),
           ],
         );
         notifier.rollSurvival(1, isRanger: true, predeterminedRoll: 5);
@@ -113,7 +114,7 @@ void main() {
       test('rollSurvival for non-ranger does not add +1 modifier', () {
         notifier.state = notifier.state!.copyWith(
           survivalTargets: [
-            SurvivalTargetState(id: 2, name: 'Dog', isRanger: false),
+            const SurvivalTargetState(id: 2, name: 'Dog', isRanger: false),
           ],
         );
         notifier.rollSurvival(2, isRanger: false, predeterminedRoll: 5);
@@ -125,7 +126,7 @@ void main() {
       test('rollSurvival for dead on roll 1', () {
         notifier.state = notifier.state!.copyWith(
           survivalTargets: [
-            SurvivalTargetState(id: 1, name: 'Hero', isRanger: true),
+            const SurvivalTargetState(id: 1, name: 'Hero', isRanger: true),
           ],
         );
         notifier.rollSurvival(1, isRanger: true, predeterminedRoll: 1);
@@ -225,7 +226,7 @@ void main() {
       test('applyLevelUp succeeds when all skill points allocated', () {
         container = ProviderContainer();
         notifier = container.read(postGameProvider.notifier);
-        notifier.state = PostGameState(
+        notifier.state = const PostGameState(
           sessionId: 1, rangerId: 1, rangerName: 'Hero',
           didLevelUp: true,
           bonusType: LevelBonusType.improveStats,
@@ -314,37 +315,37 @@ void main() {
       });
 
       group('rulebook integration', () {
-        AppDatabase _db = AppDatabase(NativeDatabase.memory());
-        ProviderContainer _container = ProviderContainer();
-        PostGameNotifier _notifier = _container.read(postGameProvider.notifier);
+        AppDatabase db = AppDatabase(NativeDatabase.memory());
+        ProviderContainer container = ProviderContainer();
+        PostGameNotifier notifier = container.read(postGameProvider.notifier);
 
         setUp(() async {
           SharedPreferences.setMockInitialValues({});
-          _db = await createTestDatabase();
+          db = await createTestDatabase();
           final prefs = await SharedPreferences.getInstance();
-          _container = ProviderContainer(overrides: buildTestOverrides(
-            database: _db,
+          container = ProviderContainer(overrides: buildTestOverrides(
+            database: db,
             sharedPreferences: prefs,
           ));
-          _notifier = _container.read(postGameProvider.notifier);
+          notifier = container.read(postGameProvider.notifier);
         });
 
         tearDown(() {
-          _container.dispose();
-          _db.close();
+          container.dispose();
+          db.close();
         });
 
         test('Close Call removes non-basic equipment on finalize', () async {
-          final rangerRepo = _container.read(rangerRepositoryProvider);
-          final sessionRepo = _container.read(sessionRepositoryProvider);
+          final rangerRepo = container.read(rangerRepositoryProvider);
+          final sessionRepo = container.read(sessionRepositoryProvider);
 
           final rangerId = await rangerRepo.insertRanger(
             createTestRangerCompanion(name: 'Hero'),
           );
 
-          final handWeaponId = await getEquipmentId(_db, 'hand_weapon');
-          final lightArmourId = await getEquipmentId(_db, 'light_armour');
-          final magicWeaponId = await getEquipmentId(_db, 'magic_hand_weapon');
+          final handWeaponId = await getEquipmentId(db, 'hand_weapon');
+          final lightArmourId = await getEquipmentId(db, 'light_armour');
+          final magicWeaponId = await getEquipmentId(db, 'magic_hand_weapon');
 
           await rangerRepo.insertRangerEquipment(createTestRangerEquipment(
             rangerId: rangerId, equipmentId: handWeaponId,
@@ -362,7 +363,7 @@ void main() {
             datePlayed: DateTime.now(),
           ));
 
-          _notifier.state = PostGameState(
+          notifier.state = PostGameState(
             sessionId: sessionId,
             rangerId: rangerId,
             rangerName: 'Hero',
@@ -371,7 +372,7 @@ void main() {
             ],
           );
 
-          await _notifier.finalize();
+          await notifier.finalize();
 
           final remaining = await rangerRepo.getRangerEquipment(rangerId);
           expect(remaining.length, 2);
@@ -379,8 +380,8 @@ void main() {
         });
 
         test('Badly Wounded reduces next scenario health by -5', () async {
-          final rangerRepo = _container.read(rangerRepositoryProvider);
-          final sessionRepo = _container.read(sessionRepositoryProvider);
+          final rangerRepo = container.read(rangerRepositoryProvider);
+          final sessionRepo = container.read(sessionRepositoryProvider);
 
           final rangerId = await rangerRepo.insertRanger(
             createTestRangerCompanion(name: 'Hero'),
@@ -392,7 +393,7 @@ void main() {
             datePlayed: DateTime.now(),
           ));
 
-          _notifier.state = PostGameState(
+          notifier.state = PostGameState(
             sessionId: sessionId,
             rangerId: rangerId,
             rangerName: 'Hero',
@@ -401,7 +402,7 @@ void main() {
             ],
           );
 
-          await _notifier.finalize();
+          await notifier.finalize();
 
           // ranger.health is 18 (from createTestRangerCompanion), minus 5 = 13
           final updatedHealth = await sessionRepo.getRangerCurrentHealth(rangerId);
@@ -409,9 +410,9 @@ void main() {
         });
 
         test('companion Badly Wounded reduces bonusHealth by -5', () async {
-          final rangerRepo = _container.read(rangerRepositoryProvider);
-          final companionRepo = _container.read(companionRepositoryProvider);
-          final sessionRepo = _container.read(sessionRepositoryProvider);
+          final rangerRepo = container.read(rangerRepositoryProvider);
+          final companionRepo = container.read(companionRepositoryProvider);
+          final sessionRepo = container.read(sessionRepositoryProvider);
 
           final rangerId = await rangerRepo.insertRanger(
             createTestRangerCompanion(name: 'Hero'),
@@ -430,16 +431,16 @@ void main() {
             datePlayed: DateTime.now(),
           ));
 
-          _notifier.state = PostGameState(
+          notifier.state = PostGameState(
             sessionId: sessionId,
             rangerId: rangerId,
             rangerName: 'Hero',
             survivalTargets: [
-              SurvivalTargetState(id: 1, name: 'Buddy', isRanger: false, result: SurvivalResult.badlyWounded),
+              const SurvivalTargetState(id: 1, name: 'Buddy', isRanger: false, result: SurvivalResult.badlyWounded),
             ],
           );
 
-          await _notifier.finalize();
+          await notifier.finalize();
 
           final companion = await companionRepo.getCompanionById(1);
           expect(companion, isNotNull);
@@ -450,7 +451,7 @@ void main() {
 
     group('SurvivalTargetState', () {
       test('copyWith preserves fields', () {
-        final target = const SurvivalTargetState(id: 1, name: 'Hero', isRanger: true);
+        const target = SurvivalTargetState(id: 1, name: 'Hero', isRanger: true);
         final copy = target.copyWith(survivalRoll: 10);
         expect(copy.survivalRoll, 10);
         expect(copy.name, 'Hero');

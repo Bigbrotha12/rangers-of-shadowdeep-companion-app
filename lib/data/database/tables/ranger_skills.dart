@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'rangers.dart';
+import 'package:rangers_mobile/data/database/tables/rangers.dart';
 
 class RangerSkills extends Table {
   IntColumn get id => integer().autoIncrement()();

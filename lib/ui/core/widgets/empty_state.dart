@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'placeholder_image.dart';
+import 'package:rangers_mobile/ui/core/widgets/placeholder_image.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({

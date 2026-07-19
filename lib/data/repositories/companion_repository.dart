@@ -1,4 +1,4 @@
-import '../database/app_database.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
 
 class CompanionRepository {
   CompanionRepository(this._db);

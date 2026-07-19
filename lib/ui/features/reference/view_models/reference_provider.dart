@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/data/services/rules_reference_service.dart';
 
 final rulesReferenceServiceProvider = Provider<RulesReferenceService>((ref) {
   return RulesReferenceService();

@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/database/app_database.dart' hide CompanionType;
-import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../domain/constants/companion_types.dart'
-    show CompanionType, companionTypeKeyFromId;
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart'
+    show CompanionTypeDefinition, companionTypeKeyFromId;
 
 class RecruitmentState {
   final int rangerId;
@@ -57,7 +57,7 @@ class RecruitmentState {
     return currentCompanions.length < maxCompanions;
   }
 
-  bool canRecruit(CompanionType type) {
+  bool canRecruit(CompanionTypeDefinition type) {
     return canAddMoreCompanions && availableRecruitmentPoints >= type.rpCost;
   }
 }
@@ -153,7 +153,7 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
     );
   }
 
-  bool recruitCompanion(CompanionType type) {
+  bool recruitCompanion(CompanionTypeDefinition type) {
     if (!state.canRecruit(type)) return false;
 
     final entry = CompanionEntry(

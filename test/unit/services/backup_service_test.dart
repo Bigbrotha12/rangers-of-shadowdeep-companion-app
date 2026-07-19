@@ -41,7 +41,7 @@ void main() {
 
   group('importFromJson', () {
     test('empty import succeeds with zero counts', () async {
-      final json = '''{
+      const json = '''{
         "version": 1,
         "exported_at": "2024-01-01T00:00:00",
         "data": {
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('version mismatch returns error', () async {
-      final json = '''{
+      const json = '''{
         "version": 999,
         "data": {
           "rangers": [],
@@ -84,7 +84,7 @@ void main() {
     });
 
     test('missing version returns error', () async {
-      final json = '''{
+      const json = '''{
         "data": {
           "rangers": [],
           "ranger_abilities": [],
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('missing data returns error', () async {
-      final json = '{"version": 1}';
+      const json = '{"version": 1}';
 
       final result = await service.importFromJson(json);
       expect(result.success, isFalse);
@@ -111,7 +111,7 @@ void main() {
     });
 
     test('missing table in data returns error', () async {
-      final json = '''{
+      const json = '''{
         "version": 1,
         "data": {
           "rangers": [],

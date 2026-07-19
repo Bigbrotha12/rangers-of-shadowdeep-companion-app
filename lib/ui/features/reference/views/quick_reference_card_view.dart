@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../view_models/reference_provider.dart';
+import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
 
 class QuickReferenceCardView extends ConsumerWidget {
   const QuickReferenceCardView({super.key, required this.entryId});

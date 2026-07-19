@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/companion_progression.dart';
-import '../../../../domain/constants/skills.dart';
-import '../../../../domain/constants/heroic_abilities.dart';
-import '../view_models/companion_provider.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:rangers_mobile/domain/constants/companion_progression.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
 
 class CompanionProgressionView extends ConsumerWidget {
   const CompanionProgressionView({

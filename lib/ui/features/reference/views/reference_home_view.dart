@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../view_models/reference_provider.dart';
-import '../../../../data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
+import 'package:rangers_mobile/data/services/rules_reference_service.dart';
 
 class ReferenceHomeView extends ConsumerWidget {
   const ReferenceHomeView({super.key});
@@ -68,7 +68,7 @@ class ReferenceHomeView extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
 
-          _SectionHeader(
+          const _SectionHeader(
             title: 'Rules Categories',
             icon: Icons.category,
           ),
@@ -101,7 +101,7 @@ class ReferenceHomeView extends ConsumerWidget {
           ),
 
           const SizedBox(height: 32),
-          _SectionHeader(
+          const _SectionHeader(
             title: 'Quick Reference',
             icon: Icons.speed,
           ),

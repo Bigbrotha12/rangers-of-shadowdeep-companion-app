@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/database/app_database.dart' hide CompanionType;
-import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../domain/constants/companion_types.dart';
-import '../../../../domain/constants/permanent_injuries.dart' show canApplyInjury;
-import '../../../../domain/services/stat_calculation_service.dart' show computeStatPenalty;
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeStatPenalty;
 
 class CompanionData {
   final int id;
@@ -44,7 +44,7 @@ class CompanionData {
     this.statusEffects = const [],
   });
 
-  CompanionType? get type => getCompanionType(
+  CompanionTypeDefinition? get type => getCompanionType(
     _typeKeyFromId(companionTypeId),
   );
 

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/database/app_database.dart';
-import '../../../../data/repositories/session_repository_provider.dart';
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
-import '../../../../domain/constants/status_effects.dart' show getStatusEffect;
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/repositories/session_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import 'package:rangers_mobile/domain/constants/status_effects.dart' show getStatusEffect;
 
 // Session phases
 enum SessionPhase { ranger, creature, companion, event }
@@ -222,8 +222,6 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
       rangerId: rangerId,
       scenarioName: scenarioName,
       missionName: missionName,
-      currentTurn: 1,
-      currentPhase: SessionPhase.ranger,
       party: party,
       creatures: [],
       eventLog: events.map((e) => EventLogEntry(
@@ -290,7 +288,6 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
       scenarioName: session.scenarioName,
       missionName: session.missionName,
       currentTurn: session.turnsPlayed,
-      currentPhase: SessionPhase.ranger,
       party: party,
       creatures: [],
       eventLog: events.map((e) => EventLogEntry(
@@ -308,7 +305,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
 
   // Advance to next phase
   void nextPhase() {
-    final phases = SessionPhase.values;
+    const phases = SessionPhase.values;
     final nextIndex = (state.currentPhase.index + 1) % phases.length;
     
     if (nextIndex == 0) {

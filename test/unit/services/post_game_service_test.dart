@@ -7,14 +7,14 @@ void main() {
   group('rollSurvivalTable', () {
     test('roll 1 with non-ranger returns dead', () {
       expect(
-        rollSurvivalTable(1, isRanger: false),
+        rollSurvivalTable(1),
         SurvivalResult.dead,
       );
     });
 
     test('roll 2 with non-ranger returns dead', () {
       expect(
-        rollSurvivalTable(2, isRanger: false),
+        rollSurvivalTable(2),
         SurvivalResult.dead,
       );
     });
@@ -25,7 +25,7 @@ void main() {
 
     test('roll 3 with non-ranger returns permanentInjury', () {
       expect(
-        rollSurvivalTable(3, isRanger: false),
+        rollSurvivalTable(3),
         SurvivalResult.permanentInjury,
       );
     });
@@ -39,7 +39,7 @@ void main() {
 
     test('roll 5 with non-ranger returns badlyWounded', () {
       expect(
-        rollSurvivalTable(5, isRanger: false),
+        rollSurvivalTable(5),
         SurvivalResult.badlyWounded,
       );
     });
@@ -53,7 +53,7 @@ void main() {
 
     test('roll 7 with non-ranger returns closeCall', () {
       expect(
-        rollSurvivalTable(7, isRanger: false),
+        rollSurvivalTable(7),
         SurvivalResult.closeCall,
       );
     });
@@ -74,7 +74,7 @@ void main() {
 
     test('roll 9 with non-ranger returns fullRecovery', () {
       expect(
-        rollSurvivalTable(9, isRanger: false),
+        rollSurvivalTable(9),
         SurvivalResult.fullRecovery,
       );
     });

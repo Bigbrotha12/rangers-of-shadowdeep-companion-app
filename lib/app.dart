@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'router.dart';
-import 'ui/core/theme/color_schemes.dart';
-import 'ui/core/theme/preferences.dart';
+import 'package:rangers_mobile/router.dart';
+import 'package:rangers_mobile/ui/core/theme/color_schemes.dart';
+import 'package:rangers_mobile/ui/core/theme/preferences.dart';
 
 class RangersApp extends ConsumerWidget {
   const RangersApp({super.key});

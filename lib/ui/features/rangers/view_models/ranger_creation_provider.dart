@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/base_stats.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
 
 class RangerCreationState {
   final int currentStep;

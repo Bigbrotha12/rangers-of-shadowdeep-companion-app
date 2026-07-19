@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../view_models/post_game_provider.dart';
-import '../view_models/session_provider.dart';
-import '../../../../data/database/app_database.dart' show Ranger;
-import '../../../../data/services/post_game_service.dart';
-import '../../../../domain/constants/skills.dart';
-import '../../../../domain/constants/heroic_abilities.dart';
-import '../../../../domain/constants/experience_table.dart' show LevelBonusType, statImprovementLimits;
-import '../../companions/views/recruit_companions_view.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/data/services/post_game_service.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/domain/constants/experience_table.dart';
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
+import 'package:rangers_mobile/ui/features/companions/views/recruit_companions_view.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/post_game_provider.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/post_game_state.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/session_provider.dart';
 
 class PostGameView extends ConsumerStatefulWidget {
   const PostGameView({required this.sessionId, super.key});
@@ -198,7 +199,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
             children: [
               Text('Survival Table (d20)', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('1-2: Dead  3-4: Permanent Injury  5-6: Badly Wounded  7-8: Close Call  9+: Full Recovery'),
+              const Text('1-2: Dead  3-4: Permanent Injury  5-6: Badly Wounded  7-8: Close Call  9+: Full Recovery'),
               Text('Rangers add +1 to the die roll.', style: theme.textTheme.labelSmall?.copyWith(fontStyle: FontStyle.italic)),
             ],
           ),
@@ -541,7 +542,7 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
           const SnackBar(content: Text('Post-game results saved!'), behavior: SnackBarBehavior.floating),
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving: $e'), backgroundColor: Theme.of(context).colorScheme.error, behavior: SnackBarBehavior.floating),
@@ -981,24 +982,31 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
     const statLabels = {
       'move': 'Move', 'fight': 'Fight', 'shoot': 'Shoot', 'will': 'Will', 'health': 'Health',
     };
-    return Column(
-      children: statImprovementLimits.map((limit) {
-        final stat = limit.stat;
-        final maxVal = limit.maxValue;
-        final currentVal = _getStatValue(state.ranger, stat);
-        final isSelected = state.selectedStat == stat;
-        final atMax = currentVal >= maxVal;
-        return RadioListTile<String>(
-          title: Text(statLabels[stat] ?? stat),
-          subtitle: Text('$currentVal / $maxVal${atMax ? ' (MAX)' : ''}'),
-          value: stat,
-          groupValue: isSelected ? stat : null,
-          onChanged: atMax ? null : (v) {
-            if (v != null) ref.read(postGameProvider.notifier).selectStat(v);
-          },
-          dense: true,
-        );
-      }).toList(),
+    return RadioGroup<String>(
+      groupValue: state.selectedStat,
+      onChanged: (v) {
+        if (v != null) ref.read(postGameProvider.notifier).selectStat(v);
+      },
+      child: Column(
+        children: statImprovementLimits.map((limit) {
+          final stat = limit.stat;
+          final maxVal = limit.maxValue;
+          final currentVal = _getStatValue(state.ranger, stat);
+          final atMax = currentVal >= maxVal;
+          return Opacity(
+            opacity: atMax ? 0.5 : 1.0,
+            child: AbsorbPointer(
+              absorbing: atMax,
+              child: RadioListTile<String>(
+                title: Text(statLabels[stat] ?? stat),
+                subtitle: Text('$currentVal / $maxVal${atMax ? ' (MAX)' : ''}'),
+                value: stat,
+                dense: true,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -1041,26 +1049,27 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
       return Text('All heroic abilities already learned.', style: theme.textTheme.bodyMedium);
     }
 
-    return Column(
-      children: available.map((ability) {
-        final isSelected = state.selectedHeroicAbility == ability.key;
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          color: isSelected ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
-          child: InkWell(
-            onTap: () => ref.read(postGameProvider.notifier).selectHeroicAbility(ability.key),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Radio<String>(
-                    value: ability.key,
-                    groupValue: state.selectedHeroicAbility,
-                    onChanged: (v) {
-                      if (v != null) ref.read(postGameProvider.notifier).selectHeroicAbility(v);
-                    },
-                  ),
+    return RadioGroup<String>(
+      groupValue: state.selectedHeroicAbility,
+      onChanged: (v) {
+        if (v != null) ref.read(postGameProvider.notifier).selectHeroicAbility(v);
+      },
+      child: Column(
+        children: available.map((ability) {
+          final isSelected = state.selectedHeroicAbility == ability.key;
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            color: isSelected ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+            child: InkWell(
+              onTap: () => ref.read(postGameProvider.notifier).selectHeroicAbility(ability.key),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Radio<String>(
+                      value: ability.key,
+                    ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -1082,6 +1091,7 @@ class _LevelUpBonusSelectorState extends ConsumerState<_LevelUpBonusSelector> {
           ),
         );
       }).toList(),
+      ),
     );
   }
 }
@@ -1191,7 +1201,7 @@ class _TreasurePendingCardState extends State<_TreasurePendingCard> {
               children: [
                 CircleAvatar(
                   backgroundColor: widget.theme.colorScheme.tertiaryContainer,
-                  child: Text('${widget.index + 1}', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text('${widget.index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

@@ -49,15 +49,15 @@ void main() {
 
       test('returns max id + 1', () {
         final creatures = [
-          CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5),
-          CreatureData(id: 3, name: 'Orc', currentHealth: 10, maxHealth: 10),
+          const CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5),
+          const CreatureData(id: 3, name: 'Orc', currentHealth: 10, maxHealth: 10),
         ];
         expect(_createState(creatures: creatures).nextCreatureId, 4);
       });
 
       test('handles single creature', () {
         final creatures = [
-          CreatureData(id: 5, name: 'Troll', currentHealth: 15, maxHealth: 15),
+          const CreatureData(id: 5, name: 'Troll', currentHealth: 15, maxHealth: 15),
         ];
         expect(_createState(creatures: creatures).nextCreatureId, 6);
       });
@@ -72,7 +72,7 @@ void main() {
       });
 
       test('wrapping back to ranger increments turn', () {
-        final s1 = _createState(turn: 1, phase: SessionPhase.event);
+        final s1 = _createState(phase: SessionPhase.event);
         final s2 = s1.copyWith(
           currentPhase: SessionPhase.ranger,
           currentTurn: s1.currentTurn + 1,
@@ -86,7 +86,7 @@ void main() {
       test('all party members reset hasActed', () {
         final party = [
           _ranger(acted: true),
-          PartyMemberState(
+          const PartyMemberState(
             id: 2, name: 'Dog', type: 'companion',
             currentHealth: 10, maxHealth: 10, hasActed: true,
           ),
@@ -124,7 +124,7 @@ void main() {
     });
 
     test('toggleCarryingTreasure flips flag', () {
-      final member = _ranger(treasure: false);
+      final member = _ranger();
       final toggled = member.copyWith(carryingTreasure: !member.carryingTreasure);
       expect(toggled.carryingTreasure, isTrue);
     });
@@ -145,12 +145,12 @@ void main() {
 
   group('CreatureData', () {
     test('addCreature creates with next ID', () {
-      final creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
+      const creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
       expect(creature.id, 1);
     });
 
     test('damage clamps to 0', () {
-      final creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
+      const creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
       final damaged = creature.copyWith(
         currentHealth: (creature.currentHealth + (-7)).clamp(0, creature.maxHealth),
         isDead: (creature.currentHealth + (-7)) <= 0,
@@ -160,7 +160,7 @@ void main() {
     });
 
     test('copyWith preserves unchanged fields', () {
-      final creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
+      const creature = CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5);
       final copy = creature.copyWith(currentHealth: 3);
       expect(copy.id, 1);
       expect(copy.name, 'Goblin');
@@ -172,15 +172,15 @@ void main() {
   group('add/remove creature', () {
     test('addCreature appends to list', () {
       final creatures = <CreatureData>[];
-      creatures.add(CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5));
-      creatures.add(CreatureData(id: 2, name: 'Orc', currentHealth: 10, maxHealth: 10));
+      creatures.add(const CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5));
+      creatures.add(const CreatureData(id: 2, name: 'Orc', currentHealth: 10, maxHealth: 10));
       expect(creatures.length, 2);
     });
 
     test('removeCreature filters by ID', () {
       var creatures = [
-        CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5),
-        CreatureData(id: 2, name: 'Orc', currentHealth: 10, maxHealth: 10),
+        const CreatureData(id: 1, name: 'Goblin', currentHealth: 5, maxHealth: 5),
+        const CreatureData(id: 2, name: 'Orc', currentHealth: 10, maxHealth: 10),
       ];
       creatures = creatures.where((c) => c.id != 1).toList();
       expect(creatures.length, 1);

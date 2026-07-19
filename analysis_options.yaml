@@ -3,8 +3,6 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
-    - "**/*.freezed.dart"
-    - "**/*.gr.dart"
   errors:
     invalid_annotation_target: ignore
 
@@ -27,3 +25,6 @@ linter:
     - prefer_function_declarations_over_variables
     - annotate_overrides
     - avoid_redundant_argument_values
+    - avoid_catches_without_on_clauses
+    - no_leading_underscores_for_local_identifiers
+    - prefer_const_constructors_in_immutables

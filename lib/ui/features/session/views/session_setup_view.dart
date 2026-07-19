@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../data/database/app_database.dart' show RangerCompanion;
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../../../../data/repositories/companion_repository_provider.dart';
-import '../../../../domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
-import '../../../../domain/services/stat_calculation_service.dart' show computeStatPenalty;
-import '../../../core/widgets/stat_display.dart' show StatTable;
-import '../../rangers/view_models/rangers_provider.dart';
-import '../view_models/session_provider.dart';
+import 'package:rangers_mobile/data/database/app_database.dart' show RangerCompanion;
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
+import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeStatPenalty;
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart' show StatTable;
+import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/session_provider.dart';
 
 class SessionSetupView extends ConsumerStatefulWidget {
   const SessionSetupView({super.key});

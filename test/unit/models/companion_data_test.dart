@@ -218,7 +218,7 @@ void main() {
 
   group('type getter', () {
     test('returns correct CompanionType from companionTypeId', () {
-      final data = _make(companionTypeId: 12); // Recruit
+      final data = _make(); // Recruit
       expect(data.type, isNotNull);
       expect(data.type!.name, 'Recruit');
     });

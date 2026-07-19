@@ -1,18 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
 
-final companionTypesProvider = Provider<List<CompanionType>>((ref) {
+final companionTypesProvider = Provider<List<CompanionTypeDefinition>>((ref) {
   return companionTypes;
 });
 
-final humanCompanionTypesProvider = Provider<List<CompanionType>>((ref) {
+final humanCompanionTypesProvider = Provider<List<CompanionTypeDefinition>>((ref) {
   return humanCompanionTypes;
 });
 
-final animalCompanionTypesProvider = Provider<List<CompanionType>>((ref) {
+final animalCompanionTypesProvider = Provider<List<CompanionTypeDefinition>>((ref) {
   return animalCompanionTypes;
 });
 
-final companionTypeByKeyProvider = Provider.family<CompanionType?, String>((ref, key) {
+final companionTypeByKeyProvider = Provider.family<CompanionTypeDefinition?, String>((ref, key) {
   return getCompanionType(key);
 });

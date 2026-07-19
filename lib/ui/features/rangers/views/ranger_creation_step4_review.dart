@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/base_stats.dart';
-import '../../../../domain/constants/heroic_abilities.dart';
-import '../../../../domain/constants/spells.dart';
-import '../../../../domain/constants/skills.dart';
-import '../../../../domain/constants/basic_equipment.dart';
-import '../../../core/widgets/stat_display.dart';
-import '../view_models/ranger_creation_provider.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/domain/constants/spells.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
 
 class RangerCreationStep4Review extends ConsumerWidget {
   const RangerCreationStep4Review({super.key});
@@ -25,7 +25,7 @@ class RangerCreationStep4Review extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Stats Section
-          _SectionTitle(title: 'Stats'),
+          const _SectionTitle(title: 'Stats'),
           const SizedBox(height: 8),
           _StatsReview(state: state),
           const SizedBox(height: 24),
@@ -33,7 +33,7 @@ class RangerCreationStep4Review extends ConsumerWidget {
           // Abilities & Spells
           if (state.selectedHeroicAbilities.isNotEmpty ||
               state.selectedSpells.isNotEmpty) ...[
-            _SectionTitle(title: 'Abilities & Spells'),
+            const _SectionTitle(title: 'Abilities & Spells'),
             const SizedBox(height: 8),
             _AbilitiesReview(state: state),
             const SizedBox(height: 24),
@@ -41,7 +41,7 @@ class RangerCreationStep4Review extends ConsumerWidget {
 
           // Skills
           if (state.skillBonuses.isNotEmpty) ...[
-            _SectionTitle(title: 'Skills'),
+            const _SectionTitle(title: 'Skills'),
             const SizedBox(height: 8),
             _SkillsReview(state: state),
             const SizedBox(height: 24),
@@ -49,14 +49,14 @@ class RangerCreationStep4Review extends ConsumerWidget {
 
           // Equipment
           if (state.selectedEquipment.isNotEmpty) ...[
-            _SectionTitle(title: 'Starting Equipment'),
+            const _SectionTitle(title: 'Starting Equipment'),
             const SizedBox(height: 8),
             _EquipmentReview(state: state),
             const SizedBox(height: 24),
           ],
 
           // Recruitment Points
-          _SectionTitle(title: 'Recruitment Points'),
+          const _SectionTitle(title: 'Recruitment Points'),
           const SizedBox(height: 8),
           _RecruitmentPointsReview(state: state),
           const SizedBox(height: 24),
@@ -357,7 +357,7 @@ class _RecruitmentPointsReview extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  '${startingBaseRecruitmentPoints}',
+                  '$startingBaseRecruitmentPoints',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

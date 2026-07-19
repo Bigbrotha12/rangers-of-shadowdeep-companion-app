@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../data/database/app_database.dart' show Session;
-import '../view_models/session_provider.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:rangers_mobile/data/database/app_database.dart' show Session;
+import 'package:rangers_mobile/ui/features/session/view_models/session_provider.dart';
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
 
 class SessionListView extends ConsumerWidget {
   const SessionListView({super.key});

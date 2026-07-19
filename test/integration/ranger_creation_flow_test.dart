@@ -8,7 +8,6 @@ import 'package:rangers_mobile/data/repositories/ranger_repository.dart';
 import 'package:rangers_mobile/router.dart';
 import '../fixtures/ranger_data.dart';
 import '../helpers/test_database.dart';
-import '../helpers/mock_shared_preferences.dart';
 import '../helpers/test_providers.dart';
 
 GoRouter createTestRouter() => GoRouter(

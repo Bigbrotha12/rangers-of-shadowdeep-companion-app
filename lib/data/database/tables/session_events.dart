@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'sessions.dart';
+import 'package:rangers_mobile/data/database/tables/sessions.dart';
 
 class SessionEvents extends Table {
   IntColumn get id => integer().autoIncrement()();

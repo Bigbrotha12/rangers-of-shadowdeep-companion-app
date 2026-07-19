@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'rangers.dart';
-import 'ranger_companions.dart';
+import 'package:rangers_mobile/data/database/tables/ranger_companions.dart';
+import 'package:rangers_mobile/data/database/tables/rangers.dart';
 
 class Injuries extends Table {
   IntColumn get id => integer().autoIncrement()();

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../domain/constants/heroic_abilities.dart';
-import '../../domain/constants/spells.dart';
-import '../../domain/constants/skills.dart';
-import '../../domain/constants/companion_types.dart';
-import '../../domain/constants/basic_equipment.dart';
-import '../../domain/constants/magic_items.dart';
-import '../../domain/constants/herbs_potions.dart';
-import '../../domain/constants/permanent_injuries.dart';
-import '../../domain/constants/treasure_table.dart';
-import '../../domain/constants/base_stats.dart';
-import '../../domain/constants/experience_table.dart';
-import '../../domain/constants/companion_progression.dart';
-import '../../domain/constants/status_effects.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
+import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
+import 'package:rangers_mobile/domain/constants/companion_progression.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/experience_table.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/domain/constants/herbs_potions.dart';
+import 'package:rangers_mobile/domain/constants/magic_items.dart';
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/domain/constants/spells.dart';
+import 'package:rangers_mobile/domain/constants/status_effects.dart';
+import 'package:rangers_mobile/domain/constants/treasure_table.dart';
 
 class ReferenceEntry {
   final String id;
@@ -476,13 +476,13 @@ class RulesReferenceService {
             .join('\n'),
       },
     ));
-    entries.add(ReferenceEntry(
+    entries.add(const ReferenceEntry(
       id: 'gold_and_jewels',
       title: 'Gold and Jewels',
       category: 'treasure_tables',
       description: 'A stash of valuables. The ranger may choose either +10 XP or have one companion gain 1 Progression Point.',
     ));
-    entries.add(ReferenceEntry(
+    entries.add(const ReferenceEntry(
       id: 'survival_table',
       title: 'Survival Table',
       category: 'treasure_tables',
@@ -502,7 +502,7 @@ class RulesReferenceService {
             .join('\n'),
       },
     ));
-    entries.add(ReferenceEntry(
+    entries.add(const ReferenceEntry(
       id: 'level_bonuses',
       title: 'Level Bonuses',
       category: 'treasure_tables',
@@ -536,7 +536,7 @@ class RulesReferenceService {
             .join('\n'),
       },
     ));
-    entries.add(ReferenceEntry(
+    entries.add(const ReferenceEntry(
       id: 'permanent_injury_table',
       title: 'Permanent Injury Table (d20)',
       category: 'treasure_tables',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../domain/constants/basic_equipment.dart';
-import '../view_models/ranger_creation_provider.dart';
+import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
 
 class RangerCreationStep3Equipment extends ConsumerWidget {
   const RangerCreationStep3Equipment({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../view_models/rangers_provider.dart';
-import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/placeholder_image.dart';
-import '../../../core/widgets/stat_display.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
+import 'package:rangers_mobile/ui/core/widgets/empty_state.dart';
+import 'package:rangers_mobile/ui/core/widgets/placeholder_image.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 
 class RangersListView extends ConsumerWidget {
   const RangersListView({super.key});
@@ -98,9 +98,8 @@ class _RangerCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  PlaceholderImage(
+                  const PlaceholderImage(
                     assetPath: 'assets/images/rangers/default_ranger.png',
                     category: 'ranger',
                     width: 48,

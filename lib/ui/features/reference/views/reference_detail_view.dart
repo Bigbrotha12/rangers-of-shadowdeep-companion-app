@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../view_models/reference_provider.dart';
-import '../../../../data/services/rules_reference_service.dart';
-import '../../../core/widgets/stat_display.dart';
+import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
+import 'package:rangers_mobile/data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 
 class ReferenceDetailView extends ConsumerWidget {
   const ReferenceDetailView({

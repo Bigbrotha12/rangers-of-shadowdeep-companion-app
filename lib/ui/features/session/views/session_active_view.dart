@@ -1,21 +1,23 @@
 import 'dart:convert';
+import 'dart:math' show Random;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:drift/drift.dart' show Value;
-import '../view_models/session_provider.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../../data/database/app_database.dart';
-import '../../../../data/repositories/ranger_repository_provider.dart';
-import '../../rangers/view_models/ranger_detail_provider.dart';
-import '../../../../domain/constants/companion_types.dart';
-import '../../../../domain/constants/heroic_abilities.dart';
-import '../../../../domain/constants/spells.dart';
-import '../../../../domain/constants/skills.dart';
-import '../../../../domain/constants/status_effects.dart';
-import '../../../../domain/constants/permanent_injuries.dart';
-import '../../../../domain/services/stat_calculation_service.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
+import 'package:rangers_mobile/domain/constants/spells.dart';
+import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/domain/constants/status_effects.dart';
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' hide computeEquipmentModifiers;
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
+import 'package:rangers_mobile/ui/core/theme/spacing.dart';
+import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
+import 'package:rangers_mobile/ui/core/widgets/hp_delta_control.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
+import 'package:rangers_mobile/ui/features/session/view_models/session_provider.dart';
 
 class SessionActiveView extends ConsumerStatefulWidget {
   const SessionActiveView({required this.sessionId, super.key});
@@ -479,57 +481,17 @@ class _PartyMemberCard extends ConsumerStatefulWidget {
 }
 
 class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
-  final TextEditingController _deltaController = TextEditingController(text: '1');
   bool _isExpanded = false;
 
-  @override
-  void dispose() {
-    _deltaController.dispose();
-    super.dispose();
-  }
-
-  int get _delta => int.tryParse(_deltaController.text) ?? 1;
-
   Future<void> _toggleItemActive(RangerEquipmentData item) async {
-    final repo = ref.read(rangerRepositoryProvider);
-    await repo.updateRangerEquipment(RangerEquipmentCompanion(
-      id: Value(item.id),
-      isActive: Value(!item.isActive),
-    ));
-    ref.invalidate(rangerDetailProvider(widget.rangerId));
-  }
-
-  Future<void> _useItem(RangerEquipmentData item) async {
-    final repo = ref.read(rangerRepositoryProvider);
-    await repo.useEquipmentCharge(item.id);
-    ref.invalidate(rangerDetailProvider(widget.rangerId));
+    await toggleItemActive(ref, item, widget.rangerId);
   }
 
   Future<void> _confirmAndUseItem(BuildContext context, RangerEquipmentData item, String itemName) async {
     final remaining = item.currentUses ?? 0;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Use Item Charge'),
-        content: Text(
-          remaining <= 1
-              ? 'Use $itemName? This will consume the item.'
-              : 'Use one charge of $itemName?\n\n$remaining charges remaining.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Use'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await _useItem(item);
+    final confirmed = await showUseItemChargeDialog(context, itemName, remaining);
+    if (confirmed) {
+      await useItemCharge(ref, item.id, widget.rangerId);
     }
   }
 
@@ -791,7 +753,7 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
                           // Treasure indicator (visible in collapsed state)
                           if (member.carryingTreasure) ...[
                             const SizedBox(width: 4),
-                            Icon(Icons.diamond, color: Colors.amber, size: 20),
+                            const Icon(Icons.diamond, color: Colors.amber, size: 20),
                             const SizedBox(width: 4),
                           ],
 
@@ -818,31 +780,10 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
 
                           // HP Controls
                           if (!member.isDead) ...[
-                            IconButton(
-                              icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error),
-                              onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, -_delta),
-                              iconSize: 28,
-                            ),
-                            SizedBox(
-                              width: 44,
-                              child: TextField(
-                                controller: _deltaController,
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                  border: OutlineInputBorder(),
-                                  isDense: true,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.add_circle_outline, color: statusGreen(theme)),
-                              onPressed: () => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, _delta),
-                              iconSize: 28,
+                            HpDeltaControl(
+                              delta: 1,
+                              onDecrement: (d) => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, -d),
+                              onIncrement: (d) => ref.read(activeSessionProvider.notifier).updatePartyHealth(member.id, member.type, d),
                             ),
                             IconButton(
                               icon: AnimatedRotation(
@@ -1245,18 +1186,18 @@ class _PartyMemberCardState extends ConsumerState<_PartyMemberCard> {
     if (isInjury) {
       chipColor = theme.colorScheme.error;
     } else if (effect?.category == StatusEffectCategory.positive) {
-      chipColor = Colors.green;
+      chipColor = statusGreen(theme);
     } else {
       chipColor = theme.colorScheme.error;
     }
 
     return InputChip(
-      label: Text(name, style: const TextStyle(fontSize: 11, color: Colors.white)),
+      label: Text(name, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimary)),
       backgroundColor: chipColor,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      deleteIcon: Icon(Icons.close, size: 14, color: Colors.white70),
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.xs),
+      deleteIcon: Icon(Icons.close, size: 14, color: theme.colorScheme.onPrimary.withValues(alpha: 0.7)),
       onDeleted: () => ref.read(activeSessionProvider.notifier)
           .removeStatusEffectFromMember(widget.member.id, widget.member.type, key),
       onPressed: () => context.push(
@@ -1399,35 +1340,7 @@ class _StatTable extends StatelessWidget {
 }
 
 Map<String, int> _computeEquipMods(List<RangerEquipmentWithName> items) {
-  final stats = <String, int>{};
-  const effectMappings = {
-    'armour_bonus': 'armour',
-    'fight_bonus': 'fight',
-    'fight_penalty': 'fight',
-    'shoot_bonus': 'shoot',
-    'will_bonus': 'will',
-    'will_penalty': 'will',
-    'move_bonus': 'move',
-    'move_penalty': 'move',
-    'damage_modifier': 'damage',
-  };
-  for (final item in items) {
-    if (!item.isActive) continue;
-    try {
-      final effects = item.effects;
-      if (effects.isEmpty) continue;
-      final parsed = Map<String, dynamic>.from(
-        const JsonDecoder().convert(effects) as Map,
-      );
-      for (final entry in effectMappings.entries) {
-        final mod = parsed[entry.key] as int?;
-        if (mod != null) {
-          stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
-        }
-      }
-    } catch (_) {}
-  }
-  return stats;
+  return computeEquipmentModifiers(items);
 }
 
 class StatRow {
@@ -1526,15 +1439,6 @@ class _CreatureCard extends ConsumerStatefulWidget {
 }
 
 class _CreatureCardState extends ConsumerState<_CreatureCard> {
-  final TextEditingController _deltaController = TextEditingController(text: '1');
-
-  @override
-  void dispose() {
-    _deltaController.dispose();
-    super.dispose();
-  }
-
-  int get _delta => int.tryParse(_deltaController.text) ?? 1;
 
   @override
   Widget build(BuildContext context) {
@@ -1599,34 +1503,12 @@ class _CreatureCardState extends ConsumerState<_CreatureCard> {
             ),
 
             // HP Controls
-            if (!creature.isDead) ...[
-              IconButton(
-                icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, -_delta),
-                iconSize: 28,
+            if (!creature.isDead)
+              HpDeltaControl(
+                delta: 1,
+                onDecrement: (d) => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, -d),
+                onIncrement: (d) => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, d),
               ),
-              SizedBox(
-                width: 44,
-                child: TextField(
-                  controller: _deltaController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.add_circle_outline, color: statusGreen(theme)),
-                onPressed: () => ref.read(activeSessionProvider.notifier).updateCreatureHealth(creature.id, _delta),
-                iconSize: 28,
-              ),
-            ],
             IconButton(
               icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
               onPressed: () => ref.read(activeSessionProvider.notifier).removeCreature(creature.id),
@@ -1764,7 +1646,7 @@ class _DiceRollerSheetState extends State<_DiceRollerSheet> {
 
   void _rollDice() {
     final modifier = int.tryParse(_modifierController.text) ?? 0;
-    final roll = (DateTime.now().microsecondsSinceEpoch % 20) + 1;
+    final roll = Random().nextInt(20) + 1;
     final total = roll + modifier;
 
     setState(() {

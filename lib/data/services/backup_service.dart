@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import '../database/app_database.dart';
+import 'package:rangers_mobile/data/database/app_database.dart';
 
 class BackupService {
   BackupService(this._db);
@@ -305,7 +305,7 @@ class BackupService {
         companions: parsedCompanions.length,
         sessions: parsedSessions.length,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return BackupImportResult.error('Import failed: $e');
     }
   }
@@ -380,7 +380,7 @@ class BackupImportResult {
   }
 
   factory BackupImportResult.cancelled() {
-    return BackupImportResult(
+    return const BackupImportResult(
       success: false,
       cancelled: true,
     );

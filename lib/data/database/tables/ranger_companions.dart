@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'rangers.dart';
-import 'companion_types.dart';
+import 'package:rangers_mobile/data/database/tables/companion_types.dart';
+import 'package:rangers_mobile/data/database/tables/rangers.dart';
 
 class RangerCompanions extends Table {
   IntColumn get id => integer().autoIncrement()();
