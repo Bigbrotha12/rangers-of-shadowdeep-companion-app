@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
 import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 import 'package:rangers_mobile/ui/features/companions/view_models/companion_types_provider.dart';
@@ -262,7 +263,7 @@ class _TypeDetailSheet extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Equipment/Notes
+          // Equipment
           Text(
             'Equipment',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -270,7 +271,7 @@ class _TypeDetailSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(companion.notes),
+          _EquipmentContent(companion: companion),
           const SizedBox(height: 24),
 
           // Special Rules
@@ -313,7 +314,7 @@ class _TypeDetailSheet extends StatelessWidget {
               children: companion.baseSkills.entries.map((entry) {
                 return Chip(
                   label: Text('${entry.key.replaceAll('_', ' ')} +${entry.value}'),
-                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  backgroundColor: theme.colorScheme.primaryContainer,
                 );
               }).toList(),
             ),
@@ -355,6 +356,44 @@ class _TypeDetailSheet extends StatelessWidget {
           const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+}
+
+class _EquipmentContent extends StatelessWidget {
+  const _EquipmentContent({required this.companion});
+
+  final CompanionTypeDefinition companion;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final equipment = <String>[
+      for (final key in companion.allowedWeaponTypes)
+        getBasicEquipment(key)?.name ?? key.replaceAll('_', ' '),
+      for (final key in companion.allowedArmourTypes)
+        getBasicEquipment(key)?.name ?? key.replaceAll('_', ' '),
+    ];
+
+    if (equipment.isEmpty) {
+      return Text(
+        'No equipment',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: equipment.map((name) {
+        return Chip(
+          label: Text(name),
+          backgroundColor: theme.colorScheme.primaryContainer,
+        );
+      }).toList(),
     );
   }
 }

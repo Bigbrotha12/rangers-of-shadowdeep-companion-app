@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
 import 'package:rangers_mobile/data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
+import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
 
 class ReferenceCategoryView extends ConsumerWidget {
   const ReferenceCategoryView({super.key, required this.categoryKey});
@@ -63,7 +64,7 @@ class _ReferenceEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitle = _getSubtitle();
+    final isCompanion = entry.metadata.containsKey('rp_cost');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -76,28 +77,9 @@ class _ReferenceEntryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
+                child: isCompanion
+                    ? _CompanionContent(entry: entry, theme: theme)
+                    : _DefaultContent(entry: entry, theme: theme),
               ),
               IconButton(
                 onPressed: onToggleFavorite,
@@ -116,19 +98,42 @@ class _ReferenceEntryCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  String? _getSubtitle() {
-    if (entry.metadata.containsKey('rp_cost')) {
-      final stats = [
-        'M${entry.metadata['move']}',
-        'F+${entry.metadata['fight']}',
-        'S+${entry.metadata['shoot']}',
-        'A${entry.metadata['armour']}',
-        'W+${entry.metadata['will']}',
-        'H${entry.metadata['health']}',
-      ];
-      return 'RP ${entry.metadata['rp_cost']}  •  ${stats.join(' ')}';
-    }
+class _DefaultContent extends StatelessWidget {
+  const _DefaultContent({required this.entry, required this.theme});
+
+  final ReferenceEntry entry;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = _subtitle();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          entry.title,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ],
+    );
+  }
+
+  String? _subtitle() {
     if (entry.metadata.containsKey('max_uses')) {
       return '${entry.metadata['max_uses']} uses';
     }
@@ -138,5 +143,53 @@ class _ReferenceEntryCard extends StatelessWidget {
     return entry.description.length > 120
         ? '${entry.description.substring(0, 120)}...'
         : entry.description;
+  }
+}
+
+class _CompanionContent extends StatelessWidget {
+  const _CompanionContent({required this.entry, required this.theme});
+
+  final ReferenceEntry entry;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry.title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'RP ${entry.metadata['rp_cost']}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        StatTable(
+          labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+          values: [
+            int.parse(entry.metadata['move']!),
+            int.parse(entry.metadata['fight']!),
+            int.parse(entry.metadata['shoot']!),
+            int.parse(entry.metadata['armour']!),
+            int.parse(entry.metadata['will']!),
+            int.parse(entry.metadata['health']!),
+          ],
+        ),
+      ],
+    );
   }
 }

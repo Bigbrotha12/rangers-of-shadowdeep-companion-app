@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/ui/features/reference/view_models/reference_provider.dart';
 import 'package:rangers_mobile/data/services/rules_reference_service.dart';
+import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
+import 'package:rangers_mobile/domain/constants/companion_types.dart';
 import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 
 class ReferenceDetailView extends ConsumerWidget {
@@ -140,8 +142,7 @@ class ReferenceDetailView extends ConsumerWidget {
               content: entry.metadata['rp_cost']!,
               color: theme.colorScheme.onSecondaryContainer,
             ),
-          if (entry.metadata.containsKey('notes'))
-            _InfoBlock(label: 'Equipment', content: entry.metadata['notes']!),
+          _EquipmentBlock(entry: entry),
           if (entry.metadata['is_animal'] == 'true')
             _InfoBlock(
               label: 'Animal',
@@ -369,6 +370,76 @@ class _InfoBlock extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EquipmentBlock extends StatelessWidget {
+  const _EquipmentBlock({required this.entry});
+
+  final ReferenceEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final companion = getCompanionType(entry.id);
+
+    if (companion == null) {
+      return const SizedBox.shrink();
+    }
+
+    final equipment = <String>[
+      for (final key in companion.allowedWeaponTypes)
+        getBasicEquipment(key)?.name ?? key.replaceAll('_', ' '),
+      for (final key in companion.allowedArmourTypes)
+        getBasicEquipment(key)?.name ?? key.replaceAll('_', ' '),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onSecondaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Equipment',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            equipment.isEmpty
+                ? Text(
+                    'No equipment',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  )
+                : Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: equipment.map((name) {
+                      return Chip(
+                        label: Text(
+                          name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                      );
+                    }).toList(),
+                  ),
           ],
         ),
       ),

@@ -383,47 +383,51 @@ class _AvailableCompanionsList extends ConsumerWidget {
 
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: PlaceholderImage(
-              assetPath: 'assets/images/companions/${type.key}.png',
-              category: 'companion',
-              width: 40,
-              height: 40,
-            ),
-          title: Text(type.name),
-            subtitle: Text(
-              type.notes,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'RP ${type.rpCost}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: canRecruit
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.error,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.push('/reference/companions/${type.key}'),
+            child: ListTile(
+              leading: PlaceholderImage(
+                assetPath: 'assets/images/companions/${type.key}.png',
+                category: 'companion',
+                width: 40,
+                height: 40,
+              ),
+              title: Text(type.name),
+              subtitle: Text(
+                type.notes,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'RP ${type.rpCost}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: canRecruit
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(
-                    Icons.add_circle_outline,
-                    color: canRecruit
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: canRecruit
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: canRecruit
+                        ? () {
+                            ref.read(recruitmentProvider(rangerId).notifier)
+                                .recruitCompanion(type);
+                          }
+                        : null,
                   ),
-                  onPressed: canRecruit
-                      ? () {
-                          ref.read(recruitmentProvider(rangerId).notifier)
-                              .recruitCompanion(type);
-                        }
-                      : null,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
