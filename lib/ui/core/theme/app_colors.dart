@@ -8,12 +8,12 @@ Color statusGreen(ThemeData theme) =>
 Color statusOrange(ThemeData theme) =>
     theme.brightness == Brightness.dark
         ? Colors.orange.shade300
-        : Colors.orange.shade800;
+        : const Color(0xFFC24100);
 
 Color statusAmber(ThemeData theme) =>
     theme.brightness == Brightness.dark
         ? Colors.amber.shade300
-        : Colors.amber.shade800;
+        : const Color(0xFF8B5E00);
 
 Color statusBlue(ThemeData theme) =>
     theme.brightness == Brightness.dark

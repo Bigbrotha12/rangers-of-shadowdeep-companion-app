@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rangers_mobile/domain/constants/creatures.dart' show creatures, searchCreatures, CreatureDefinition;
 import 'package:rangers_mobile/ui/features/session/view_models/session_provider.dart';
 import 'package:rangers_mobile/ui/features/session/widgets/creature_card.dart';
 import 'package:rangers_mobile/ui/features/session/widgets/dice_roller_sheet.dart';
@@ -111,49 +112,74 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
   void _showAddCreatureDialog(BuildContext context, WidgetRef ref) {
     final nameController = TextEditingController();
     final healthController = TextEditingController(text: '10');
+    bool showCustom = false;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Creature'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Creature Name',
-                hintText: 'e.g., Goblin 1',
-              ),
-              autofocus: true,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: healthController,
-              decoration: const InputDecoration(
-                labelText: 'Health Points',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Add Creature'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: showCustom
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Creature Name',
+                          hintText: 'e.g., Goblin 1',
+                        ),
+                        autofocus: true,
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: healthController,
+                        decoration: const InputDecoration(
+                          labelText: 'Health Points',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => setDialogState(() => showCustom = false),
+                            child: const Text('Back to Bestiary'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : _CreaturePicker(
+                    onSelect: (creature) {
+                      ref.read(activeSessionProvider.notifier).addCreatureFromBestiary(creature.key);
+                      Navigator.pop(context);
+                    },
+                    onCreateCustom: () => setDialogState(() => showCustom = true),
+                  ),
+          ),
+          actions: showCustom
+              ? [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      final health = int.tryParse(healthController.text) ?? 10;
+                      if (name.isNotEmpty) {
+                        ref.read(activeSessionProvider.notifier).addCreature(name, health);
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text('Add'),
+                  ),
+                ]
+              : null,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              final health = int.tryParse(healthController.text) ?? 10;
-              if (name.isNotEmpty) {
-                ref.read(activeSessionProvider.notifier).addCreature(name, health);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }
@@ -256,6 +282,123 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Searchable creature picker widget ──
+
+class _CreaturePicker extends StatefulWidget {
+  const _CreaturePicker({
+    required this.onSelect,
+    required this.onCreateCustom,
+  });
+
+  final void Function(CreatureDefinition creature) onSelect;
+  final VoidCallback onCreateCustom;
+
+  @override
+  State<_CreaturePicker> createState() => _CreaturePickerState();
+}
+
+class _CreaturePickerState extends State<_CreaturePicker> {
+  final _searchController = TextEditingController();
+  List<CreatureDefinition> _filtered = creatures;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearch(String query) {
+    setState(() {
+      _filtered = searchCreatures(query);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            hintText: 'Search creatures...',
+            prefixIcon: Icon(Icons.search),
+          ),
+          onChanged: _onSearch,
+          autofocus: true,
+        ),
+        const SizedBox(height: 12),
+        Flexible(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              ..._filtered.map((creature) => ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: theme.colorScheme.errorContainer,
+                      child: Text(
+                        '${creature.move}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      creature.name,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'HP ${creature.health}  ·  XP ${creature.xpValue}${creature.notes.isNotEmpty ? '  ·  ${creature.notes}' : ''}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Text(
+                      'M${creature.move} F${creature.fight} S${creature.shoot} A${creature.armour} W${creature.will} H${creature.health}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    onTap: () => widget.onSelect(creature),
+                  )),
+              const Divider(),
+              ListTile(
+                leading: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  child: Icon(Icons.add, size: 18, color: theme.colorScheme.onSecondaryContainer),
+                ),
+                title: Text(
+                  'Custom Creature',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  'Enter name and HP manually',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                onTap: widget.onCreateCustom,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

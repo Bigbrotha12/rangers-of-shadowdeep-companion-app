@@ -303,7 +303,7 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                           // Treasure indicator (visible in collapsed state)
                           if (member.carryingTreasure) ...[
                             const SizedBox(width: 4),
-                            const Icon(Icons.diamond, color: Colors.amber, size: 20),
+                            Icon(Icons.diamond, color: statusAmber(theme), size: 20),
                             const SizedBox(width: 4),
                           ],
 
@@ -419,7 +419,7 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                                 Icon(
                                   Icons.diamond,
                                   color: member.carryingTreasure
-                                      ? Colors.amber
+                                      ? statusAmber(theme)
                                       : member.isAnimal
                                           ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)
                                           : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
@@ -659,8 +659,8 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                                   ),
                                   if (hasUses)
                                     TextButton.icon(
-                                      icon: const Icon(Icons.remove_circle_outline, size: 22, color: Colors.red),
-                                      label: const Text('Use', style: TextStyle(fontSize: 15, color: Colors.red)),
+                                      icon: Icon(Icons.remove_circle_outline, size: 22, color: theme.colorScheme.error),
+                                      label: Text('Use', style: TextStyle(fontSize: 15, color: theme.colorScheme.error)),
                                       onPressed: () => _confirmAndUseItem(context, item.equipment, item.name),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(horizontal: 8),

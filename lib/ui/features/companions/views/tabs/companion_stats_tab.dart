@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rangers_mobile/domain/constants/companion_progression.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
 import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
+import 'package:rangers_mobile/ui/features/companions/widgets/companion_progression_reward_dialog.dart';
 
 class CompanionStatsTab extends ConsumerStatefulWidget {
   const CompanionStatsTab({
@@ -27,6 +29,78 @@ class CompanionStatsTab extends ConsumerStatefulWidget {
 }
 
 class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
+  Future<void> _showEditPpDialog() async {
+    final controller = TextEditingController();
+
+    final addedPp = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add PP'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Current PP: ${widget.companion.progressionPoints}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'PP to Add',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = int.tryParse(controller.text.trim());
+              if (value != null && value > 0) {
+                Navigator.pop(context, value);
+              }
+            },
+            child: const Text('Add PP'),
+          ),
+        ],
+      ),
+    );
+
+    if (addedPp != null && mounted) {
+      final newPp = (widget.companion.progressionPoints + addedPp).clamp(0, maxProgressionPoints);
+      final claimedThresholds = Set<int>.from(
+        widget.companion.claimedProgressionRewards.map(int.parse),
+      );
+      final unclaimed = getUnclaimedRewards(newPp, claimedThresholds);
+
+      if (unclaimed.isNotEmpty) {
+        final updatedCompanion = ref.read(companionProvider(widget.companionId));
+        if (updatedCompanion != null && mounted) {
+          await CompanionProgressionRewardDialog.show(
+            context,
+            rangerId: widget.rangerId,
+            companionId: widget.companionId,
+            newPp: newPp,
+            unclaimedRewards: unclaimed,
+            companion: updatedCompanion,
+          );
+        }
+      } else {
+        final notifier = ref.read(companionProvider(widget.companionId).notifier);
+        await notifier.setProgressionPoints(newPp);
+      }
+
+      ref.invalidate(rangerDetailProvider(widget.rangerId));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +120,14 @@ class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
     final statModifiers = companionEquipment != null
         ? computeEquipmentModifiers(companionEquipment)
         : <String, int>{};
+
+    final claimedThresholds = Set<int>.from(
+      widget.companion.claimedProgressionRewards.map(int.parse),
+    );
+    final nextReward = getNextProgressionReward(
+      widget.companion.progressionPoints,
+      claimedThresholds,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -125,6 +207,104 @@ class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Text(
+                'Progression',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.edit, size: 20),
+                onPressed: _showEditPpDialog,
+                tooltip: 'Add PP',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${widget.companion.progressionPoints}',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'PP',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+                if (widget.companion.progressionPoints >= maxProgressionPoints)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Maximum progression reached!',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (nextReward != null) ...[
+            const SizedBox(height: 12),
+            Card(
+              color: theme.colorScheme.tertiaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.card_giftcard,
+                      color: theme.colorScheme.onTertiaryContainer,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Next reward at ${nextReward.threshold} PP',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                          Text(
+                            nextReward.description,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           if (companionEquipment != null && companionEquipment.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(

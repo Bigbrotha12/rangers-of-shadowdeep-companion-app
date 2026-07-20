@@ -342,8 +342,8 @@ class _PostGameViewState extends ConsumerState<PostGameView> {
                   ),
                   TextButton.icon(
                     icon: const Icon(Icons.open_in_new, size: 16),
-                    label: const Text('Treasure Table'),
-                    onPressed: () => context.push('/reference/treasure_tables'),
+                    label: const Text('Tables'),
+                    onPressed: () => context.push('/reference/tables'),
                     style: TextButton.styleFrom(
                       foregroundColor: theme.colorScheme.secondary,
                     ),

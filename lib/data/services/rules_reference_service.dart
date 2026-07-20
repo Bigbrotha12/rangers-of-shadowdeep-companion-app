@@ -3,6 +3,7 @@ import 'package:rangers_mobile/domain/constants/base_stats.dart';
 import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
 import 'package:rangers_mobile/domain/constants/companion_progression.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/creatures.dart';
 import 'package:rangers_mobile/domain/constants/experience_table.dart';
 import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
 import 'package:rangers_mobile/domain/constants/herbs_potions.dart';
@@ -109,8 +110,8 @@ final List<ReferenceCategory> referenceCategories = [
     description: '8 injuries with cumulative stat penalties',
   ),
   const ReferenceCategory(
-    key: 'treasure_tables',
-    label: 'Treasure Tables',
+    key: 'tables',
+    label: 'Tables',
     icon: Icons.monetization_on,
     description: 'Treasure, herbs, weapons, and magic item tables',
   ),
@@ -119,6 +120,12 @@ final List<ReferenceCategory> referenceCategories = [
     label: 'Status Effects',
     icon: Icons.science,
     description: 'Poison, disease, hunger, exhaustion, and other temporary conditions',
+  ),
+  const ReferenceCategory(
+    key: 'creatures',
+    label: 'Creatures',
+    icon: Icons.pest_control,
+    description: '30 bestiary entries with stats and special rules',
   ),
 ];
 
@@ -162,7 +169,8 @@ Staff: -1 (and opponent also -1)''',
 3. Shooter must have higher score to hit.
 4. Damage resolved same as hand-to-hand combat.
 
-SHOOTING MODIFIERS (add to target's Combat Score)
+SHOOTING MODIFIERS
+(add to target's Combat Score)
 +1 Intervening Terrain (per piece)
 +2 Light Cover (rocks, walls, thick wood up to ½ body)
 +4 Heavy Cover (solid cover almost completely hiding body)
@@ -193,7 +201,8 @@ Carrying Treasure: -2''',
 First move: full Move stat in inches.
 Second move: half Move stat in inches.
 
-OBSTRUCTIONS (climbing)
+OBSTRUCTIONS
+(climbing)
 Distance climbed counts double for movement.
 Figures may end movement partway up a terrain piece.
 
@@ -221,14 +230,10 @@ Fall >3": make Acrobatics Roll (TN10) or activation ends.''',
 During Creature Phase, activate creatures in order
 of highest current Health (ties: random choice).
 
-⬇
-
 STEP 1: Is the creature in combat?
 YES → Fight. If it wins, stay in combat.
         No second action.
 NO  → Go to Step 2.
-
-⬇
 
 STEP 2: Is there a hero in line of sight?
 YES → If has missile weapon & in range:
@@ -238,8 +243,6 @@ YES → If has missile weapon & in range:
         Move toward closest hero.
         Second action: fight (if in combat) or move closer.
 NO  → Go to Step 3.
-
-⬇
 
 STEP 3: Does scenario include a Target Point?
 YES → Move toward Target Point (1 action).
@@ -425,6 +428,28 @@ class RulesReferenceService {
       ));
     }
 
+    for (final creature in creatures) {
+      entries.add(ReferenceEntry(
+        id: creature.key,
+        title: creature.name,
+        category: 'creatures',
+        description: creature.description,
+        metadata: {
+          'xp_value': '${creature.xpValue}',
+          'move': '${creature.move}',
+          'fight': '${creature.fight}',
+          'shoot': '${creature.shoot}',
+          'armour': '${creature.armour}',
+          'will': '${creature.will}',
+          'health': '${creature.health}',
+          'notes': creature.notes,
+          if (creature.variantLabel != null) 'variant_label': creature.variantLabel!,
+          if (creature.specialRules.isNotEmpty)
+            'special_rules': creature.specialRules.join('\n'),
+        },
+      ));
+    }
+
     _addTreasureTableEntries(entries);
     _addQuickReferenceEntries(entries);
 
@@ -435,7 +460,7 @@ class RulesReferenceService {
     entries.add(ReferenceEntry(
       id: 'main_treasure_table',
       title: 'Treasure Table (d20)',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll on the Treasure Table for each secured treasure token.',
       metadata: {
         'table_data': treasureTable
@@ -446,7 +471,7 @@ class RulesReferenceService {
     entries.add(ReferenceEntry(
       id: 'herbs_potions_table',
       title: 'Herbs & Potions Table (d20)',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll on this sub-table when the Treasure Table result is "Herb or Potion".',
       metadata: {
         'table_data': herbsPotionsTable
@@ -457,7 +482,7 @@ class RulesReferenceService {
     entries.add(ReferenceEntry(
       id: 'weapons_armour_table',
       title: 'Weapons & Armour Table (d20)',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll on this sub-table when the Treasure Table result is "Weapon or Armour".',
       metadata: {
         'table_data': weaponsArmourTable
@@ -468,7 +493,7 @@ class RulesReferenceService {
     entries.add(ReferenceEntry(
       id: 'magic_items_table',
       title: 'Magic Items Table (d20)',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll on this sub-table when the Treasure Table result is "Magic Item".',
       metadata: {
         'table_data': magicItemsTable
@@ -479,13 +504,13 @@ class RulesReferenceService {
     entries.add(const ReferenceEntry(
       id: 'gold_and_jewels',
       title: 'Gold and Jewels',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'A stash of valuables. The ranger may choose either +10 XP or have one companion gain 1 Progression Point.',
     ));
     entries.add(const ReferenceEntry(
       id: 'survival_table',
       title: 'Survival Table',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll for each hero reduced to 0 Health or less during a scenario. Rangers may add +1 to the roll.',
       metadata: {
         'table_data': '1-2: Dead\n3-4: Permanent Injury\n5-6: Badly Wounded\n7-8: Close Call\n9+: Full Recovery',
@@ -494,52 +519,56 @@ class RulesReferenceService {
     entries.add(ReferenceEntry(
       id: 'experience_table',
       title: 'Experience & Level Costs',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Rangers start at level 0. XP costs increase with each level bracket.',
       metadata: {
         'table_data': levelCosts
-            .map((e) => 'Levels ${e.minLevel}-${e.maxLevel}: ${e.xpCost} XP')
+            .map((e) => '${e.minLevel}-${e.maxLevel}|${e.xpCost} XP')
             .join('\n'),
+        'table_headers': 'Levels|XP Cost',
       },
     ));
     entries.add(const ReferenceEntry(
       id: 'level_bonuses',
       title: 'Level Bonuses',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Each level grants a specific bonus type, repeating every 4 levels.',
       metadata: {
-        'table_data': 'Levels 1,5,9,13,...: Improve Skills (+5 total, max +2 per skill)\n'
-            'Levels 2,6,10,14,...: Improve Stats (+1 to one stat)\n'
-            'Levels 3,7,11,15,...: Gain +10 Recruitment Points\n'
-            'Levels 4,8,12,16,...: New Heroic Ability or Spell',
+        'table_data': '1, 5, 9, 13, ...|Improve Skills (+5 total, max +2 per skill)\n'
+            '2, 6, 10, 14, ...|Improve Stats (+1 to one stat)\n'
+            '3, 7, 11, 15, ...|Gain +10 Recruitment Points\n'
+            '4, 8, 12, 16, ...|New Heroic Ability or Spell',
+        'table_headers': 'Levels|Bonus',
       },
     ));
     entries.add(ReferenceEntry(
       id: 'companion_progression',
       title: 'Companion Progression Rewards',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Companions earn 1 PP per scenario survived. Rewards at thresholds.',
       metadata: {
         'table_data': progressionRewards
-            .map((e) => '${e.threshold} PP: ${e.description}')
+            .map((e) => '${e.threshold}|${e.description}')
             .join('\n'),
+        'table_headers': 'PP|Reward',
       },
     ));
     entries.add(ReferenceEntry(
       id: 'recruitment_points',
       title: 'Recruitment Points Calculation',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Total RP depends on player count and Leadership skill.',
       metadata: {
         'table_data': recruitmentCalculations
-            .map((e) => '${e.playerCount} Player(s): ${e.formula}, max ${e.maxCompanions} companions')
+            .map((e) => '${e.playerCount}|${e.formula}|${e.maxCompanions}')
             .join('\n'),
+        'table_headers': 'Players|Formula|Max Companions',
       },
     ));
     entries.add(const ReferenceEntry(
       id: 'permanent_injury_table',
       title: 'Permanent Injury Table (d20)',
-      category: 'treasure_tables',
+      category: 'tables',
       description: 'Roll on this table when the Survival Table result is Permanent Injury.',
       metadata: {
         'table_data': '1-2: Lost Toes\n3-5: Smashed Leg\n6-10: Crushed Arm\n'

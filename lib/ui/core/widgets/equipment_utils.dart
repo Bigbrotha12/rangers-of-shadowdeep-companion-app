@@ -141,6 +141,19 @@ Future<void> useItemCharge(
   ref.invalidate(rangerDetailProvider(rangerId));
 }
 
+String _categoryLabel(String category) {
+  return switch (category) {
+    'basic_weapon' => 'Basic Weapon',
+    'basic_armour' => 'Basic Armour',
+    'basic_gear' => 'Basic Gear',
+    'magic_weapon' => 'Magic Weapon',
+    'magic_armour' => 'Magic Armour',
+    'magic_item' => 'Magic Item',
+    'herb_potion' => 'Herb or Potion',
+    _ => category,
+  };
+}
+
 Future<void> showAddItemDialog(
   BuildContext context,
   WidgetRef ref,
@@ -176,7 +189,7 @@ Future<void> showAddItemDialog(
                     .map((e) => ListTile(
                           dense: true,
                           title: Text(e.name, style: const TextStyle(fontSize: 14)),
-                          subtitle: Text(e.category, style: const TextStyle(fontSize: 12)),
+                          subtitle: Text(_categoryLabel(e.category), style: const TextStyle(fontSize: 12)),
                           onTap: () {
                             Navigator.of(ctx).pop();
                             addItem(ref, rangerId, e.id);

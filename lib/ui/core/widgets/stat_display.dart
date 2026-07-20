@@ -54,7 +54,7 @@ class StatDisplay extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: hasSplitStat
-                ? theme.colorScheme.errorContainer
+                ? theme.colorScheme.primaryContainer
                 : theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -63,8 +63,8 @@ class StatDisplay extends StatelessWidget {
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: hasSplitStat
-                  ? theme.colorScheme.onErrorContainer
-                  : theme.colorScheme.onSurface,
+                  ? theme.colorScheme.onPrimaryContainer
+                  : theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),

@@ -86,7 +86,7 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'When to Use',
               content: entry.metadata['when_to_use']!,
-              color: theme.colorScheme.tertiaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
         ];
 
@@ -96,13 +96,13 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Target',
             content: entry.metadata['target_type']?.replaceAll('_', ' ') ?? 'N/A',
-            color: theme.colorScheme.tertiaryContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
           if (entry.metadata.containsKey('will_roll_tn'))
             _InfoBlock(
               label: 'Will Roll to Resist',
               content: 'TN ${entry.metadata['will_roll_tn']}',
-              color: theme.colorScheme.errorContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
         ];
 
@@ -138,7 +138,7 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Recruitment Points',
               content: entry.metadata['rp_cost']!,
-              color: theme.colorScheme.secondaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
           if (entry.metadata.containsKey('notes'))
             _InfoBlock(label: 'Equipment', content: entry.metadata['notes']!),
@@ -146,20 +146,20 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Animal',
               content: 'Cannot carry treasure or items. Limited skill rolls.',
-              color: theme.colorScheme.tertiaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
           if (entry.metadata.containsKey('base_skills') &&
               entry.metadata['base_skills']!.isNotEmpty)
             _InfoBlock(
               label: 'Base Skills',
               content: entry.metadata['base_skills']!,
-              color: theme.colorScheme.secondaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
           if (entry.detailedDescription != null)
             _InfoBlock(
               label: 'Special Rules',
               content: entry.detailedDescription!,
-              color: theme.colorScheme.tertiaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
         ];
 
@@ -169,19 +169,19 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
-            color: theme.colorScheme.tertiaryContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
           if (entry.metadata['two_handed'] == 'true')
             _InfoBlock(
               label: 'Two-Handed',
               content: 'Cannot be used with a shield.',
-              color: theme.colorScheme.tertiaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
           if (entry.metadata['light'] == 'true')
             _InfoBlock(
               label: 'Light Armour',
               content: 'Made of non-metal materials.',
-              color: theme.colorScheme.tertiaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
         ];
 
@@ -192,12 +192,12 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Uses',
               content: entry.metadata['max_uses']!,
-              color: theme.colorScheme.secondaryContainer,
+              color: theme.colorScheme.onSecondaryContainer,
             ),
           _InfoBlock(
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
-            color: theme.colorScheme.tertiaryContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
         ];
 
@@ -207,17 +207,20 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Type',
             content: 'Herb / Potion',
-            color: theme.colorScheme.tertiaryContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
         ];
 
       case 'permanent_injuries':
         return [
-          _InfoBlock(label: 'Description', content: entry.description),
+          _InfoBlock(
+            label: 'Description', 
+            content: entry.description
+            ),
           _InfoBlock(
             label: 'Effect',
             content: entry.metadata['effect'] ?? '',
-            color: theme.colorScheme.errorContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
           _InfoBlock(
             label: 'Cumulative',
@@ -225,15 +228,62 @@ class ReferenceDetailView extends ConsumerWidget {
                 ? 'Affects ${entry.metadata['affected_stat']!.replaceAll('_', ' ')}. '
                     'Max ${entry.metadata['max_times']} times.'
                 : 'Max ${entry.metadata['max_times']} time(s).',
-            color: theme.colorScheme.tertiaryContainer,
+            color: theme.colorScheme.onSecondaryContainer,
           ),
         ];
 
-      case 'treasure_tables':
+      case 'creatures':
+        return [
+          _InfoBlock(label: 'Description', content: entry.description),
+          const SizedBox(height: 16),
+          Text(
+            'Stats',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          StatTable(
+            labels: const ['M', 'F', 'S', 'A', 'W', 'H'],
+            values: [
+              int.tryParse(entry.metadata['move'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['fight'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['shoot'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['armour'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['will'] ?? '') ?? 0,
+              int.tryParse(entry.metadata['health'] ?? '') ?? 0,
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (entry.metadata.containsKey('xp_value'))
+            _InfoBlock(
+              label: 'Experience Points',
+              content: entry.metadata['xp_value']!,
+              color: theme.colorScheme.onSecondaryContainer,
+            ),
+          if (entry.metadata.containsKey('notes') && entry.metadata['notes']!.isNotEmpty)
+            _InfoBlock(
+              label: 'Notes', 
+              content: entry.metadata['notes']!,
+              color: theme.colorScheme.onSecondaryContainer,
+              ),
+          if (entry.metadata.containsKey('special_rules') &&
+              entry.metadata['special_rules']!.isNotEmpty)
+            _InfoBlock(
+              label: 'Special Rules',
+              content: entry.metadata['special_rules']!,
+              color: theme.colorScheme.onSecondaryContainer,
+            ),
+        ];
+
+      case 'tables':
         return [
           _InfoBlock(label: 'Description', content: entry.description),
           if (entry.metadata.containsKey('table_data'))
-            _TableBlock(content: entry.metadata['table_data']!),
+            _TableBlock(
+              content: entry.metadata['table_data']!,
+              headers: entry.metadata['table_headers'],
+            ),
         ];
 
       default:
@@ -327,14 +377,28 @@ class _InfoBlock extends StatelessWidget {
 }
 
 class _TableBlock extends StatelessWidget {
-  const _TableBlock({required this.content});
+  const _TableBlock({required this.content, this.headers});
 
   final String content;
+  final String? headers;
 
   @override
   Widget build(BuildContext context) {
+    if (headers != null) {
+      return _buildHeaderTable(context);
+    }
+
+    return _buildRollTable(context);
+  }
+
+  List<String> _dataLines() =>
+      content.split('\n').where((l) => l.trim().isNotEmpty).toList();
+
+  Widget _buildHeaderTable(BuildContext context) {
     final theme = Theme.of(context);
-    final lines = content.split('\n');
+    final headerList = headers!.split('|');
+    final columnCount = headerList.length;
+    final lines = _dataLines();
 
     return Container(
       width: double.infinity,
@@ -342,24 +406,183 @@ class _TableBlock extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Table(
+          columnWidths: {
+            for (var i = 0; i < columnCount; i++)
+              i: i == columnCount - 1
+                  ? const FlexColumnWidth()
+                  : const IntrinsicColumnWidth(),
+          },
+          border: TableBorder(
+            horizontalInside: BorderSide(
+              color: theme.colorScheme.outlineVariant,
+              width: 0.5,
+            ),
+            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            TableRow(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+              ),
+              children: headerList.map((h) {
+                return _tableCell(h, isHeader: true, theme: theme);
+              }).toList(),
+            ),
+            for (var i = 0; i < lines.length; i++)
+              TableRow(
+                decoration: BoxDecoration(
+                  color: i.isEven
+                      ? Colors.transparent
+                      : theme.colorScheme.surfaceContainerLow,
+                ),
+                children: [
+                  for (final cell in lines[i].split('|'))
+                    _tableCell(cell, theme: theme),
+                  for (var j = lines[i].split('|').length; j < columnCount; j++)
+                    _tableCell('', theme: theme),
+                ],
+              ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRollTable(BuildContext context) {
+    final theme = Theme.of(context);
+    final lines = content.split('\n');
+    final tableRows = <({String roll, String result})>[];
+    final otherLines = <String>[];
+
+    for (final line in lines) {
+      final match = RegExp(r'^(\d+)(?:-(\d+)|\+)?:\s(.+)$').firstMatch(line);
+      if (match != null) {
+        final minRoll = int.parse(match.group(1)!);
+        final maxRoll = match.group(2) != null ? int.parse(match.group(2)!) : minRoll;
+        final isPlus = line.contains('+');
+        final rollText = isPlus
+            ? '$minRoll+'
+            : (minRoll == maxRoll ? '$minRoll' : '$minRoll\u2013$maxRoll');
+        tableRows.add((roll: rollText, result: match.group(3)!));
+      } else {
+        otherLines.add(line);
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines.map((line) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Text(
-              line,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontFamily: 'monospace',
-                height: 1.5,
-              ),
+        children: [
+          if (tableRows.isNotEmpty)
+            _buildSimpleTable(
+              context,
+              const ['Roll', 'Result'],
+              tableRows
+                  .map((r) => [r.roll, r.result])
+                  .toList(),
             ),
-          );
-        }).toList(),
+          if (tableRows.isNotEmpty && otherLines.isNotEmpty)
+            const SizedBox(height: 12),
+          ...otherLines.where((l) => l.isNotEmpty).map((line) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                line,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                  height: 1.5,
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleTable(
+    BuildContext context,
+    List<String> headerLabels,
+    List<List<String>> rows,
+  ) {
+    final theme = Theme.of(context);
+    final columnCount = headerLabels.length;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Table(
+        columnWidths: {
+          for (var i = 0; i < columnCount; i++)
+            i: i == columnCount - 1
+                ? const FlexColumnWidth()
+                : const IntrinsicColumnWidth(),
+        },
+        border: TableBorder(
+          horizontalInside: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 0.5,
+          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        children: [
+          TableRow(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+            ),
+            children: headerLabels.map((h) {
+              return _tableCell(h, isHeader: true, theme: theme);
+            }).toList(),
+          ),
+          for (var i = 0; i < rows.length; i++)
+            TableRow(
+              decoration: BoxDecoration(
+                color: i.isEven
+                    ? Colors.transparent
+                    : theme.colorScheme.surfaceContainerLow,
+              ),
+              children: [
+                for (final cell in rows[i])
+                  _tableCell(cell, theme: theme),
+                for (var j = rows[i].length; j < columnCount; j++)
+                  _tableCell('', theme: theme),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tableCell(
+    String text, {
+    bool isHeader = false,
+    required ThemeData theme,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Text(
+        text,
+        style: isHeader
+            ? theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onPrimaryContainer,
+              )
+            : theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
       ),
     );
   }

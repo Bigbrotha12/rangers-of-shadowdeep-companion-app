@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rangers_mobile/data/services/rules_reference_service.dart';
 
@@ -14,12 +15,13 @@ void main() {
       expect(entries.length, greaterThan(0));
     });
 
-    test('total count across all categories is 163', () {
+    test('total count across all categories is 193', () {
       final total = service.allEntries.length;
       // 17 abilities + 10 spells + 15 skills + 17 companions
       // + 12 basic equipment + 40 magic items + 20 herbs/potions
-      // + 8 injuries + 8 status effects + 11 treasure table entries + 5 quick reference = 163
-      expect(total, 163);
+      // + 8 injuries + 8 status effects + 11 treasure table entries + 5 quick reference
+      // + 30 creatures = 193
+      expect(total, 193);
     });
   });
 
@@ -60,12 +62,16 @@ void main() {
       expect(service.getEntriesByCategory('status_effects').length, 8);
     });
 
-    test('treasure_tables has 11 entries', () {
-      expect(service.getEntriesByCategory('treasure_tables').length, 11);
+    test('tables has 11 entries', () {
+      expect(service.getEntriesByCategory('tables').length, 11);
     });
 
     test('quick_reference has 5 entries', () {
       expect(service.getEntriesByCategory('quick_reference').length, 5);
+    });
+
+    test('creatures has 30 entries', () {
+      expect(service.getEntriesByCategory('creatures').length, 30);
     });
 
     test('empty list for unknown category', () {
@@ -90,6 +96,15 @@ void main() {
       final entry = service.getEntryById('companions', 'arcanist');
       expect(entry, isNotNull);
       expect(entry!.title, 'Arcanist');
+    });
+
+    test('returns correct creature', () {
+      final entry = service.getEntryById('creatures', 'terror_wing');
+      expect(entry, isNotNull);
+      expect(entry!.title, 'Terror Wing');
+      expect(entry.metadata['xp_value'], '20');
+      expect(entry.metadata['health'], '16');
+      expect(entry.metadata['fight'], '5');
     });
 
     test('returns null for unknown entry', () {
@@ -158,8 +173,8 @@ void main() {
   });
 
   group('referenceCategories', () {
-    test('has 10 categories', () {
-      expect(referenceCategories.length, 10);
+    test('has 11 categories', () {
+      expect(referenceCategories.length, 11);
     });
 
     test('includes heroic_abilities', () {
@@ -168,6 +183,13 @@ void main() {
 
     test('includes spells', () {
       expect(referenceCategories.any((c) => c.key == 'spells'), isTrue);
+    });
+
+    test('includes creatures', () {
+      expect(referenceCategories.any((c) => c.key == 'creatures'), isTrue);
+      final creaturesCat = referenceCategories.firstWhere((c) => c.key == 'creatures');
+      expect(creaturesCat.label, 'Creatures');
+      expect(creaturesCat.icon, Icons.pest_control);
     });
   });
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rangers_mobile/domain/constants/status_effects.dart';
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
 
 class StatusEffectSheet extends StatefulWidget {
   final List<String> activeEffects;
@@ -49,7 +50,7 @@ class _StatusEffectSheetState extends State<StatusEffectSheet> {
                 effect.category == StatusEffectCategory.positive
                     ? Icons.arrow_upward : Icons.arrow_downward,
                 color: effect.category == StatusEffectCategory.positive
-                    ? Colors.green : theme.colorScheme.error,
+                    ? statusGreen(theme) : theme.colorScheme.error,
               ),
             )),
             const SizedBox(height: 16),

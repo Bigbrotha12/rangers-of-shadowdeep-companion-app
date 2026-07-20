@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:rangers_mobile/data/services/backup_service_provider.dart';
 import 'package:rangers_mobile/ui/core/theme/preferences.dart';
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
+import 'package:rangers_mobile/version.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -98,7 +99,7 @@ class SettingsView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Version 1.0.0',
+                    'Version $appVersion',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

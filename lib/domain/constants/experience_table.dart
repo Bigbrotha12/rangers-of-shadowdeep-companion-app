@@ -23,6 +23,9 @@ const List<LevelCost> levelCosts = [
   LevelCost(minLevel: 51, maxLevel: 100, xpCost: 1000),
 ];
 
+/// Maximum experience points a ranger can accumulate
+const int maxExperiencePoints = 99999;
+
 /// Get the XP cost to advance to the next level
 int getXpCostForLevel(int currentLevel) {
   final nextLevel = currentLevel + 1;

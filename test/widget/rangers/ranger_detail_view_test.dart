@@ -50,7 +50,7 @@ void main() {
     expect(find.text('Skills'), findsOneWidget);
     expect(find.text('Equipment'), findsOneWidget);
     expect(find.text('Companions'), findsOneWidget);
-    expect(find.textContaining('Level'), findsOneWidget);
+    expect(find.textContaining('Level 0 | XP: 0'), findsOneWidget);
   });
 
   testWidgets('shows stats in stats tab', (tester) async {

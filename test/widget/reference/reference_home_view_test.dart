@@ -57,4 +57,17 @@ void main() {
     expect(find.text('Skills'), findsOneWidget);
     expect(find.text('Companions'), findsOneWidget);
   });
+
+  testWidgets('shows creatures category', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: buildTestOverrides(database: db, sharedPreferences: prefs),
+        child: const MaterialApp(home: ReferenceHomeView()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Creatures'), findsOneWidget);
+    expect(find.byIcon(Icons.pest_control), findsOneWidget);
+  });
 }

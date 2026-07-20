@@ -7,6 +7,7 @@ import 'package:rangers_mobile/data/repositories/session_repository_provider.dar
 import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
 import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import 'package:rangers_mobile/domain/constants/creatures.dart' show getCreature;
 import 'package:rangers_mobile/domain/constants/status_effects.dart' show getStatusEffect;
 
 // Session phases
@@ -19,6 +20,7 @@ class CreatureData {
   final int currentHealth;
   final int maxHealth;
   final bool isDead;
+  final String? creatureKey;
 
   const CreatureData({
     required this.id,
@@ -26,6 +28,7 @@ class CreatureData {
     required this.currentHealth,
     required this.maxHealth,
     this.isDead = false,
+    this.creatureKey,
   });
 
   CreatureData copyWith({
@@ -34,6 +37,7 @@ class CreatureData {
     int? currentHealth,
     int? maxHealth,
     bool? isDead,
+    String? creatureKey,
   }) {
     return CreatureData(
       id: id ?? this.id,
@@ -41,6 +45,7 @@ class CreatureData {
       currentHealth: currentHealth ?? this.currentHealth,
       maxHealth: maxHealth ?? this.maxHealth,
       isDead: isDead ?? this.isDead,
+      creatureKey: creatureKey ?? this.creatureKey,
     );
   }
 }
@@ -447,12 +452,27 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
   }
 
   // Add a creature
-  void addCreature(String name, int health) {
+  void addCreature(String name, int health, {String? creatureKey}) {
     final creature = CreatureData(
       id: state.nextCreatureId,
       name: name,
       currentHealth: health,
       maxHealth: health,
+      creatureKey: creatureKey,
+    );
+    state = state.copyWith(creatures: [...state.creatures, creature]);
+  }
+
+  // Add a creature from the bestiary
+  void addCreatureFromBestiary(String key) {
+    final data = getCreature(key);
+    if (data == null) return;
+    final creature = CreatureData(
+      id: state.nextCreatureId,
+      name: data.name,
+      currentHealth: data.health,
+      maxHealth: data.health,
+      creatureKey: data.key,
     );
     state = state.copyWith(creatures: [...state.creatures, creature]);
   }

@@ -159,21 +159,30 @@ class CompanionProgressionView extends ConsumerWidget {
                 final currentValue = baseValue + customValue;
                 final isSelected = selectedSkillKey == skill.key;
                 final wouldExceedMax = currentValue + 4 > 10;
+                final theme = Theme.of(context);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 4),
-                  color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+                  color: isSelected ? theme.colorScheme.primaryContainer : null,
                   child: ListTile(
                     onTap: wouldExceedMax ? null : () {
                       setDialogState(() => selectedSkillKey = skill.key);
                     },
-                    title: Text(skill.name),
+                    title: Text(
+                      skill.name,
+                      style: isSelected
+                          ? TextStyle(color: theme.colorScheme.onPrimaryContainer)
+                          : null,
+                    ),
                     subtitle: Text(
                       wouldExceedMax
                           ? 'Already at +$currentValue (max +10)'
                           : skill.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      style: isSelected
+                          ? TextStyle(color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.8))
+                          : null,
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -181,13 +190,16 @@ class CompanionProgressionView extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: isSelected
+                                ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.2)
+                                : theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             currentValue > 0 ? '+$currentValue' : '+0',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            style: theme.textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
                             ),
                           ),
                         ),
@@ -195,7 +207,7 @@ class CompanionProgressionView extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Icon(
                             Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: theme.colorScheme.onPrimaryContainer,
                           ),
                         ],
                       ],
@@ -249,23 +261,32 @@ class CompanionProgressionView extends ConsumerWidget {
                 final ability = heroicAbilities[index];
                 final isSelected = selectedAbilityKey == ability.key;
 
+                final theme = Theme.of(context);
                 return Card(
                   margin: const EdgeInsets.only(bottom: 4),
-                  color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+                  color: isSelected ? theme.colorScheme.primaryContainer : null,
                   child: ListTile(
                     onTap: () {
                       setDialogState(() => selectedAbilityKey = ability.key);
                     },
-                    title: Text(ability.name),
+                    title: Text(
+                      ability.name,
+                      style: isSelected
+                          ? TextStyle(color: theme.colorScheme.onPrimaryContainer)
+                          : null,
+                    ),
                     subtitle: Text(
                       ability.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      style: isSelected
+                          ? TextStyle(color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.8))
+                          : null,
                     ),
                     trailing: isSelected
                         ? Icon(
                             Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: theme.colorScheme.onPrimaryContainer,
                           )
                         : null,
                   ),

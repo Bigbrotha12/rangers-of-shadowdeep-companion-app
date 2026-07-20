@@ -78,6 +78,8 @@ lib/
 
 ## Building
 
+### Direct (Flutter installed locally)
+
 ```bash
 # Android APK
 flutter build apk --release
@@ -85,6 +87,20 @@ flutter build apk --release
 # Android App Bundle
 flutter build appbundle --release
 ```
+
+### Via Podman container
+
+The project includes a `flutter-dev` container for environments without a local Flutter SDK. Use these scripts or the equivalent `podman` commands:
+
+```bash
+# Build APK
+./scripts/build-apk.sh
+
+# Build App Bundle
+./scripts/build-aab.sh
+```
+
+These scripts mount the project and a persistent pub cache volume into the `flutter-dev` container, then run the equivalent `flutter build` commands. APK/AAB output lands in `build/app/outputs/flutter-apk/` or `build/app/outputs/bundle/` respectively.
 
 ## License
 

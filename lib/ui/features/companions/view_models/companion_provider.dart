@@ -206,6 +206,13 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
     }
   }
 
+  Future<void> setProgressionPoints(int newPp) async {
+    if (state != null) {
+      state = state!.copyWith(progressionPoints: newPp);
+      await _persist();
+    }
+  }
+
   Future<void> addPermanentInjury(String injuryKey) async {
     if (state != null) {
       if (!canApplyInjury(state!.permanentInjuries, injuryKey)) return;
