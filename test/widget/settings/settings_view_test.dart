@@ -57,7 +57,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Version 1.0.0'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is Text && w.data != null && RegExp(r'Version \d+\.\d+\.\d+').hasMatch(w.data!),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Rangers of Shadow Deep Companion'), findsOneWidget);
   });
 }

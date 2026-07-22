@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -190,9 +188,7 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
       final companionRows = await companionRepo.getCompanionsByRanger(_selectedRangerId!, isActive: true);
 
       // Build party
-      final rangerEffects = List<String>.from(
-        jsonDecode(ranger.statusEffects) as List? ?? [],
-      );
+      final rangerEffects = await rangerRepo.getRangerStatusEffectKeys(ranger.id);
       final party = <PartyMemberState>[
         PartyMemberState(
           id: ranger.id,
@@ -205,12 +201,9 @@ class _SessionSetupViewState extends ConsumerState<SessionSetupView> {
       ];
 
       for (final comp in companionRows) {
-        final compEffects = List<String>.from(
-          jsonDecode(comp.statusEffects) as List? ?? [],
-        );
-        final compInjuries = List<String>.from(
-          jsonDecode(comp.permanentInjuries) as List? ?? [],
-        );
+        final companionRepo = ref.read(companionRepositoryProvider);
+        final compEffects = await companionRepo.getCompanionStatusEffectKeys(comp.id);
+        final compInjuries = await companionRepo.getCompanionInjuryKeys(comp.id);
         final compTypeKey = companionTypeKeyFromId(comp.companionTypeId);
         final compType = getCompanionType(compTypeKey);
         final baseHealth = compType?.health ?? 10;
@@ -268,10 +261,21 @@ class _PartyPreview extends ConsumerWidget {
         final ranger = rangers.where((r) => r.id == rangerId).firstOrNull;
         if (ranger == null) return const SizedBox.shrink();
 
-        return FutureBuilder<List<RangerCompanion>>(
-          future: companionRepo.getCompanionsByRanger(rangerId, isActive: true),
+        return FutureBuilder<({List<RangerCompanion> companions, Map<int, List<String>> injuryKeys, Map<int, List<String>> statusEffectKeys})>(
+          future: () async {
+            final companions = await companionRepo.getCompanionsByRanger(rangerId, isActive: true);
+            final injuryKeys = <int, List<String>>{};
+            final statusEffectKeys = <int, List<String>>{};
+            for (final comp in companions) {
+              injuryKeys[comp.id] = await companionRepo.getCompanionInjuryKeys(comp.id);
+              statusEffectKeys[comp.id] = await companionRepo.getCompanionStatusEffectKeys(comp.id);
+            }
+            return (companions: companions, injuryKeys: injuryKeys, statusEffectKeys: statusEffectKeys);
+          }(),
           builder: (context, snapshot) {
-            final companions = snapshot.data ?? <RangerCompanion>[];
+            final companions = snapshot.data?.companions ?? <RangerCompanion>[];
+            final companionInjuryKeys = snapshot.data?.injuryKeys ?? <int, List<String>>{};
+            final companionStatusEffectKeys = snapshot.data?.statusEffectKeys ?? <int, List<String>>{};
 
             return Card(
               child: Padding(
@@ -331,33 +335,29 @@ class _PartyPreview extends ConsumerWidget {
                       ...companions.map((comp) {
                         final typeKey = companionTypeKeyFromId(comp.companionTypeId);
                         final type = getCompanionType(typeKey);
-                        final previewInjuries = List<String>.from(
-                          jsonDecode(comp.permanentInjuries) as List? ?? [],
-                        );
-                        final previewEffects = List<String>.from(
-                          jsonDecode(comp.statusEffects) as List? ?? [],
-                        );
+                        final injuryKeys = companionInjuryKeys[comp.id] ?? <String>[];
+                        final previewEffects = companionStatusEffectKeys[comp.id] ?? <String>[];
                         final compBaseHealth = type?.health ?? 10;
                         final healthPenalty = computeStatPenalty('health',
-                          permanentInjuryKeys: previewInjuries,
+                          permanentInjuryKeys: injuryKeys,
                           statusEffectKeys: previewEffects,
                         );
                         final effectiveHP = compBaseHealth + healthPenalty + comp.bonusHealth;
                         final compMove = (type?.move ?? 6) + computeStatPenalty('move',
-                          permanentInjuryKeys: previewInjuries,
+                          permanentInjuryKeys: injuryKeys,
                           statusEffectKeys: previewEffects,
                         );
                         final compFight = (type?.fight ?? 0) + computeStatPenalty('fight',
-                          permanentInjuryKeys: previewInjuries,
+                          permanentInjuryKeys: injuryKeys,
                           statusEffectKeys: previewEffects,
                         );
                         final compShoot = (type?.shoot ?? 0) + computeStatPenalty('shoot',
-                          permanentInjuryKeys: previewInjuries,
+                          permanentInjuryKeys: injuryKeys,
                           statusEffectKeys: previewEffects,
                         );
                         final compArmour = type?.armour ?? 10;
                         final compWill = (type?.will ?? 0) + computeStatPenalty('will',
-                          permanentInjuryKeys: previewInjuries,
+                          permanentInjuryKeys: injuryKeys,
                           statusEffectKeys: previewEffects,
                         );
                         return Padding(

@@ -111,7 +111,7 @@ class _RangerCreationWizardViewState
           await repo.insertRangerEquipment(RangerEquipmentCompanion.insert(
             rangerId: rangerId,
             equipmentId: equipment.id,
-            currentUses: equipment.hasUses ? Value(equipment.maxUses) : const Value(null),
+            currentUses: equipment.maxUses != null ? Value(equipment.maxUses) : const Value(null),
             slotIndex: Value(slotIndex < 6 ? slotIndex : null),
           ));
           slotIndex++;

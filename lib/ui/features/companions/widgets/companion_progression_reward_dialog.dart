@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/domain/constants/companion_progression.dart';
 import 'package:rangers_mobile/domain/constants/heroic_abilities.dart';
 import 'package:rangers_mobile/domain/constants/skills.dart';
+import 'package:rangers_mobile/ui/core/theme/app_colors.dart';
 import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
 
 class CompanionProgressionRewardDialog extends ConsumerStatefulWidget {
   const CompanionProgressionRewardDialog({
-    required this.rangerId,
     required this.companionId,
     required this.newPp,
     required this.unclaimedRewards,
@@ -15,7 +15,6 @@ class CompanionProgressionRewardDialog extends ConsumerStatefulWidget {
     super.key,
   });
 
-  final int rangerId;
   final int companionId;
   final int newPp;
   final List<ProgressionReward> unclaimedRewards;
@@ -23,7 +22,6 @@ class CompanionProgressionRewardDialog extends ConsumerStatefulWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required int rangerId,
     required int companionId,
     required int newPp,
     required List<ProgressionReward> unclaimedRewards,
@@ -33,7 +31,6 @@ class CompanionProgressionRewardDialog extends ConsumerStatefulWidget {
       context: context,
       barrierDismissible: false,
       builder: (_) => CompanionProgressionRewardDialog(
-        rangerId: rangerId,
         companionId: companionId,
         newPp: newPp,
         unclaimedRewards: unclaimedRewards,
@@ -120,9 +117,7 @@ class _CompanionProgressionRewardDialogState
           break;
       }
 
-      await notifier.markProgressionRewardClaimed(
-        reward.threshold.toString(),
-      );
+      await notifier.markProgressionRewardClaimed(reward.threshold);
 
       final nextIndex = _currentIndex + 1;
       if (nextIndex >= _total) {
@@ -450,8 +445,3 @@ class _CompanionProgressionRewardDialogState
     );
   }
 }
-
-Color statusGreen(ThemeData theme) =>
-    theme.brightness == Brightness.dark
-        ? Colors.green.shade300
-        : Colors.green.shade800;

@@ -29,9 +29,7 @@ class CompanionProgressionView extends ConsumerWidget {
     }
 
     final currentPP = companion.progressionPoints;
-    final claimedThresholds = Set<int>.from(
-      companion.claimedProgressionRewards.map(int.parse),
-    );
+    final claimedThresholds = companion.claimedProgressionRewards;
     final nextReward = getNextProgressionReward(currentPP, claimedThresholds);
 
     return Scaffold(
@@ -325,7 +323,7 @@ class CompanionProgressionView extends ConsumerWidget {
     final notifier = ref.read(companionProvider(companion.id).notifier);
     final currentValue = companion.customSkills[skillKey] ?? 0;
     await notifier.updateCustomSkill(skillKey, currentValue + 4);
-    await notifier.markProgressionRewardClaimed(reward.threshold.toString());
+    await notifier.markProgressionRewardClaimed(reward.threshold);
   }
 
   Future<void> _applyHeroicAbilityReward(
@@ -336,7 +334,7 @@ class CompanionProgressionView extends ConsumerWidget {
   ) async {
     final notifier = ref.read(companionProvider(companion.id).notifier);
     await notifier.updateHeroicAbilityKeys([...companion.heroicAbilityKeys, abilityKey]);
-    await notifier.markProgressionRewardClaimed(reward.threshold.toString());
+    await notifier.markProgressionRewardClaimed(reward.threshold);
   }
 
   Future<void> _applyReward(
@@ -365,7 +363,7 @@ class CompanionProgressionView extends ConsumerWidget {
     }
     
     // Mark as claimed
-    await notifier.markProgressionRewardClaimed(reward.threshold.toString());
+    await notifier.markProgressionRewardClaimed(reward.threshold);
   }
 }
 

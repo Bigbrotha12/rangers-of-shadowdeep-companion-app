@@ -1,12 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:rangers_mobile/data/database/app_database.dart';
-import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
 import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
 import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
-import '../../helpers/test_database.dart';
-import '../../helpers/test_providers.dart';
 
 CompanionData _make({
   int companionTypeId = 12, // Recruit: Move 6, Fight 2, Shoot 0, Armour 10, Will 0, Health 10
@@ -162,59 +156,7 @@ void main() {
       });
     });
 
-    group('CompanionNotifier.addPermanentInjury', () {
-      late AppDatabase database;
-      late ProviderContainer container;
-
-      setUp(() async {
-        SharedPreferences.setMockInitialValues({});
-        database = await createTestDatabase();
-        final prefs = await SharedPreferences.getInstance();
-        container = ProviderContainer(overrides: buildTestOverrides(
-          database: database,
-          sharedPreferences: prefs,
-        ));
-        final repo = container.read(companionRepositoryProvider);
-        await repo.insertCompanion(RangerCompanionsCompanion.insert(
-          rangerId: 1,
-          companionTypeId: 12,
-          customName: 'Test',
-          createdAt: DateTime.now(),
-        ));
-      });
-
-      tearDown(() {
-        container.dispose();
-        database.close();
-      });
-
-      test('rejects injury when maxTimesReceived reached', () async {
-        final notifier = container.read(companionProvider(1).notifier);
-        await Future(() {}); // let _loadCompanion complete
-
-        await notifier.addPermanentInjury('crushed_arm');
-        await notifier.addPermanentInjury('crushed_arm');
-        await notifier.addPermanentInjury('crushed_arm'); // should be rejected
-
-        expect(notifier.state, isNotNull);
-        expect(
-          notifier.state!.permanentInjuries.where((k) => k == 'crushed_arm').length,
-          2,
-        );
-      });
-
-      test('allows injury within maxTimesReceived', () async {
-        final notifier = container.read(companionProvider(1).notifier);
-        await Future(() {}); // let _loadCompanion complete
-
-        await notifier.addPermanentInjury('crushed_arm');
-        expect(
-          notifier.state!.permanentInjuries.where((k) => k == 'crushed_arm').length,
-          1,
-        );
-      });
     });
-  });
 
   group('type getter', () {
     test('returns correct CompanionType from companionTypeId', () {

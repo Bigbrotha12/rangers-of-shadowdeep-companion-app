@@ -75,11 +75,6 @@ ProgressionReward? getNextProgressionReward(int currentPP, Set<int> claimedThres
   return null;
 }
 
-/// Check if a companion has reached a new threshold
-bool hasNewThreshold(int currentPP, Set<int> claimedThresholds) {
-  return getNextProgressionReward(currentPP, claimedThresholds) != null;
-}
-
 /// Get all thresholds that have been reached but not yet claimed
 List<ProgressionReward> getUnclaimedRewards(int currentPP, Set<int> claimedThresholds) {
   final unclaimed = <ProgressionReward>[];

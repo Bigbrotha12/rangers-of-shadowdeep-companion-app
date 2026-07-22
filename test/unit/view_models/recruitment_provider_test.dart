@@ -109,6 +109,7 @@ void main() {
       test('true when can add and sufficient RP', () {
         final state = createState();
         const type = CompanionTypeDefinition(
+          id: 2,
           key: 'archer',
           name: 'Archer',
           description: '',
@@ -128,6 +129,7 @@ void main() {
       test('false when insufficient RP', () {
         final state = createState(baseRP: 20);
         const type = CompanionTypeDefinition(
+          id: 9,
           key: 'knight',
           name: 'Knight',
           description: '',
@@ -155,6 +157,7 @@ void main() {
         );
         final state = createState(baseRP: 200, companions: entries);
         const type = CompanionTypeDefinition(
+          id: 13,
           key: 'rogue',
           name: 'Rogue',
           description: '',

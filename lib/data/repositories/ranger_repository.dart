@@ -21,10 +21,6 @@ class RangerRepository {
     return await query.get();
   }
 
-  Future<bool> updateRanger(RangersCompanion companion) async {
-    return await _db.update(_db.rangers).replace(companion);
-  }
-
   Future<void> updateRangerFields(int rangerId, RangersCompanion companion) async {
     await (_db.update(_db.rangers)..where((r) => r.id.equals(rangerId))).write(companion);
   }
@@ -49,16 +45,19 @@ class RangerRepository {
 
   Future<List<RangerAbility>> getRangerAbilities(int rangerId) async {
     final query = _db.select(_db.rangerAbilities)
-      ..where((a) => a.rangerId.equals(rangerId));
+      ..where((a) => a.rangerId.equals(rangerId))
+      ..where((a) => a.companionId.isNull());
     return await query.get();
   }
 
-  Future<bool> updateRangerAbility(RangerAbilitiesCompanion companion) async {
-    return await _db.update(_db.rangerAbilities).replace(companion);
+  Future<void> toggleAbilityUsed(int abilityId, bool used) async {
+    await (_db.update(_db.rangerAbilities)..where((a) => a.id.equals(abilityId)))
+      .write(RangerAbilitiesCompanion(isUsedThisScenario: Value(used)));
   }
 
-  Future<int> deleteRangerAbility(int id) async {
-    return await (_db.delete(_db.rangerAbilities)..where((a) => a.id.equals(id))).go();
+  Future<void> resetScenarioAbilityUsage(int rangerId) async {
+    await (_db.update(_db.rangerAbilities)..where((a) => a.rangerId.equals(rangerId)))
+      .write(const RangerAbilitiesCompanion(isUsedThisScenario: Value(false)));
   }
 
   // Ranger Skills CRUD
@@ -74,10 +73,6 @@ class RangerRepository {
 
   Future<bool> updateRangerSkill(RangerSkillsCompanion companion) async {
     return await _db.update(_db.rangerSkills).replace(companion);
-  }
-
-  Future<int> deleteRangerSkill(int id) async {
-    return await (_db.delete(_db.rangerSkills)..where((s) => s.id.equals(id))).go();
   }
 
   // Ranger Equipment CRUD
@@ -113,6 +108,24 @@ class RangerRepository {
     return false;
   }
 
+  // Ranger Status Effects (status_effects table)
+  Future<List<String>> getRangerStatusEffectKeys(int rangerId) async {
+    final rows = await (_db.select(_db.statusEffects)
+      ..where((s) => s.rangerId.equals(rangerId))).get();
+    return rows.map((r) => r.statusEffectKey).toList();
+  }
+
+  Future<void> setRangerStatusEffects(int rangerId, List<String> keys) async {
+    await (_db.delete(_db.statusEffects)
+      ..where((s) => s.rangerId.equals(rangerId))).go();
+    for (final key in keys) {
+      await _db.into(_db.statusEffects).insert(StatusEffectsCompanion(
+        rangerId: Value<int?>(rangerId),
+        statusEffectKey: Value(key),
+      ));
+    }
+  }
+
   // Equipment lookup
   Future<EquipmentData?> getEquipmentByKey(String itemKey) async {
     final query = _db.select(_db.equipment)
@@ -124,6 +137,12 @@ class RangerRepository {
     final query = _db.select(_db.equipment)
       ..where((e) => e.id.equals(id));
     return await query.getSingleOrNull();
+  }
+
+  Future<Map<String, int>> getEquipmentModifiers(int equipmentId) async {
+    final rows = await (_db.select(_db.equipmentEffectModifiers)
+      ..where((m) => m.equipmentId.equals(equipmentId))).get();
+    return {for (final r in rows) r.statKey: r.modifier};
   }
 
   Future<List<EquipmentData>> getAllEquipment() async {

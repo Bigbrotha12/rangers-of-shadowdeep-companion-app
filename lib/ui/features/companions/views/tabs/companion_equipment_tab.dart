@@ -66,7 +66,7 @@ class CompanionEquipmentTabState extends ConsumerState<CompanionEquipmentTab> {
 
     final companionEquipped = ranger.equipment
       .where((e) => e.slotIndex != null)
-      .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+      .where((e) => e.equipment.companionId == widget.companionId)
       .toList();
     final usedSlots = companionEquipped.map((e) => e.slotIndex!).toSet();
 
@@ -89,7 +89,8 @@ class CompanionEquipmentTabState extends ConsumerState<CompanionEquipmentTab> {
         await repo.updateRangerEquipment(RangerEquipmentCompanion(
           id: Value(item.id),
           slotIndex: Value(i),
-          equippedBy: Value(widget.companionId.toString()),
+          equippedBy: const Value('companion'),
+          companionId: Value(widget.companionId),
         ));
         ref.invalidate(rangerDetailProvider(widget.rangerId));
         return;
@@ -145,7 +146,7 @@ class CompanionEquipmentTabState extends ConsumerState<CompanionEquipmentTab> {
         }
 
         final companionItems = ranger.equipment
-          .where((e) => e.equipment.equippedBy == widget.companionId.toString() || e.equipment.equippedBy == 'pool')
+          .where((e) => e.equipment.companionId == widget.companionId || e.equipment.equippedBy == 'pool')
           .toList();
 
         final equipped = List<RangerEquipmentWithName?>.generate(

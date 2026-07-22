@@ -199,18 +199,4 @@ void main() {
     });
   });
 
-  group('hasMaxOneAction', () {
-    test('returns true when poisoned', () {
-      expect(hasMaxOneAction(['poisoned']), isTrue);
-    });
-
-    test('returns false when not poisoned', () {
-      expect(hasMaxOneAction(['exhausted']), isFalse);
-      expect(hasMaxOneAction([]), isFalse);
-    });
-
-    test('returns false when multiple non-poison effects', () {
-      expect(hasMaxOneAction(['diseased', 'exhausted', 'blessed']), isFalse);
-    });
-  });
 }

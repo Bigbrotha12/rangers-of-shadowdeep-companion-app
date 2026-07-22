@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:rangers_mobile/domain/constants/base_stats.dart';
 import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
 import 'package:rangers_mobile/domain/constants/companion_progression.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
@@ -559,9 +558,12 @@ class RulesReferenceService {
       category: 'tables',
       description: 'Total RP depends on player count and Leadership skill.',
       metadata: {
-        'table_data': recruitmentCalculations
-            .map((e) => '${e.playerCount}|${e.formula}|${e.maxCompanions}')
-            .join('\n'),
+        'table_data': const [
+              '1|BRP|7',
+              '2|(BRP x 0.5) - 10|3',
+              '3|(BRP x 0.3) - 2|2',
+              '4|(BRP x 0.1)|1',
+            ].join('\n'),
         'table_headers': 'Players|Formula|Max Companions',
       },
     ));

@@ -197,24 +197,6 @@ void main() {
     });
   });
 
-  group('xpCostForLevel', () {
-    test('level 0 costs 100 XP', () {
-      expect(xpCostForLevel(0), 100);
-    });
-
-    test('level 4 costs 100 XP', () {
-      expect(xpCostForLevel(4), 100);
-    });
-
-    test('level 5 costs 150 XP', () {
-      expect(xpCostForLevel(5), 150);
-    });
-
-    test('level 50 costs 1000 XP', () {
-      expect(xpCostForLevel(50), 1000);
-    });
-  });
-
   group('bonusTypeForLevel', () {
     test('level 1 returns improveSkills', () {
       expect(bonusTypeForLevel(1), LevelBonusType.improveSkills);
@@ -233,17 +215,4 @@ void main() {
     });
   });
 
-  group('SurvivalTarget', () {
-    test('constructs correctly', () {
-      final target = SurvivalTarget(id: 1, name: 'Test', isRanger: true);
-      expect(target.id, 1);
-      expect(target.name, 'Test');
-      expect(target.isRanger, isTrue);
-    });
-
-    test('can be non-ranger', () {
-      final target = SurvivalTarget(id: 2, name: 'Companion', isRanger: false);
-      expect(target.isRanger, isFalse);
-    });
-  });
 }

@@ -66,14 +66,12 @@ class CompanionEntry {
   final int companionTypeId;
   final String name;
   final int rpCost;
-  final int? existingId;
   final bool hasPurchasedThirdSpell;
 
   const CompanionEntry({
     required this.companionTypeId,
     required this.name,
     required this.rpCost,
-    this.existingId,
     this.hasPurchasedThirdSpell = false,
   });
 
@@ -110,7 +108,6 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
         companionTypeId: row.companionTypeId,
         name: typeData?.name ?? 'Unknown',
         rpCost: typeData?.rpCost ?? 0,
-        existingId: row.id,
       ));
     }
 
@@ -186,7 +183,6 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
       companionTypeId: entry.companionTypeId,
       name: entry.name,
       rpCost: entry.rpCost,
-      existingId: entry.existingId,
       hasPurchasedThirdSpell: !entry.hasPurchasedThirdSpell,
     );
 
@@ -234,11 +230,8 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
         customName: Value(entry.name),
         progressionPoints: const Value(0),
         isAlive: const Value(true),
-        permanentInjuries: const Value('[]'),
-        customSkills: const Value('{}'),
         isActive: const Value(true),
         createdAt: Value(DateTime.now()),
-        claimedProgressionRewards: const Value('[]'),
         hasUsedRecruitmentBonus: const Value(false),
         bonusHealth: const Value(0),
       ));

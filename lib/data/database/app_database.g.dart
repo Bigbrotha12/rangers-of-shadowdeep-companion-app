@@ -160,18 +160,6 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
-  static const VerificationMeta _statusEffectsMeta = const VerificationMeta(
-    'statusEffects',
-  );
-  @override
-  late final GeneratedColumn<String> statusEffects = GeneratedColumn<String>(
-    'status_effects',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -189,7 +177,6 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
     createdAt,
     updatedAt,
     notes,
-    statusEffects,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -319,15 +306,6 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
-    if (data.containsKey('status_effects')) {
-      context.handle(
-        _statusEffectsMeta,
-        statusEffects.isAcceptableOrUnknown(
-          data['status_effects']!,
-          _statusEffectsMeta,
-        ),
-      );
-    }
     return context;
   }
 
@@ -397,10 +375,6 @@ class $RangersTable extends Rangers with TableInfo<$RangersTable, Ranger> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       )!,
-      statusEffects: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status_effects'],
-      )!,
     );
   }
 
@@ -426,7 +400,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String notes;
-  final String statusEffects;
   const Ranger({
     required this.id,
     required this.name,
@@ -443,7 +416,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     required this.createdAt,
     required this.updatedAt,
     required this.notes,
-    required this.statusEffects,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -463,7 +435,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['notes'] = Variable<String>(notes);
-    map['status_effects'] = Variable<String>(statusEffects);
     return map;
   }
 
@@ -484,7 +455,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       notes: Value(notes),
-      statusEffects: Value(statusEffects),
     );
   }
 
@@ -511,7 +481,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       notes: serializer.fromJson<String>(json['notes']),
-      statusEffects: serializer.fromJson<String>(json['statusEffects']),
     );
   }
   @override
@@ -533,7 +502,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'notes': serializer.toJson<String>(notes),
-      'statusEffects': serializer.toJson<String>(statusEffects),
     };
   }
 
@@ -553,7 +521,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? notes,
-    String? statusEffects,
   }) => Ranger(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -570,7 +537,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     notes: notes ?? this.notes,
-    statusEffects: statusEffects ?? this.statusEffects,
   );
   Ranger copyWithCompanion(RangersCompanion data) {
     return Ranger(
@@ -595,9 +561,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       notes: data.notes.present ? data.notes.value : this.notes,
-      statusEffects: data.statusEffects.present
-          ? data.statusEffects.value
-          : this.statusEffects,
     );
   }
 
@@ -618,8 +581,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
           ..write('currentHealth: $currentHealth, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('notes: $notes, ')
-          ..write('statusEffects: $statusEffects')
+          ..write('notes: $notes')
           ..write(')'))
         .toString();
   }
@@ -641,7 +603,6 @@ class Ranger extends DataClass implements Insertable<Ranger> {
     createdAt,
     updatedAt,
     notes,
-    statusEffects,
   );
   @override
   bool operator ==(Object other) =>
@@ -661,8 +622,7 @@ class Ranger extends DataClass implements Insertable<Ranger> {
           other.currentHealth == this.currentHealth &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.notes == this.notes &&
-          other.statusEffects == this.statusEffects);
+          other.notes == this.notes);
 }
 
 class RangersCompanion extends UpdateCompanion<Ranger> {
@@ -681,7 +641,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> notes;
-  final Value<String> statusEffects;
   const RangersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -698,7 +657,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.notes = const Value.absent(),
-    this.statusEffects = const Value.absent(),
   });
   RangersCompanion.insert({
     this.id = const Value.absent(),
@@ -716,7 +674,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.notes = const Value.absent(),
-    this.statusEffects = const Value.absent(),
   }) : name = Value(name),
        move = Value(move),
        fight = Value(fight),
@@ -743,7 +700,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? notes,
-    Expression<String>? statusEffects,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -762,7 +718,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (notes != null) 'notes': notes,
-      if (statusEffects != null) 'status_effects': statusEffects,
     });
   }
 
@@ -782,7 +737,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String>? notes,
-    Value<String>? statusEffects,
   }) {
     return RangersCompanion(
       id: id ?? this.id,
@@ -801,7 +755,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       notes: notes ?? this.notes,
-      statusEffects: statusEffects ?? this.statusEffects,
     );
   }
 
@@ -855,9 +808,6 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
-    if (statusEffects.present) {
-      map['status_effects'] = Variable<String>(statusEffects.value);
-    }
     return map;
   }
 
@@ -878,8 +828,1317 @@ class RangersCompanion extends UpdateCompanion<Ranger> {
           ..write('currentHealth: $currentHealth, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CompanionTypesTable extends CompanionTypes
+    with TableInfo<$CompanionTypesTable, CompanionType> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanionTypesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _typeKeyMeta = const VerificationMeta(
+    'typeKey',
+  );
+  @override
+  late final GeneratedColumn<String> typeKey = GeneratedColumn<String>(
+    'type_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rpCostMeta = const VerificationMeta('rpCost');
+  @override
+  late final GeneratedColumn<int> rpCost = GeneratedColumn<int>(
+    'rp_cost',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _moveMeta = const VerificationMeta('move');
+  @override
+  late final GeneratedColumn<int> move = GeneratedColumn<int>(
+    'move',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fightMeta = const VerificationMeta('fight');
+  @override
+  late final GeneratedColumn<int> fight = GeneratedColumn<int>(
+    'fight',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _shootMeta = const VerificationMeta('shoot');
+  @override
+  late final GeneratedColumn<int> shoot = GeneratedColumn<int>(
+    'shoot',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _armourMeta = const VerificationMeta('armour');
+  @override
+  late final GeneratedColumn<int> armour = GeneratedColumn<int>(
+    'armour',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _willMeta = const VerificationMeta('will');
+  @override
+  late final GeneratedColumn<int> will = GeneratedColumn<int>(
+    'will',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _healthMeta = const VerificationMeta('health');
+  @override
+  late final GeneratedColumn<int> health = GeneratedColumn<int>(
+    'health',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _isAnimalMeta = const VerificationMeta(
+    'isAnimal',
+  );
+  @override
+  late final GeneratedColumn<bool> isAnimal = GeneratedColumn<bool>(
+    'is_animal',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_animal" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    typeKey,
+    name,
+    rpCost,
+    move,
+    fight,
+    shoot,
+    armour,
+    will,
+    health,
+    notes,
+    isAnimal,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'companion_types';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanionType> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('type_key')) {
+      context.handle(
+        _typeKeyMeta,
+        typeKey.isAcceptableOrUnknown(data['type_key']!, _typeKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeKeyMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('rp_cost')) {
+      context.handle(
+        _rpCostMeta,
+        rpCost.isAcceptableOrUnknown(data['rp_cost']!, _rpCostMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rpCostMeta);
+    }
+    if (data.containsKey('move')) {
+      context.handle(
+        _moveMeta,
+        move.isAcceptableOrUnknown(data['move']!, _moveMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_moveMeta);
+    }
+    if (data.containsKey('fight')) {
+      context.handle(
+        _fightMeta,
+        fight.isAcceptableOrUnknown(data['fight']!, _fightMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fightMeta);
+    }
+    if (data.containsKey('shoot')) {
+      context.handle(
+        _shootMeta,
+        shoot.isAcceptableOrUnknown(data['shoot']!, _shootMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shootMeta);
+    }
+    if (data.containsKey('armour')) {
+      context.handle(
+        _armourMeta,
+        armour.isAcceptableOrUnknown(data['armour']!, _armourMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_armourMeta);
+    }
+    if (data.containsKey('will')) {
+      context.handle(
+        _willMeta,
+        will.isAcceptableOrUnknown(data['will']!, _willMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_willMeta);
+    }
+    if (data.containsKey('health')) {
+      context.handle(
+        _healthMeta,
+        health.isAcceptableOrUnknown(data['health']!, _healthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_healthMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('is_animal')) {
+      context.handle(
+        _isAnimalMeta,
+        isAnimal.isAcceptableOrUnknown(data['is_animal']!, _isAnimalMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CompanionType map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanionType(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      typeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type_key'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      rpCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rp_cost'],
+      )!,
+      move: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}move'],
+      )!,
+      fight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}fight'],
+      )!,
+      shoot: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shoot'],
+      )!,
+      armour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}armour'],
+      )!,
+      will: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}will'],
+      )!,
+      health: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}health'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      )!,
+      isAnimal: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_animal'],
+      )!,
+    );
+  }
+
+  @override
+  $CompanionTypesTable createAlias(String alias) {
+    return $CompanionTypesTable(attachedDatabase, alias);
+  }
+}
+
+class CompanionType extends DataClass implements Insertable<CompanionType> {
+  final int id;
+  final String typeKey;
+  final String name;
+  final int rpCost;
+  final int move;
+  final int fight;
+  final int shoot;
+  final int armour;
+  final int will;
+  final int health;
+  final String notes;
+  final bool isAnimal;
+  const CompanionType({
+    required this.id,
+    required this.typeKey,
+    required this.name,
+    required this.rpCost,
+    required this.move,
+    required this.fight,
+    required this.shoot,
+    required this.armour,
+    required this.will,
+    required this.health,
+    required this.notes,
+    required this.isAnimal,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['type_key'] = Variable<String>(typeKey);
+    map['name'] = Variable<String>(name);
+    map['rp_cost'] = Variable<int>(rpCost);
+    map['move'] = Variable<int>(move);
+    map['fight'] = Variable<int>(fight);
+    map['shoot'] = Variable<int>(shoot);
+    map['armour'] = Variable<int>(armour);
+    map['will'] = Variable<int>(will);
+    map['health'] = Variable<int>(health);
+    map['notes'] = Variable<String>(notes);
+    map['is_animal'] = Variable<bool>(isAnimal);
+    return map;
+  }
+
+  CompanionTypesCompanion toCompanion(bool nullToAbsent) {
+    return CompanionTypesCompanion(
+      id: Value(id),
+      typeKey: Value(typeKey),
+      name: Value(name),
+      rpCost: Value(rpCost),
+      move: Value(move),
+      fight: Value(fight),
+      shoot: Value(shoot),
+      armour: Value(armour),
+      will: Value(will),
+      health: Value(health),
+      notes: Value(notes),
+      isAnimal: Value(isAnimal),
+    );
+  }
+
+  factory CompanionType.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanionType(
+      id: serializer.fromJson<int>(json['id']),
+      typeKey: serializer.fromJson<String>(json['typeKey']),
+      name: serializer.fromJson<String>(json['name']),
+      rpCost: serializer.fromJson<int>(json['rpCost']),
+      move: serializer.fromJson<int>(json['move']),
+      fight: serializer.fromJson<int>(json['fight']),
+      shoot: serializer.fromJson<int>(json['shoot']),
+      armour: serializer.fromJson<int>(json['armour']),
+      will: serializer.fromJson<int>(json['will']),
+      health: serializer.fromJson<int>(json['health']),
+      notes: serializer.fromJson<String>(json['notes']),
+      isAnimal: serializer.fromJson<bool>(json['isAnimal']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'typeKey': serializer.toJson<String>(typeKey),
+      'name': serializer.toJson<String>(name),
+      'rpCost': serializer.toJson<int>(rpCost),
+      'move': serializer.toJson<int>(move),
+      'fight': serializer.toJson<int>(fight),
+      'shoot': serializer.toJson<int>(shoot),
+      'armour': serializer.toJson<int>(armour),
+      'will': serializer.toJson<int>(will),
+      'health': serializer.toJson<int>(health),
+      'notes': serializer.toJson<String>(notes),
+      'isAnimal': serializer.toJson<bool>(isAnimal),
+    };
+  }
+
+  CompanionType copyWith({
+    int? id,
+    String? typeKey,
+    String? name,
+    int? rpCost,
+    int? move,
+    int? fight,
+    int? shoot,
+    int? armour,
+    int? will,
+    int? health,
+    String? notes,
+    bool? isAnimal,
+  }) => CompanionType(
+    id: id ?? this.id,
+    typeKey: typeKey ?? this.typeKey,
+    name: name ?? this.name,
+    rpCost: rpCost ?? this.rpCost,
+    move: move ?? this.move,
+    fight: fight ?? this.fight,
+    shoot: shoot ?? this.shoot,
+    armour: armour ?? this.armour,
+    will: will ?? this.will,
+    health: health ?? this.health,
+    notes: notes ?? this.notes,
+    isAnimal: isAnimal ?? this.isAnimal,
+  );
+  CompanionType copyWithCompanion(CompanionTypesCompanion data) {
+    return CompanionType(
+      id: data.id.present ? data.id.value : this.id,
+      typeKey: data.typeKey.present ? data.typeKey.value : this.typeKey,
+      name: data.name.present ? data.name.value : this.name,
+      rpCost: data.rpCost.present ? data.rpCost.value : this.rpCost,
+      move: data.move.present ? data.move.value : this.move,
+      fight: data.fight.present ? data.fight.value : this.fight,
+      shoot: data.shoot.present ? data.shoot.value : this.shoot,
+      armour: data.armour.present ? data.armour.value : this.armour,
+      will: data.will.present ? data.will.value : this.will,
+      health: data.health.present ? data.health.value : this.health,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      isAnimal: data.isAnimal.present ? data.isAnimal.value : this.isAnimal,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionType(')
+          ..write('id: $id, ')
+          ..write('typeKey: $typeKey, ')
+          ..write('name: $name, ')
+          ..write('rpCost: $rpCost, ')
+          ..write('move: $move, ')
+          ..write('fight: $fight, ')
+          ..write('shoot: $shoot, ')
+          ..write('armour: $armour, ')
+          ..write('will: $will, ')
+          ..write('health: $health, ')
           ..write('notes: $notes, ')
-          ..write('statusEffects: $statusEffects')
+          ..write('isAnimal: $isAnimal')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    typeKey,
+    name,
+    rpCost,
+    move,
+    fight,
+    shoot,
+    armour,
+    will,
+    health,
+    notes,
+    isAnimal,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanionType &&
+          other.id == this.id &&
+          other.typeKey == this.typeKey &&
+          other.name == this.name &&
+          other.rpCost == this.rpCost &&
+          other.move == this.move &&
+          other.fight == this.fight &&
+          other.shoot == this.shoot &&
+          other.armour == this.armour &&
+          other.will == this.will &&
+          other.health == this.health &&
+          other.notes == this.notes &&
+          other.isAnimal == this.isAnimal);
+}
+
+class CompanionTypesCompanion extends UpdateCompanion<CompanionType> {
+  final Value<int> id;
+  final Value<String> typeKey;
+  final Value<String> name;
+  final Value<int> rpCost;
+  final Value<int> move;
+  final Value<int> fight;
+  final Value<int> shoot;
+  final Value<int> armour;
+  final Value<int> will;
+  final Value<int> health;
+  final Value<String> notes;
+  final Value<bool> isAnimal;
+  const CompanionTypesCompanion({
+    this.id = const Value.absent(),
+    this.typeKey = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rpCost = const Value.absent(),
+    this.move = const Value.absent(),
+    this.fight = const Value.absent(),
+    this.shoot = const Value.absent(),
+    this.armour = const Value.absent(),
+    this.will = const Value.absent(),
+    this.health = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.isAnimal = const Value.absent(),
+  });
+  CompanionTypesCompanion.insert({
+    this.id = const Value.absent(),
+    required String typeKey,
+    required String name,
+    required int rpCost,
+    required int move,
+    required int fight,
+    required int shoot,
+    required int armour,
+    required int will,
+    required int health,
+    this.notes = const Value.absent(),
+    this.isAnimal = const Value.absent(),
+  }) : typeKey = Value(typeKey),
+       name = Value(name),
+       rpCost = Value(rpCost),
+       move = Value(move),
+       fight = Value(fight),
+       shoot = Value(shoot),
+       armour = Value(armour),
+       will = Value(will),
+       health = Value(health);
+  static Insertable<CompanionType> custom({
+    Expression<int>? id,
+    Expression<String>? typeKey,
+    Expression<String>? name,
+    Expression<int>? rpCost,
+    Expression<int>? move,
+    Expression<int>? fight,
+    Expression<int>? shoot,
+    Expression<int>? armour,
+    Expression<int>? will,
+    Expression<int>? health,
+    Expression<String>? notes,
+    Expression<bool>? isAnimal,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (typeKey != null) 'type_key': typeKey,
+      if (name != null) 'name': name,
+      if (rpCost != null) 'rp_cost': rpCost,
+      if (move != null) 'move': move,
+      if (fight != null) 'fight': fight,
+      if (shoot != null) 'shoot': shoot,
+      if (armour != null) 'armour': armour,
+      if (will != null) 'will': will,
+      if (health != null) 'health': health,
+      if (notes != null) 'notes': notes,
+      if (isAnimal != null) 'is_animal': isAnimal,
+    });
+  }
+
+  CompanionTypesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? typeKey,
+    Value<String>? name,
+    Value<int>? rpCost,
+    Value<int>? move,
+    Value<int>? fight,
+    Value<int>? shoot,
+    Value<int>? armour,
+    Value<int>? will,
+    Value<int>? health,
+    Value<String>? notes,
+    Value<bool>? isAnimal,
+  }) {
+    return CompanionTypesCompanion(
+      id: id ?? this.id,
+      typeKey: typeKey ?? this.typeKey,
+      name: name ?? this.name,
+      rpCost: rpCost ?? this.rpCost,
+      move: move ?? this.move,
+      fight: fight ?? this.fight,
+      shoot: shoot ?? this.shoot,
+      armour: armour ?? this.armour,
+      will: will ?? this.will,
+      health: health ?? this.health,
+      notes: notes ?? this.notes,
+      isAnimal: isAnimal ?? this.isAnimal,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (typeKey.present) {
+      map['type_key'] = Variable<String>(typeKey.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rpCost.present) {
+      map['rp_cost'] = Variable<int>(rpCost.value);
+    }
+    if (move.present) {
+      map['move'] = Variable<int>(move.value);
+    }
+    if (fight.present) {
+      map['fight'] = Variable<int>(fight.value);
+    }
+    if (shoot.present) {
+      map['shoot'] = Variable<int>(shoot.value);
+    }
+    if (armour.present) {
+      map['armour'] = Variable<int>(armour.value);
+    }
+    if (will.present) {
+      map['will'] = Variable<int>(will.value);
+    }
+    if (health.present) {
+      map['health'] = Variable<int>(health.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (isAnimal.present) {
+      map['is_animal'] = Variable<bool>(isAnimal.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionTypesCompanion(')
+          ..write('id: $id, ')
+          ..write('typeKey: $typeKey, ')
+          ..write('name: $name, ')
+          ..write('rpCost: $rpCost, ')
+          ..write('move: $move, ')
+          ..write('fight: $fight, ')
+          ..write('shoot: $shoot, ')
+          ..write('armour: $armour, ')
+          ..write('will: $will, ')
+          ..write('health: $health, ')
+          ..write('notes: $notes, ')
+          ..write('isAnimal: $isAnimal')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RangerCompanionsTable extends RangerCompanions
+    with TableInfo<$RangerCompanionsTable, RangerCompanion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RangerCompanionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _rangerIdMeta = const VerificationMeta(
+    'rangerId',
+  );
+  @override
+  late final GeneratedColumn<int> rangerId = GeneratedColumn<int>(
+    'ranger_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES rangers (id)',
+    ),
+  );
+  static const VerificationMeta _companionTypeIdMeta = const VerificationMeta(
+    'companionTypeId',
+  );
+  @override
+  late final GeneratedColumn<int> companionTypeId = GeneratedColumn<int>(
+    'companion_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES companion_types (id)',
+    ),
+  );
+  static const VerificationMeta _customNameMeta = const VerificationMeta(
+    'customName',
+  );
+  @override
+  late final GeneratedColumn<String> customName = GeneratedColumn<String>(
+    'custom_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressionPointsMeta = const VerificationMeta(
+    'progressionPoints',
+  );
+  @override
+  late final GeneratedColumn<int> progressionPoints = GeneratedColumn<int>(
+    'progression_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isAliveMeta = const VerificationMeta(
+    'isAlive',
+  );
+  @override
+  late final GeneratedColumn<bool> isAlive = GeneratedColumn<bool>(
+    'is_alive',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_alive" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hasUsedRecruitmentBonusMeta =
+      const VerificationMeta('hasUsedRecruitmentBonus');
+  @override
+  late final GeneratedColumn<bool> hasUsedRecruitmentBonus =
+      GeneratedColumn<bool>(
+        'has_used_recruitment_bonus',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("has_used_recruitment_bonus" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _bonusHealthMeta = const VerificationMeta(
+    'bonusHealth',
+  );
+  @override
+  late final GeneratedColumn<int> bonusHealth = GeneratedColumn<int>(
+    'bonus_health',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    rangerId,
+    companionTypeId,
+    customName,
+    progressionPoints,
+    isAlive,
+    isActive,
+    createdAt,
+    hasUsedRecruitmentBonus,
+    bonusHealth,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ranger_companions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RangerCompanion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('ranger_id')) {
+      context.handle(
+        _rangerIdMeta,
+        rangerId.isAcceptableOrUnknown(data['ranger_id']!, _rangerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rangerIdMeta);
+    }
+    if (data.containsKey('companion_type_id')) {
+      context.handle(
+        _companionTypeIdMeta,
+        companionTypeId.isAcceptableOrUnknown(
+          data['companion_type_id']!,
+          _companionTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_companionTypeIdMeta);
+    }
+    if (data.containsKey('custom_name')) {
+      context.handle(
+        _customNameMeta,
+        customName.isAcceptableOrUnknown(data['custom_name']!, _customNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_customNameMeta);
+    }
+    if (data.containsKey('progression_points')) {
+      context.handle(
+        _progressionPointsMeta,
+        progressionPoints.isAcceptableOrUnknown(
+          data['progression_points']!,
+          _progressionPointsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_alive')) {
+      context.handle(
+        _isAliveMeta,
+        isAlive.isAcceptableOrUnknown(data['is_alive']!, _isAliveMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('has_used_recruitment_bonus')) {
+      context.handle(
+        _hasUsedRecruitmentBonusMeta,
+        hasUsedRecruitmentBonus.isAcceptableOrUnknown(
+          data['has_used_recruitment_bonus']!,
+          _hasUsedRecruitmentBonusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bonus_health')) {
+      context.handle(
+        _bonusHealthMeta,
+        bonusHealth.isAcceptableOrUnknown(
+          data['bonus_health']!,
+          _bonusHealthMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RangerCompanion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RangerCompanion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      rangerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ranger_id'],
+      )!,
+      companionTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_type_id'],
+      )!,
+      customName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}custom_name'],
+      )!,
+      progressionPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progression_points'],
+      )!,
+      isAlive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_alive'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      hasUsedRecruitmentBonus: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_used_recruitment_bonus'],
+      )!,
+      bonusHealth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bonus_health'],
+      )!,
+    );
+  }
+
+  @override
+  $RangerCompanionsTable createAlias(String alias) {
+    return $RangerCompanionsTable(attachedDatabase, alias);
+  }
+}
+
+class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
+  final int id;
+  final int rangerId;
+  final int companionTypeId;
+  final String customName;
+  final int progressionPoints;
+  final bool isAlive;
+  final bool isActive;
+  final DateTime createdAt;
+  final bool hasUsedRecruitmentBonus;
+  final int bonusHealth;
+  const RangerCompanion({
+    required this.id,
+    required this.rangerId,
+    required this.companionTypeId,
+    required this.customName,
+    required this.progressionPoints,
+    required this.isAlive,
+    required this.isActive,
+    required this.createdAt,
+    required this.hasUsedRecruitmentBonus,
+    required this.bonusHealth,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['ranger_id'] = Variable<int>(rangerId);
+    map['companion_type_id'] = Variable<int>(companionTypeId);
+    map['custom_name'] = Variable<String>(customName);
+    map['progression_points'] = Variable<int>(progressionPoints);
+    map['is_alive'] = Variable<bool>(isAlive);
+    map['is_active'] = Variable<bool>(isActive);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['has_used_recruitment_bonus'] = Variable<bool>(hasUsedRecruitmentBonus);
+    map['bonus_health'] = Variable<int>(bonusHealth);
+    return map;
+  }
+
+  RangerCompanionsCompanion toCompanion(bool nullToAbsent) {
+    return RangerCompanionsCompanion(
+      id: Value(id),
+      rangerId: Value(rangerId),
+      companionTypeId: Value(companionTypeId),
+      customName: Value(customName),
+      progressionPoints: Value(progressionPoints),
+      isAlive: Value(isAlive),
+      isActive: Value(isActive),
+      createdAt: Value(createdAt),
+      hasUsedRecruitmentBonus: Value(hasUsedRecruitmentBonus),
+      bonusHealth: Value(bonusHealth),
+    );
+  }
+
+  factory RangerCompanion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RangerCompanion(
+      id: serializer.fromJson<int>(json['id']),
+      rangerId: serializer.fromJson<int>(json['rangerId']),
+      companionTypeId: serializer.fromJson<int>(json['companionTypeId']),
+      customName: serializer.fromJson<String>(json['customName']),
+      progressionPoints: serializer.fromJson<int>(json['progressionPoints']),
+      isAlive: serializer.fromJson<bool>(json['isAlive']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      hasUsedRecruitmentBonus: serializer.fromJson<bool>(
+        json['hasUsedRecruitmentBonus'],
+      ),
+      bonusHealth: serializer.fromJson<int>(json['bonusHealth']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'rangerId': serializer.toJson<int>(rangerId),
+      'companionTypeId': serializer.toJson<int>(companionTypeId),
+      'customName': serializer.toJson<String>(customName),
+      'progressionPoints': serializer.toJson<int>(progressionPoints),
+      'isAlive': serializer.toJson<bool>(isAlive),
+      'isActive': serializer.toJson<bool>(isActive),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'hasUsedRecruitmentBonus': serializer.toJson<bool>(
+        hasUsedRecruitmentBonus,
+      ),
+      'bonusHealth': serializer.toJson<int>(bonusHealth),
+    };
+  }
+
+  RangerCompanion copyWith({
+    int? id,
+    int? rangerId,
+    int? companionTypeId,
+    String? customName,
+    int? progressionPoints,
+    bool? isAlive,
+    bool? isActive,
+    DateTime? createdAt,
+    bool? hasUsedRecruitmentBonus,
+    int? bonusHealth,
+  }) => RangerCompanion(
+    id: id ?? this.id,
+    rangerId: rangerId ?? this.rangerId,
+    companionTypeId: companionTypeId ?? this.companionTypeId,
+    customName: customName ?? this.customName,
+    progressionPoints: progressionPoints ?? this.progressionPoints,
+    isAlive: isAlive ?? this.isAlive,
+    isActive: isActive ?? this.isActive,
+    createdAt: createdAt ?? this.createdAt,
+    hasUsedRecruitmentBonus:
+        hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
+    bonusHealth: bonusHealth ?? this.bonusHealth,
+  );
+  RangerCompanion copyWithCompanion(RangerCompanionsCompanion data) {
+    return RangerCompanion(
+      id: data.id.present ? data.id.value : this.id,
+      rangerId: data.rangerId.present ? data.rangerId.value : this.rangerId,
+      companionTypeId: data.companionTypeId.present
+          ? data.companionTypeId.value
+          : this.companionTypeId,
+      customName: data.customName.present
+          ? data.customName.value
+          : this.customName,
+      progressionPoints: data.progressionPoints.present
+          ? data.progressionPoints.value
+          : this.progressionPoints,
+      isAlive: data.isAlive.present ? data.isAlive.value : this.isAlive,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      hasUsedRecruitmentBonus: data.hasUsedRecruitmentBonus.present
+          ? data.hasUsedRecruitmentBonus.value
+          : this.hasUsedRecruitmentBonus,
+      bonusHealth: data.bonusHealth.present
+          ? data.bonusHealth.value
+          : this.bonusHealth,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RangerCompanion(')
+          ..write('id: $id, ')
+          ..write('rangerId: $rangerId, ')
+          ..write('companionTypeId: $companionTypeId, ')
+          ..write('customName: $customName, ')
+          ..write('progressionPoints: $progressionPoints, ')
+          ..write('isAlive: $isAlive, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
+          ..write('bonusHealth: $bonusHealth')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    rangerId,
+    companionTypeId,
+    customName,
+    progressionPoints,
+    isAlive,
+    isActive,
+    createdAt,
+    hasUsedRecruitmentBonus,
+    bonusHealth,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RangerCompanion &&
+          other.id == this.id &&
+          other.rangerId == this.rangerId &&
+          other.companionTypeId == this.companionTypeId &&
+          other.customName == this.customName &&
+          other.progressionPoints == this.progressionPoints &&
+          other.isAlive == this.isAlive &&
+          other.isActive == this.isActive &&
+          other.createdAt == this.createdAt &&
+          other.hasUsedRecruitmentBonus == this.hasUsedRecruitmentBonus &&
+          other.bonusHealth == this.bonusHealth);
+}
+
+class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
+  final Value<int> id;
+  final Value<int> rangerId;
+  final Value<int> companionTypeId;
+  final Value<String> customName;
+  final Value<int> progressionPoints;
+  final Value<bool> isAlive;
+  final Value<bool> isActive;
+  final Value<DateTime> createdAt;
+  final Value<bool> hasUsedRecruitmentBonus;
+  final Value<int> bonusHealth;
+  const RangerCompanionsCompanion({
+    this.id = const Value.absent(),
+    this.rangerId = const Value.absent(),
+    this.companionTypeId = const Value.absent(),
+    this.customName = const Value.absent(),
+    this.progressionPoints = const Value.absent(),
+    this.isAlive = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.hasUsedRecruitmentBonus = const Value.absent(),
+    this.bonusHealth = const Value.absent(),
+  });
+  RangerCompanionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int rangerId,
+    required int companionTypeId,
+    required String customName,
+    this.progressionPoints = const Value.absent(),
+    this.isAlive = const Value.absent(),
+    this.isActive = const Value.absent(),
+    required DateTime createdAt,
+    this.hasUsedRecruitmentBonus = const Value.absent(),
+    this.bonusHealth = const Value.absent(),
+  }) : rangerId = Value(rangerId),
+       companionTypeId = Value(companionTypeId),
+       customName = Value(customName),
+       createdAt = Value(createdAt);
+  static Insertable<RangerCompanion> custom({
+    Expression<int>? id,
+    Expression<int>? rangerId,
+    Expression<int>? companionTypeId,
+    Expression<String>? customName,
+    Expression<int>? progressionPoints,
+    Expression<bool>? isAlive,
+    Expression<bool>? isActive,
+    Expression<DateTime>? createdAt,
+    Expression<bool>? hasUsedRecruitmentBonus,
+    Expression<int>? bonusHealth,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rangerId != null) 'ranger_id': rangerId,
+      if (companionTypeId != null) 'companion_type_id': companionTypeId,
+      if (customName != null) 'custom_name': customName,
+      if (progressionPoints != null) 'progression_points': progressionPoints,
+      if (isAlive != null) 'is_alive': isAlive,
+      if (isActive != null) 'is_active': isActive,
+      if (createdAt != null) 'created_at': createdAt,
+      if (hasUsedRecruitmentBonus != null)
+        'has_used_recruitment_bonus': hasUsedRecruitmentBonus,
+      if (bonusHealth != null) 'bonus_health': bonusHealth,
+    });
+  }
+
+  RangerCompanionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? rangerId,
+    Value<int>? companionTypeId,
+    Value<String>? customName,
+    Value<int>? progressionPoints,
+    Value<bool>? isAlive,
+    Value<bool>? isActive,
+    Value<DateTime>? createdAt,
+    Value<bool>? hasUsedRecruitmentBonus,
+    Value<int>? bonusHealth,
+  }) {
+    return RangerCompanionsCompanion(
+      id: id ?? this.id,
+      rangerId: rangerId ?? this.rangerId,
+      companionTypeId: companionTypeId ?? this.companionTypeId,
+      customName: customName ?? this.customName,
+      progressionPoints: progressionPoints ?? this.progressionPoints,
+      isAlive: isAlive ?? this.isAlive,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      hasUsedRecruitmentBonus:
+          hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
+      bonusHealth: bonusHealth ?? this.bonusHealth,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (rangerId.present) {
+      map['ranger_id'] = Variable<int>(rangerId.value);
+    }
+    if (companionTypeId.present) {
+      map['companion_type_id'] = Variable<int>(companionTypeId.value);
+    }
+    if (customName.present) {
+      map['custom_name'] = Variable<String>(customName.value);
+    }
+    if (progressionPoints.present) {
+      map['progression_points'] = Variable<int>(progressionPoints.value);
+    }
+    if (isAlive.present) {
+      map['is_alive'] = Variable<bool>(isAlive.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (hasUsedRecruitmentBonus.present) {
+      map['has_used_recruitment_bonus'] = Variable<bool>(
+        hasUsedRecruitmentBonus.value,
+      );
+    }
+    if (bonusHealth.present) {
+      map['bonus_health'] = Variable<int>(bonusHealth.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RangerCompanionsCompanion(')
+          ..write('id: $id, ')
+          ..write('rangerId: $rangerId, ')
+          ..write('companionTypeId: $companionTypeId, ')
+          ..write('customName: $customName, ')
+          ..write('progressionPoints: $progressionPoints, ')
+          ..write('isAlive: $isAlive, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
+          ..write('bonusHealth: $bonusHealth')
           ..write(')'))
         .toString();
   }
@@ -916,6 +2175,20 @@ class $RangerAbilitiesTable extends RangerAbilities
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES rangers (id)',
+    ),
+  );
+  static const VerificationMeta _companionIdMeta = const VerificationMeta(
+    'companionId',
+  );
+  @override
+  late final GeneratedColumn<int> companionId = GeneratedColumn<int>(
+    'companion_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ranger_companions (id)',
     ),
   );
   static const VerificationMeta _abilityTypeMeta = const VerificationMeta(
@@ -958,6 +2231,7 @@ class $RangerAbilitiesTable extends RangerAbilities
   List<GeneratedColumn> get $columns => [
     id,
     rangerId,
+    companionId,
     abilityType,
     abilityKey,
     isUsedThisScenario,
@@ -984,6 +2258,15 @@ class $RangerAbilitiesTable extends RangerAbilities
       );
     } else if (isInserting) {
       context.missing(_rangerIdMeta);
+    }
+    if (data.containsKey('companion_id')) {
+      context.handle(
+        _companionIdMeta,
+        companionId.isAcceptableOrUnknown(
+          data['companion_id']!,
+          _companionIdMeta,
+        ),
+      );
     }
     if (data.containsKey('ability_type')) {
       context.handle(
@@ -1030,6 +2313,10 @@ class $RangerAbilitiesTable extends RangerAbilities
         DriftSqlType.int,
         data['${effectivePrefix}ranger_id'],
       )!,
+      companionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_id'],
+      ),
       abilityType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}ability_type'],
@@ -1054,12 +2341,14 @@ class $RangerAbilitiesTable extends RangerAbilities
 class RangerAbility extends DataClass implements Insertable<RangerAbility> {
   final int id;
   final int rangerId;
+  final int? companionId;
   final String abilityType;
   final String abilityKey;
   final bool isUsedThisScenario;
   const RangerAbility({
     required this.id,
     required this.rangerId,
+    this.companionId,
     required this.abilityType,
     required this.abilityKey,
     required this.isUsedThisScenario,
@@ -1069,6 +2358,9 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['ranger_id'] = Variable<int>(rangerId);
+    if (!nullToAbsent || companionId != null) {
+      map['companion_id'] = Variable<int>(companionId);
+    }
     map['ability_type'] = Variable<String>(abilityType);
     map['ability_key'] = Variable<String>(abilityKey);
     map['is_used_this_scenario'] = Variable<bool>(isUsedThisScenario);
@@ -1079,6 +2371,9 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     return RangerAbilitiesCompanion(
       id: Value(id),
       rangerId: Value(rangerId),
+      companionId: companionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(companionId),
       abilityType: Value(abilityType),
       abilityKey: Value(abilityKey),
       isUsedThisScenario: Value(isUsedThisScenario),
@@ -1093,6 +2388,7 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     return RangerAbility(
       id: serializer.fromJson<int>(json['id']),
       rangerId: serializer.fromJson<int>(json['rangerId']),
+      companionId: serializer.fromJson<int?>(json['companionId']),
       abilityType: serializer.fromJson<String>(json['abilityType']),
       abilityKey: serializer.fromJson<String>(json['abilityKey']),
       isUsedThisScenario: serializer.fromJson<bool>(json['isUsedThisScenario']),
@@ -1104,6 +2400,7 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'rangerId': serializer.toJson<int>(rangerId),
+      'companionId': serializer.toJson<int?>(companionId),
       'abilityType': serializer.toJson<String>(abilityType),
       'abilityKey': serializer.toJson<String>(abilityKey),
       'isUsedThisScenario': serializer.toJson<bool>(isUsedThisScenario),
@@ -1113,12 +2410,14 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
   RangerAbility copyWith({
     int? id,
     int? rangerId,
+    Value<int?> companionId = const Value.absent(),
     String? abilityType,
     String? abilityKey,
     bool? isUsedThisScenario,
   }) => RangerAbility(
     id: id ?? this.id,
     rangerId: rangerId ?? this.rangerId,
+    companionId: companionId.present ? companionId.value : this.companionId,
     abilityType: abilityType ?? this.abilityType,
     abilityKey: abilityKey ?? this.abilityKey,
     isUsedThisScenario: isUsedThisScenario ?? this.isUsedThisScenario,
@@ -1127,6 +2426,9 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     return RangerAbility(
       id: data.id.present ? data.id.value : this.id,
       rangerId: data.rangerId.present ? data.rangerId.value : this.rangerId,
+      companionId: data.companionId.present
+          ? data.companionId.value
+          : this.companionId,
       abilityType: data.abilityType.present
           ? data.abilityType.value
           : this.abilityType,
@@ -1144,6 +2446,7 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
     return (StringBuffer('RangerAbility(')
           ..write('id: $id, ')
           ..write('rangerId: $rangerId, ')
+          ..write('companionId: $companionId, ')
           ..write('abilityType: $abilityType, ')
           ..write('abilityKey: $abilityKey, ')
           ..write('isUsedThisScenario: $isUsedThisScenario')
@@ -1152,14 +2455,21 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, rangerId, abilityType, abilityKey, isUsedThisScenario);
+  int get hashCode => Object.hash(
+    id,
+    rangerId,
+    companionId,
+    abilityType,
+    abilityKey,
+    isUsedThisScenario,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RangerAbility &&
           other.id == this.id &&
           other.rangerId == this.rangerId &&
+          other.companionId == this.companionId &&
           other.abilityType == this.abilityType &&
           other.abilityKey == this.abilityKey &&
           other.isUsedThisScenario == this.isUsedThisScenario);
@@ -1168,12 +2478,14 @@ class RangerAbility extends DataClass implements Insertable<RangerAbility> {
 class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
   final Value<int> id;
   final Value<int> rangerId;
+  final Value<int?> companionId;
   final Value<String> abilityType;
   final Value<String> abilityKey;
   final Value<bool> isUsedThisScenario;
   const RangerAbilitiesCompanion({
     this.id = const Value.absent(),
     this.rangerId = const Value.absent(),
+    this.companionId = const Value.absent(),
     this.abilityType = const Value.absent(),
     this.abilityKey = const Value.absent(),
     this.isUsedThisScenario = const Value.absent(),
@@ -1181,6 +2493,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
   RangerAbilitiesCompanion.insert({
     this.id = const Value.absent(),
     required int rangerId,
+    this.companionId = const Value.absent(),
     required String abilityType,
     required String abilityKey,
     this.isUsedThisScenario = const Value.absent(),
@@ -1190,6 +2503,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
   static Insertable<RangerAbility> custom({
     Expression<int>? id,
     Expression<int>? rangerId,
+    Expression<int>? companionId,
     Expression<String>? abilityType,
     Expression<String>? abilityKey,
     Expression<bool>? isUsedThisScenario,
@@ -1197,6 +2511,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (rangerId != null) 'ranger_id': rangerId,
+      if (companionId != null) 'companion_id': companionId,
       if (abilityType != null) 'ability_type': abilityType,
       if (abilityKey != null) 'ability_key': abilityKey,
       if (isUsedThisScenario != null)
@@ -1207,6 +2522,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
   RangerAbilitiesCompanion copyWith({
     Value<int>? id,
     Value<int>? rangerId,
+    Value<int?>? companionId,
     Value<String>? abilityType,
     Value<String>? abilityKey,
     Value<bool>? isUsedThisScenario,
@@ -1214,6 +2530,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
     return RangerAbilitiesCompanion(
       id: id ?? this.id,
       rangerId: rangerId ?? this.rangerId,
+      companionId: companionId ?? this.companionId,
       abilityType: abilityType ?? this.abilityType,
       abilityKey: abilityKey ?? this.abilityKey,
       isUsedThisScenario: isUsedThisScenario ?? this.isUsedThisScenario,
@@ -1228,6 +2545,9 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
     }
     if (rangerId.present) {
       map['ranger_id'] = Variable<int>(rangerId.value);
+    }
+    if (companionId.present) {
+      map['companion_id'] = Variable<int>(companionId.value);
     }
     if (abilityType.present) {
       map['ability_type'] = Variable<String>(abilityType.value);
@@ -1246,6 +2566,7 @@ class RangerAbilitiesCompanion extends UpdateCompanion<RangerAbility> {
     return (StringBuffer('RangerAbilitiesCompanion(')
           ..write('id: $id, ')
           ..write('rangerId: $rangerId, ')
+          ..write('companionId: $companionId, ')
           ..write('abilityType: $abilityType, ')
           ..write('abilityKey: $abilityKey, ')
           ..write('isUsedThisScenario: $isUsedThisScenario')
@@ -1559,1678 +2880,6 @@ class RangerSkillsCompanion extends UpdateCompanion<RangerSkill> {
   }
 }
 
-class $CompanionTypesTable extends CompanionTypes
-    with TableInfo<$CompanionTypesTable, CompanionType> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $CompanionTypesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _typeKeyMeta = const VerificationMeta(
-    'typeKey',
-  );
-  @override
-  late final GeneratedColumn<String> typeKey = GeneratedColumn<String>(
-    'type_key',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _rpCostMeta = const VerificationMeta('rpCost');
-  @override
-  late final GeneratedColumn<int> rpCost = GeneratedColumn<int>(
-    'rp_cost',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _moveMeta = const VerificationMeta('move');
-  @override
-  late final GeneratedColumn<int> move = GeneratedColumn<int>(
-    'move',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _fightMeta = const VerificationMeta('fight');
-  @override
-  late final GeneratedColumn<int> fight = GeneratedColumn<int>(
-    'fight',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shootMeta = const VerificationMeta('shoot');
-  @override
-  late final GeneratedColumn<int> shoot = GeneratedColumn<int>(
-    'shoot',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _armourMeta = const VerificationMeta('armour');
-  @override
-  late final GeneratedColumn<int> armour = GeneratedColumn<int>(
-    'armour',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _willMeta = const VerificationMeta('will');
-  @override
-  late final GeneratedColumn<int> will = GeneratedColumn<int>(
-    'will',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _healthMeta = const VerificationMeta('health');
-  @override
-  late final GeneratedColumn<int> health = GeneratedColumn<int>(
-    'health',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
-  @override
-  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-    'notes',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _isAnimalMeta = const VerificationMeta(
-    'isAnimal',
-  );
-  @override
-  late final GeneratedColumn<bool> isAnimal = GeneratedColumn<bool>(
-    'is_animal',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_animal" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _baseSkillsMeta = const VerificationMeta(
-    'baseSkills',
-  );
-  @override
-  late final GeneratedColumn<String> baseSkills = GeneratedColumn<String>(
-    'base_skills',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('{}'),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    typeKey,
-    name,
-    rpCost,
-    move,
-    fight,
-    shoot,
-    armour,
-    will,
-    health,
-    notes,
-    isAnimal,
-    baseSkills,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'companion_types';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<CompanionType> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('type_key')) {
-      context.handle(
-        _typeKeyMeta,
-        typeKey.isAcceptableOrUnknown(data['type_key']!, _typeKeyMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_typeKeyMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('rp_cost')) {
-      context.handle(
-        _rpCostMeta,
-        rpCost.isAcceptableOrUnknown(data['rp_cost']!, _rpCostMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_rpCostMeta);
-    }
-    if (data.containsKey('move')) {
-      context.handle(
-        _moveMeta,
-        move.isAcceptableOrUnknown(data['move']!, _moveMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_moveMeta);
-    }
-    if (data.containsKey('fight')) {
-      context.handle(
-        _fightMeta,
-        fight.isAcceptableOrUnknown(data['fight']!, _fightMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_fightMeta);
-    }
-    if (data.containsKey('shoot')) {
-      context.handle(
-        _shootMeta,
-        shoot.isAcceptableOrUnknown(data['shoot']!, _shootMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_shootMeta);
-    }
-    if (data.containsKey('armour')) {
-      context.handle(
-        _armourMeta,
-        armour.isAcceptableOrUnknown(data['armour']!, _armourMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_armourMeta);
-    }
-    if (data.containsKey('will')) {
-      context.handle(
-        _willMeta,
-        will.isAcceptableOrUnknown(data['will']!, _willMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_willMeta);
-    }
-    if (data.containsKey('health')) {
-      context.handle(
-        _healthMeta,
-        health.isAcceptableOrUnknown(data['health']!, _healthMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_healthMeta);
-    }
-    if (data.containsKey('notes')) {
-      context.handle(
-        _notesMeta,
-        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
-      );
-    }
-    if (data.containsKey('is_animal')) {
-      context.handle(
-        _isAnimalMeta,
-        isAnimal.isAcceptableOrUnknown(data['is_animal']!, _isAnimalMeta),
-      );
-    }
-    if (data.containsKey('base_skills')) {
-      context.handle(
-        _baseSkillsMeta,
-        baseSkills.isAcceptableOrUnknown(data['base_skills']!, _baseSkillsMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  CompanionType map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CompanionType(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      typeKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}type_key'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      rpCost: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}rp_cost'],
-      )!,
-      move: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}move'],
-      )!,
-      fight: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}fight'],
-      )!,
-      shoot: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}shoot'],
-      )!,
-      armour: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}armour'],
-      )!,
-      will: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}will'],
-      )!,
-      health: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}health'],
-      )!,
-      notes: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}notes'],
-      )!,
-      isAnimal: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_animal'],
-      )!,
-      baseSkills: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}base_skills'],
-      )!,
-    );
-  }
-
-  @override
-  $CompanionTypesTable createAlias(String alias) {
-    return $CompanionTypesTable(attachedDatabase, alias);
-  }
-}
-
-class CompanionType extends DataClass implements Insertable<CompanionType> {
-  final int id;
-  final String typeKey;
-  final String name;
-  final int rpCost;
-  final int move;
-  final int fight;
-  final int shoot;
-  final int armour;
-  final int will;
-  final int health;
-  final String notes;
-  final bool isAnimal;
-  final String baseSkills;
-  const CompanionType({
-    required this.id,
-    required this.typeKey,
-    required this.name,
-    required this.rpCost,
-    required this.move,
-    required this.fight,
-    required this.shoot,
-    required this.armour,
-    required this.will,
-    required this.health,
-    required this.notes,
-    required this.isAnimal,
-    required this.baseSkills,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['type_key'] = Variable<String>(typeKey);
-    map['name'] = Variable<String>(name);
-    map['rp_cost'] = Variable<int>(rpCost);
-    map['move'] = Variable<int>(move);
-    map['fight'] = Variable<int>(fight);
-    map['shoot'] = Variable<int>(shoot);
-    map['armour'] = Variable<int>(armour);
-    map['will'] = Variable<int>(will);
-    map['health'] = Variable<int>(health);
-    map['notes'] = Variable<String>(notes);
-    map['is_animal'] = Variable<bool>(isAnimal);
-    map['base_skills'] = Variable<String>(baseSkills);
-    return map;
-  }
-
-  CompanionTypesCompanion toCompanion(bool nullToAbsent) {
-    return CompanionTypesCompanion(
-      id: Value(id),
-      typeKey: Value(typeKey),
-      name: Value(name),
-      rpCost: Value(rpCost),
-      move: Value(move),
-      fight: Value(fight),
-      shoot: Value(shoot),
-      armour: Value(armour),
-      will: Value(will),
-      health: Value(health),
-      notes: Value(notes),
-      isAnimal: Value(isAnimal),
-      baseSkills: Value(baseSkills),
-    );
-  }
-
-  factory CompanionType.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CompanionType(
-      id: serializer.fromJson<int>(json['id']),
-      typeKey: serializer.fromJson<String>(json['typeKey']),
-      name: serializer.fromJson<String>(json['name']),
-      rpCost: serializer.fromJson<int>(json['rpCost']),
-      move: serializer.fromJson<int>(json['move']),
-      fight: serializer.fromJson<int>(json['fight']),
-      shoot: serializer.fromJson<int>(json['shoot']),
-      armour: serializer.fromJson<int>(json['armour']),
-      will: serializer.fromJson<int>(json['will']),
-      health: serializer.fromJson<int>(json['health']),
-      notes: serializer.fromJson<String>(json['notes']),
-      isAnimal: serializer.fromJson<bool>(json['isAnimal']),
-      baseSkills: serializer.fromJson<String>(json['baseSkills']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'typeKey': serializer.toJson<String>(typeKey),
-      'name': serializer.toJson<String>(name),
-      'rpCost': serializer.toJson<int>(rpCost),
-      'move': serializer.toJson<int>(move),
-      'fight': serializer.toJson<int>(fight),
-      'shoot': serializer.toJson<int>(shoot),
-      'armour': serializer.toJson<int>(armour),
-      'will': serializer.toJson<int>(will),
-      'health': serializer.toJson<int>(health),
-      'notes': serializer.toJson<String>(notes),
-      'isAnimal': serializer.toJson<bool>(isAnimal),
-      'baseSkills': serializer.toJson<String>(baseSkills),
-    };
-  }
-
-  CompanionType copyWith({
-    int? id,
-    String? typeKey,
-    String? name,
-    int? rpCost,
-    int? move,
-    int? fight,
-    int? shoot,
-    int? armour,
-    int? will,
-    int? health,
-    String? notes,
-    bool? isAnimal,
-    String? baseSkills,
-  }) => CompanionType(
-    id: id ?? this.id,
-    typeKey: typeKey ?? this.typeKey,
-    name: name ?? this.name,
-    rpCost: rpCost ?? this.rpCost,
-    move: move ?? this.move,
-    fight: fight ?? this.fight,
-    shoot: shoot ?? this.shoot,
-    armour: armour ?? this.armour,
-    will: will ?? this.will,
-    health: health ?? this.health,
-    notes: notes ?? this.notes,
-    isAnimal: isAnimal ?? this.isAnimal,
-    baseSkills: baseSkills ?? this.baseSkills,
-  );
-  CompanionType copyWithCompanion(CompanionTypesCompanion data) {
-    return CompanionType(
-      id: data.id.present ? data.id.value : this.id,
-      typeKey: data.typeKey.present ? data.typeKey.value : this.typeKey,
-      name: data.name.present ? data.name.value : this.name,
-      rpCost: data.rpCost.present ? data.rpCost.value : this.rpCost,
-      move: data.move.present ? data.move.value : this.move,
-      fight: data.fight.present ? data.fight.value : this.fight,
-      shoot: data.shoot.present ? data.shoot.value : this.shoot,
-      armour: data.armour.present ? data.armour.value : this.armour,
-      will: data.will.present ? data.will.value : this.will,
-      health: data.health.present ? data.health.value : this.health,
-      notes: data.notes.present ? data.notes.value : this.notes,
-      isAnimal: data.isAnimal.present ? data.isAnimal.value : this.isAnimal,
-      baseSkills: data.baseSkills.present
-          ? data.baseSkills.value
-          : this.baseSkills,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('CompanionType(')
-          ..write('id: $id, ')
-          ..write('typeKey: $typeKey, ')
-          ..write('name: $name, ')
-          ..write('rpCost: $rpCost, ')
-          ..write('move: $move, ')
-          ..write('fight: $fight, ')
-          ..write('shoot: $shoot, ')
-          ..write('armour: $armour, ')
-          ..write('will: $will, ')
-          ..write('health: $health, ')
-          ..write('notes: $notes, ')
-          ..write('isAnimal: $isAnimal, ')
-          ..write('baseSkills: $baseSkills')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    typeKey,
-    name,
-    rpCost,
-    move,
-    fight,
-    shoot,
-    armour,
-    will,
-    health,
-    notes,
-    isAnimal,
-    baseSkills,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is CompanionType &&
-          other.id == this.id &&
-          other.typeKey == this.typeKey &&
-          other.name == this.name &&
-          other.rpCost == this.rpCost &&
-          other.move == this.move &&
-          other.fight == this.fight &&
-          other.shoot == this.shoot &&
-          other.armour == this.armour &&
-          other.will == this.will &&
-          other.health == this.health &&
-          other.notes == this.notes &&
-          other.isAnimal == this.isAnimal &&
-          other.baseSkills == this.baseSkills);
-}
-
-class CompanionTypesCompanion extends UpdateCompanion<CompanionType> {
-  final Value<int> id;
-  final Value<String> typeKey;
-  final Value<String> name;
-  final Value<int> rpCost;
-  final Value<int> move;
-  final Value<int> fight;
-  final Value<int> shoot;
-  final Value<int> armour;
-  final Value<int> will;
-  final Value<int> health;
-  final Value<String> notes;
-  final Value<bool> isAnimal;
-  final Value<String> baseSkills;
-  const CompanionTypesCompanion({
-    this.id = const Value.absent(),
-    this.typeKey = const Value.absent(),
-    this.name = const Value.absent(),
-    this.rpCost = const Value.absent(),
-    this.move = const Value.absent(),
-    this.fight = const Value.absent(),
-    this.shoot = const Value.absent(),
-    this.armour = const Value.absent(),
-    this.will = const Value.absent(),
-    this.health = const Value.absent(),
-    this.notes = const Value.absent(),
-    this.isAnimal = const Value.absent(),
-    this.baseSkills = const Value.absent(),
-  });
-  CompanionTypesCompanion.insert({
-    this.id = const Value.absent(),
-    required String typeKey,
-    required String name,
-    required int rpCost,
-    required int move,
-    required int fight,
-    required int shoot,
-    required int armour,
-    required int will,
-    required int health,
-    this.notes = const Value.absent(),
-    this.isAnimal = const Value.absent(),
-    this.baseSkills = const Value.absent(),
-  }) : typeKey = Value(typeKey),
-       name = Value(name),
-       rpCost = Value(rpCost),
-       move = Value(move),
-       fight = Value(fight),
-       shoot = Value(shoot),
-       armour = Value(armour),
-       will = Value(will),
-       health = Value(health);
-  static Insertable<CompanionType> custom({
-    Expression<int>? id,
-    Expression<String>? typeKey,
-    Expression<String>? name,
-    Expression<int>? rpCost,
-    Expression<int>? move,
-    Expression<int>? fight,
-    Expression<int>? shoot,
-    Expression<int>? armour,
-    Expression<int>? will,
-    Expression<int>? health,
-    Expression<String>? notes,
-    Expression<bool>? isAnimal,
-    Expression<String>? baseSkills,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (typeKey != null) 'type_key': typeKey,
-      if (name != null) 'name': name,
-      if (rpCost != null) 'rp_cost': rpCost,
-      if (move != null) 'move': move,
-      if (fight != null) 'fight': fight,
-      if (shoot != null) 'shoot': shoot,
-      if (armour != null) 'armour': armour,
-      if (will != null) 'will': will,
-      if (health != null) 'health': health,
-      if (notes != null) 'notes': notes,
-      if (isAnimal != null) 'is_animal': isAnimal,
-      if (baseSkills != null) 'base_skills': baseSkills,
-    });
-  }
-
-  CompanionTypesCompanion copyWith({
-    Value<int>? id,
-    Value<String>? typeKey,
-    Value<String>? name,
-    Value<int>? rpCost,
-    Value<int>? move,
-    Value<int>? fight,
-    Value<int>? shoot,
-    Value<int>? armour,
-    Value<int>? will,
-    Value<int>? health,
-    Value<String>? notes,
-    Value<bool>? isAnimal,
-    Value<String>? baseSkills,
-  }) {
-    return CompanionTypesCompanion(
-      id: id ?? this.id,
-      typeKey: typeKey ?? this.typeKey,
-      name: name ?? this.name,
-      rpCost: rpCost ?? this.rpCost,
-      move: move ?? this.move,
-      fight: fight ?? this.fight,
-      shoot: shoot ?? this.shoot,
-      armour: armour ?? this.armour,
-      will: will ?? this.will,
-      health: health ?? this.health,
-      notes: notes ?? this.notes,
-      isAnimal: isAnimal ?? this.isAnimal,
-      baseSkills: baseSkills ?? this.baseSkills,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (typeKey.present) {
-      map['type_key'] = Variable<String>(typeKey.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (rpCost.present) {
-      map['rp_cost'] = Variable<int>(rpCost.value);
-    }
-    if (move.present) {
-      map['move'] = Variable<int>(move.value);
-    }
-    if (fight.present) {
-      map['fight'] = Variable<int>(fight.value);
-    }
-    if (shoot.present) {
-      map['shoot'] = Variable<int>(shoot.value);
-    }
-    if (armour.present) {
-      map['armour'] = Variable<int>(armour.value);
-    }
-    if (will.present) {
-      map['will'] = Variable<int>(will.value);
-    }
-    if (health.present) {
-      map['health'] = Variable<int>(health.value);
-    }
-    if (notes.present) {
-      map['notes'] = Variable<String>(notes.value);
-    }
-    if (isAnimal.present) {
-      map['is_animal'] = Variable<bool>(isAnimal.value);
-    }
-    if (baseSkills.present) {
-      map['base_skills'] = Variable<String>(baseSkills.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('CompanionTypesCompanion(')
-          ..write('id: $id, ')
-          ..write('typeKey: $typeKey, ')
-          ..write('name: $name, ')
-          ..write('rpCost: $rpCost, ')
-          ..write('move: $move, ')
-          ..write('fight: $fight, ')
-          ..write('shoot: $shoot, ')
-          ..write('armour: $armour, ')
-          ..write('will: $will, ')
-          ..write('health: $health, ')
-          ..write('notes: $notes, ')
-          ..write('isAnimal: $isAnimal, ')
-          ..write('baseSkills: $baseSkills')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $RangerCompanionsTable extends RangerCompanions
-    with TableInfo<$RangerCompanionsTable, RangerCompanion> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $RangerCompanionsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _rangerIdMeta = const VerificationMeta(
-    'rangerId',
-  );
-  @override
-  late final GeneratedColumn<int> rangerId = GeneratedColumn<int>(
-    'ranger_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES rangers (id)',
-    ),
-  );
-  static const VerificationMeta _companionTypeIdMeta = const VerificationMeta(
-    'companionTypeId',
-  );
-  @override
-  late final GeneratedColumn<int> companionTypeId = GeneratedColumn<int>(
-    'companion_type_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES companion_types (id)',
-    ),
-  );
-  static const VerificationMeta _customNameMeta = const VerificationMeta(
-    'customName',
-  );
-  @override
-  late final GeneratedColumn<String> customName = GeneratedColumn<String>(
-    'custom_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _progressionPointsMeta = const VerificationMeta(
-    'progressionPoints',
-  );
-  @override
-  late final GeneratedColumn<int> progressionPoints = GeneratedColumn<int>(
-    'progression_points',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _isAliveMeta = const VerificationMeta(
-    'isAlive',
-  );
-  @override
-  late final GeneratedColumn<bool> isAlive = GeneratedColumn<bool>(
-    'is_alive',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_alive" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _permanentInjuriesMeta = const VerificationMeta(
-    'permanentInjuries',
-  );
-  @override
-  late final GeneratedColumn<String> permanentInjuries =
-      GeneratedColumn<String>(
-        'permanent_injuries',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        defaultValue: const Constant('[]'),
-      );
-  static const VerificationMeta _customSkillsMeta = const VerificationMeta(
-    'customSkills',
-  );
-  @override
-  late final GeneratedColumn<String> customSkills = GeneratedColumn<String>(
-    'custom_skills',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('{}'),
-  );
-  static const VerificationMeta _isActiveMeta = const VerificationMeta(
-    'isActive',
-  );
-  @override
-  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
-    'is_active',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_active" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _claimedProgressionRewardsMeta =
-      const VerificationMeta('claimedProgressionRewards');
-  @override
-  late final GeneratedColumn<String> claimedProgressionRewards =
-      GeneratedColumn<String>(
-        'claimed_progression_rewards',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        defaultValue: const Constant('[]'),
-      );
-  static const VerificationMeta _hasUsedRecruitmentBonusMeta =
-      const VerificationMeta('hasUsedRecruitmentBonus');
-  @override
-  late final GeneratedColumn<bool> hasUsedRecruitmentBonus =
-      GeneratedColumn<bool>(
-        'has_used_recruitment_bonus',
-        aliasedName,
-        false,
-        type: DriftSqlType.bool,
-        requiredDuringInsert: false,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("has_used_recruitment_bonus" IN (0, 1))',
-        ),
-        defaultValue: const Constant(false),
-      );
-  static const VerificationMeta _bonusHealthMeta = const VerificationMeta(
-    'bonusHealth',
-  );
-  @override
-  late final GeneratedColumn<int> bonusHealth = GeneratedColumn<int>(
-    'bonus_health',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _heroicAbilityKeysMeta = const VerificationMeta(
-    'heroicAbilityKeys',
-  );
-  @override
-  late final GeneratedColumn<String> heroicAbilityKeys =
-      GeneratedColumn<String>(
-        'heroic_ability_keys',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        defaultValue: const Constant('[]'),
-      );
-  static const VerificationMeta _spellKeysMeta = const VerificationMeta(
-    'spellKeys',
-  );
-  @override
-  late final GeneratedColumn<String> spellKeys = GeneratedColumn<String>(
-    'spell_keys',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
-  static const VerificationMeta _statusEffectsMeta = const VerificationMeta(
-    'statusEffects',
-  );
-  @override
-  late final GeneratedColumn<String> statusEffects = GeneratedColumn<String>(
-    'status_effects',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    rangerId,
-    companionTypeId,
-    customName,
-    progressionPoints,
-    isAlive,
-    permanentInjuries,
-    customSkills,
-    isActive,
-    createdAt,
-    claimedProgressionRewards,
-    hasUsedRecruitmentBonus,
-    bonusHealth,
-    heroicAbilityKeys,
-    spellKeys,
-    statusEffects,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'ranger_companions';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<RangerCompanion> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('ranger_id')) {
-      context.handle(
-        _rangerIdMeta,
-        rangerId.isAcceptableOrUnknown(data['ranger_id']!, _rangerIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_rangerIdMeta);
-    }
-    if (data.containsKey('companion_type_id')) {
-      context.handle(
-        _companionTypeIdMeta,
-        companionTypeId.isAcceptableOrUnknown(
-          data['companion_type_id']!,
-          _companionTypeIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_companionTypeIdMeta);
-    }
-    if (data.containsKey('custom_name')) {
-      context.handle(
-        _customNameMeta,
-        customName.isAcceptableOrUnknown(data['custom_name']!, _customNameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_customNameMeta);
-    }
-    if (data.containsKey('progression_points')) {
-      context.handle(
-        _progressionPointsMeta,
-        progressionPoints.isAcceptableOrUnknown(
-          data['progression_points']!,
-          _progressionPointsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('is_alive')) {
-      context.handle(
-        _isAliveMeta,
-        isAlive.isAcceptableOrUnknown(data['is_alive']!, _isAliveMeta),
-      );
-    }
-    if (data.containsKey('permanent_injuries')) {
-      context.handle(
-        _permanentInjuriesMeta,
-        permanentInjuries.isAcceptableOrUnknown(
-          data['permanent_injuries']!,
-          _permanentInjuriesMeta,
-        ),
-      );
-    }
-    if (data.containsKey('custom_skills')) {
-      context.handle(
-        _customSkillsMeta,
-        customSkills.isAcceptableOrUnknown(
-          data['custom_skills']!,
-          _customSkillsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('is_active')) {
-      context.handle(
-        _isActiveMeta,
-        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('claimed_progression_rewards')) {
-      context.handle(
-        _claimedProgressionRewardsMeta,
-        claimedProgressionRewards.isAcceptableOrUnknown(
-          data['claimed_progression_rewards']!,
-          _claimedProgressionRewardsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('has_used_recruitment_bonus')) {
-      context.handle(
-        _hasUsedRecruitmentBonusMeta,
-        hasUsedRecruitmentBonus.isAcceptableOrUnknown(
-          data['has_used_recruitment_bonus']!,
-          _hasUsedRecruitmentBonusMeta,
-        ),
-      );
-    }
-    if (data.containsKey('bonus_health')) {
-      context.handle(
-        _bonusHealthMeta,
-        bonusHealth.isAcceptableOrUnknown(
-          data['bonus_health']!,
-          _bonusHealthMeta,
-        ),
-      );
-    }
-    if (data.containsKey('heroic_ability_keys')) {
-      context.handle(
-        _heroicAbilityKeysMeta,
-        heroicAbilityKeys.isAcceptableOrUnknown(
-          data['heroic_ability_keys']!,
-          _heroicAbilityKeysMeta,
-        ),
-      );
-    }
-    if (data.containsKey('spell_keys')) {
-      context.handle(
-        _spellKeysMeta,
-        spellKeys.isAcceptableOrUnknown(data['spell_keys']!, _spellKeysMeta),
-      );
-    }
-    if (data.containsKey('status_effects')) {
-      context.handle(
-        _statusEffectsMeta,
-        statusEffects.isAcceptableOrUnknown(
-          data['status_effects']!,
-          _statusEffectsMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  RangerCompanion map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return RangerCompanion(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      rangerId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}ranger_id'],
-      )!,
-      companionTypeId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}companion_type_id'],
-      )!,
-      customName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}custom_name'],
-      )!,
-      progressionPoints: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}progression_points'],
-      )!,
-      isAlive: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_alive'],
-      )!,
-      permanentInjuries: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}permanent_injuries'],
-      )!,
-      customSkills: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}custom_skills'],
-      )!,
-      isActive: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_active'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      claimedProgressionRewards: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}claimed_progression_rewards'],
-      )!,
-      hasUsedRecruitmentBonus: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}has_used_recruitment_bonus'],
-      )!,
-      bonusHealth: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bonus_health'],
-      )!,
-      heroicAbilityKeys: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}heroic_ability_keys'],
-      )!,
-      spellKeys: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}spell_keys'],
-      )!,
-      statusEffects: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status_effects'],
-      )!,
-    );
-  }
-
-  @override
-  $RangerCompanionsTable createAlias(String alias) {
-    return $RangerCompanionsTable(attachedDatabase, alias);
-  }
-}
-
-class RangerCompanion extends DataClass implements Insertable<RangerCompanion> {
-  final int id;
-  final int rangerId;
-  final int companionTypeId;
-  final String customName;
-  final int progressionPoints;
-  final bool isAlive;
-  final String permanentInjuries;
-  final String customSkills;
-  final bool isActive;
-  final DateTime createdAt;
-  final String claimedProgressionRewards;
-  final bool hasUsedRecruitmentBonus;
-  final int bonusHealth;
-  final String heroicAbilityKeys;
-  final String spellKeys;
-  final String statusEffects;
-  const RangerCompanion({
-    required this.id,
-    required this.rangerId,
-    required this.companionTypeId,
-    required this.customName,
-    required this.progressionPoints,
-    required this.isAlive,
-    required this.permanentInjuries,
-    required this.customSkills,
-    required this.isActive,
-    required this.createdAt,
-    required this.claimedProgressionRewards,
-    required this.hasUsedRecruitmentBonus,
-    required this.bonusHealth,
-    required this.heroicAbilityKeys,
-    required this.spellKeys,
-    required this.statusEffects,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['ranger_id'] = Variable<int>(rangerId);
-    map['companion_type_id'] = Variable<int>(companionTypeId);
-    map['custom_name'] = Variable<String>(customName);
-    map['progression_points'] = Variable<int>(progressionPoints);
-    map['is_alive'] = Variable<bool>(isAlive);
-    map['permanent_injuries'] = Variable<String>(permanentInjuries);
-    map['custom_skills'] = Variable<String>(customSkills);
-    map['is_active'] = Variable<bool>(isActive);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['claimed_progression_rewards'] = Variable<String>(
-      claimedProgressionRewards,
-    );
-    map['has_used_recruitment_bonus'] = Variable<bool>(hasUsedRecruitmentBonus);
-    map['bonus_health'] = Variable<int>(bonusHealth);
-    map['heroic_ability_keys'] = Variable<String>(heroicAbilityKeys);
-    map['spell_keys'] = Variable<String>(spellKeys);
-    map['status_effects'] = Variable<String>(statusEffects);
-    return map;
-  }
-
-  RangerCompanionsCompanion toCompanion(bool nullToAbsent) {
-    return RangerCompanionsCompanion(
-      id: Value(id),
-      rangerId: Value(rangerId),
-      companionTypeId: Value(companionTypeId),
-      customName: Value(customName),
-      progressionPoints: Value(progressionPoints),
-      isAlive: Value(isAlive),
-      permanentInjuries: Value(permanentInjuries),
-      customSkills: Value(customSkills),
-      isActive: Value(isActive),
-      createdAt: Value(createdAt),
-      claimedProgressionRewards: Value(claimedProgressionRewards),
-      hasUsedRecruitmentBonus: Value(hasUsedRecruitmentBonus),
-      bonusHealth: Value(bonusHealth),
-      heroicAbilityKeys: Value(heroicAbilityKeys),
-      spellKeys: Value(spellKeys),
-      statusEffects: Value(statusEffects),
-    );
-  }
-
-  factory RangerCompanion.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return RangerCompanion(
-      id: serializer.fromJson<int>(json['id']),
-      rangerId: serializer.fromJson<int>(json['rangerId']),
-      companionTypeId: serializer.fromJson<int>(json['companionTypeId']),
-      customName: serializer.fromJson<String>(json['customName']),
-      progressionPoints: serializer.fromJson<int>(json['progressionPoints']),
-      isAlive: serializer.fromJson<bool>(json['isAlive']),
-      permanentInjuries: serializer.fromJson<String>(json['permanentInjuries']),
-      customSkills: serializer.fromJson<String>(json['customSkills']),
-      isActive: serializer.fromJson<bool>(json['isActive']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      claimedProgressionRewards: serializer.fromJson<String>(
-        json['claimedProgressionRewards'],
-      ),
-      hasUsedRecruitmentBonus: serializer.fromJson<bool>(
-        json['hasUsedRecruitmentBonus'],
-      ),
-      bonusHealth: serializer.fromJson<int>(json['bonusHealth']),
-      heroicAbilityKeys: serializer.fromJson<String>(json['heroicAbilityKeys']),
-      spellKeys: serializer.fromJson<String>(json['spellKeys']),
-      statusEffects: serializer.fromJson<String>(json['statusEffects']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'rangerId': serializer.toJson<int>(rangerId),
-      'companionTypeId': serializer.toJson<int>(companionTypeId),
-      'customName': serializer.toJson<String>(customName),
-      'progressionPoints': serializer.toJson<int>(progressionPoints),
-      'isAlive': serializer.toJson<bool>(isAlive),
-      'permanentInjuries': serializer.toJson<String>(permanentInjuries),
-      'customSkills': serializer.toJson<String>(customSkills),
-      'isActive': serializer.toJson<bool>(isActive),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'claimedProgressionRewards': serializer.toJson<String>(
-        claimedProgressionRewards,
-      ),
-      'hasUsedRecruitmentBonus': serializer.toJson<bool>(
-        hasUsedRecruitmentBonus,
-      ),
-      'bonusHealth': serializer.toJson<int>(bonusHealth),
-      'heroicAbilityKeys': serializer.toJson<String>(heroicAbilityKeys),
-      'spellKeys': serializer.toJson<String>(spellKeys),
-      'statusEffects': serializer.toJson<String>(statusEffects),
-    };
-  }
-
-  RangerCompanion copyWith({
-    int? id,
-    int? rangerId,
-    int? companionTypeId,
-    String? customName,
-    int? progressionPoints,
-    bool? isAlive,
-    String? permanentInjuries,
-    String? customSkills,
-    bool? isActive,
-    DateTime? createdAt,
-    String? claimedProgressionRewards,
-    bool? hasUsedRecruitmentBonus,
-    int? bonusHealth,
-    String? heroicAbilityKeys,
-    String? spellKeys,
-    String? statusEffects,
-  }) => RangerCompanion(
-    id: id ?? this.id,
-    rangerId: rangerId ?? this.rangerId,
-    companionTypeId: companionTypeId ?? this.companionTypeId,
-    customName: customName ?? this.customName,
-    progressionPoints: progressionPoints ?? this.progressionPoints,
-    isAlive: isAlive ?? this.isAlive,
-    permanentInjuries: permanentInjuries ?? this.permanentInjuries,
-    customSkills: customSkills ?? this.customSkills,
-    isActive: isActive ?? this.isActive,
-    createdAt: createdAt ?? this.createdAt,
-    claimedProgressionRewards:
-        claimedProgressionRewards ?? this.claimedProgressionRewards,
-    hasUsedRecruitmentBonus:
-        hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
-    bonusHealth: bonusHealth ?? this.bonusHealth,
-    heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
-    spellKeys: spellKeys ?? this.spellKeys,
-    statusEffects: statusEffects ?? this.statusEffects,
-  );
-  RangerCompanion copyWithCompanion(RangerCompanionsCompanion data) {
-    return RangerCompanion(
-      id: data.id.present ? data.id.value : this.id,
-      rangerId: data.rangerId.present ? data.rangerId.value : this.rangerId,
-      companionTypeId: data.companionTypeId.present
-          ? data.companionTypeId.value
-          : this.companionTypeId,
-      customName: data.customName.present
-          ? data.customName.value
-          : this.customName,
-      progressionPoints: data.progressionPoints.present
-          ? data.progressionPoints.value
-          : this.progressionPoints,
-      isAlive: data.isAlive.present ? data.isAlive.value : this.isAlive,
-      permanentInjuries: data.permanentInjuries.present
-          ? data.permanentInjuries.value
-          : this.permanentInjuries,
-      customSkills: data.customSkills.present
-          ? data.customSkills.value
-          : this.customSkills,
-      isActive: data.isActive.present ? data.isActive.value : this.isActive,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      claimedProgressionRewards: data.claimedProgressionRewards.present
-          ? data.claimedProgressionRewards.value
-          : this.claimedProgressionRewards,
-      hasUsedRecruitmentBonus: data.hasUsedRecruitmentBonus.present
-          ? data.hasUsedRecruitmentBonus.value
-          : this.hasUsedRecruitmentBonus,
-      bonusHealth: data.bonusHealth.present
-          ? data.bonusHealth.value
-          : this.bonusHealth,
-      heroicAbilityKeys: data.heroicAbilityKeys.present
-          ? data.heroicAbilityKeys.value
-          : this.heroicAbilityKeys,
-      spellKeys: data.spellKeys.present ? data.spellKeys.value : this.spellKeys,
-      statusEffects: data.statusEffects.present
-          ? data.statusEffects.value
-          : this.statusEffects,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('RangerCompanion(')
-          ..write('id: $id, ')
-          ..write('rangerId: $rangerId, ')
-          ..write('companionTypeId: $companionTypeId, ')
-          ..write('customName: $customName, ')
-          ..write('progressionPoints: $progressionPoints, ')
-          ..write('isAlive: $isAlive, ')
-          ..write('permanentInjuries: $permanentInjuries, ')
-          ..write('customSkills: $customSkills, ')
-          ..write('isActive: $isActive, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('claimedProgressionRewards: $claimedProgressionRewards, ')
-          ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
-          ..write('bonusHealth: $bonusHealth, ')
-          ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
-          ..write('spellKeys: $spellKeys, ')
-          ..write('statusEffects: $statusEffects')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    rangerId,
-    companionTypeId,
-    customName,
-    progressionPoints,
-    isAlive,
-    permanentInjuries,
-    customSkills,
-    isActive,
-    createdAt,
-    claimedProgressionRewards,
-    hasUsedRecruitmentBonus,
-    bonusHealth,
-    heroicAbilityKeys,
-    spellKeys,
-    statusEffects,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is RangerCompanion &&
-          other.id == this.id &&
-          other.rangerId == this.rangerId &&
-          other.companionTypeId == this.companionTypeId &&
-          other.customName == this.customName &&
-          other.progressionPoints == this.progressionPoints &&
-          other.isAlive == this.isAlive &&
-          other.permanentInjuries == this.permanentInjuries &&
-          other.customSkills == this.customSkills &&
-          other.isActive == this.isActive &&
-          other.createdAt == this.createdAt &&
-          other.claimedProgressionRewards == this.claimedProgressionRewards &&
-          other.hasUsedRecruitmentBonus == this.hasUsedRecruitmentBonus &&
-          other.bonusHealth == this.bonusHealth &&
-          other.heroicAbilityKeys == this.heroicAbilityKeys &&
-          other.spellKeys == this.spellKeys &&
-          other.statusEffects == this.statusEffects);
-}
-
-class RangerCompanionsCompanion extends UpdateCompanion<RangerCompanion> {
-  final Value<int> id;
-  final Value<int> rangerId;
-  final Value<int> companionTypeId;
-  final Value<String> customName;
-  final Value<int> progressionPoints;
-  final Value<bool> isAlive;
-  final Value<String> permanentInjuries;
-  final Value<String> customSkills;
-  final Value<bool> isActive;
-  final Value<DateTime> createdAt;
-  final Value<String> claimedProgressionRewards;
-  final Value<bool> hasUsedRecruitmentBonus;
-  final Value<int> bonusHealth;
-  final Value<String> heroicAbilityKeys;
-  final Value<String> spellKeys;
-  final Value<String> statusEffects;
-  const RangerCompanionsCompanion({
-    this.id = const Value.absent(),
-    this.rangerId = const Value.absent(),
-    this.companionTypeId = const Value.absent(),
-    this.customName = const Value.absent(),
-    this.progressionPoints = const Value.absent(),
-    this.isAlive = const Value.absent(),
-    this.permanentInjuries = const Value.absent(),
-    this.customSkills = const Value.absent(),
-    this.isActive = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.claimedProgressionRewards = const Value.absent(),
-    this.hasUsedRecruitmentBonus = const Value.absent(),
-    this.bonusHealth = const Value.absent(),
-    this.heroicAbilityKeys = const Value.absent(),
-    this.spellKeys = const Value.absent(),
-    this.statusEffects = const Value.absent(),
-  });
-  RangerCompanionsCompanion.insert({
-    this.id = const Value.absent(),
-    required int rangerId,
-    required int companionTypeId,
-    required String customName,
-    this.progressionPoints = const Value.absent(),
-    this.isAlive = const Value.absent(),
-    this.permanentInjuries = const Value.absent(),
-    this.customSkills = const Value.absent(),
-    this.isActive = const Value.absent(),
-    required DateTime createdAt,
-    this.claimedProgressionRewards = const Value.absent(),
-    this.hasUsedRecruitmentBonus = const Value.absent(),
-    this.bonusHealth = const Value.absent(),
-    this.heroicAbilityKeys = const Value.absent(),
-    this.spellKeys = const Value.absent(),
-    this.statusEffects = const Value.absent(),
-  }) : rangerId = Value(rangerId),
-       companionTypeId = Value(companionTypeId),
-       customName = Value(customName),
-       createdAt = Value(createdAt);
-  static Insertable<RangerCompanion> custom({
-    Expression<int>? id,
-    Expression<int>? rangerId,
-    Expression<int>? companionTypeId,
-    Expression<String>? customName,
-    Expression<int>? progressionPoints,
-    Expression<bool>? isAlive,
-    Expression<String>? permanentInjuries,
-    Expression<String>? customSkills,
-    Expression<bool>? isActive,
-    Expression<DateTime>? createdAt,
-    Expression<String>? claimedProgressionRewards,
-    Expression<bool>? hasUsedRecruitmentBonus,
-    Expression<int>? bonusHealth,
-    Expression<String>? heroicAbilityKeys,
-    Expression<String>? spellKeys,
-    Expression<String>? statusEffects,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (rangerId != null) 'ranger_id': rangerId,
-      if (companionTypeId != null) 'companion_type_id': companionTypeId,
-      if (customName != null) 'custom_name': customName,
-      if (progressionPoints != null) 'progression_points': progressionPoints,
-      if (isAlive != null) 'is_alive': isAlive,
-      if (permanentInjuries != null) 'permanent_injuries': permanentInjuries,
-      if (customSkills != null) 'custom_skills': customSkills,
-      if (isActive != null) 'is_active': isActive,
-      if (createdAt != null) 'created_at': createdAt,
-      if (claimedProgressionRewards != null)
-        'claimed_progression_rewards': claimedProgressionRewards,
-      if (hasUsedRecruitmentBonus != null)
-        'has_used_recruitment_bonus': hasUsedRecruitmentBonus,
-      if (bonusHealth != null) 'bonus_health': bonusHealth,
-      if (heroicAbilityKeys != null) 'heroic_ability_keys': heroicAbilityKeys,
-      if (spellKeys != null) 'spell_keys': spellKeys,
-      if (statusEffects != null) 'status_effects': statusEffects,
-    });
-  }
-
-  RangerCompanionsCompanion copyWith({
-    Value<int>? id,
-    Value<int>? rangerId,
-    Value<int>? companionTypeId,
-    Value<String>? customName,
-    Value<int>? progressionPoints,
-    Value<bool>? isAlive,
-    Value<String>? permanentInjuries,
-    Value<String>? customSkills,
-    Value<bool>? isActive,
-    Value<DateTime>? createdAt,
-    Value<String>? claimedProgressionRewards,
-    Value<bool>? hasUsedRecruitmentBonus,
-    Value<int>? bonusHealth,
-    Value<String>? heroicAbilityKeys,
-    Value<String>? spellKeys,
-    Value<String>? statusEffects,
-  }) {
-    return RangerCompanionsCompanion(
-      id: id ?? this.id,
-      rangerId: rangerId ?? this.rangerId,
-      companionTypeId: companionTypeId ?? this.companionTypeId,
-      customName: customName ?? this.customName,
-      progressionPoints: progressionPoints ?? this.progressionPoints,
-      isAlive: isAlive ?? this.isAlive,
-      permanentInjuries: permanentInjuries ?? this.permanentInjuries,
-      customSkills: customSkills ?? this.customSkills,
-      isActive: isActive ?? this.isActive,
-      createdAt: createdAt ?? this.createdAt,
-      claimedProgressionRewards:
-          claimedProgressionRewards ?? this.claimedProgressionRewards,
-      hasUsedRecruitmentBonus:
-          hasUsedRecruitmentBonus ?? this.hasUsedRecruitmentBonus,
-      bonusHealth: bonusHealth ?? this.bonusHealth,
-      heroicAbilityKeys: heroicAbilityKeys ?? this.heroicAbilityKeys,
-      spellKeys: spellKeys ?? this.spellKeys,
-      statusEffects: statusEffects ?? this.statusEffects,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (rangerId.present) {
-      map['ranger_id'] = Variable<int>(rangerId.value);
-    }
-    if (companionTypeId.present) {
-      map['companion_type_id'] = Variable<int>(companionTypeId.value);
-    }
-    if (customName.present) {
-      map['custom_name'] = Variable<String>(customName.value);
-    }
-    if (progressionPoints.present) {
-      map['progression_points'] = Variable<int>(progressionPoints.value);
-    }
-    if (isAlive.present) {
-      map['is_alive'] = Variable<bool>(isAlive.value);
-    }
-    if (permanentInjuries.present) {
-      map['permanent_injuries'] = Variable<String>(permanentInjuries.value);
-    }
-    if (customSkills.present) {
-      map['custom_skills'] = Variable<String>(customSkills.value);
-    }
-    if (isActive.present) {
-      map['is_active'] = Variable<bool>(isActive.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (claimedProgressionRewards.present) {
-      map['claimed_progression_rewards'] = Variable<String>(
-        claimedProgressionRewards.value,
-      );
-    }
-    if (hasUsedRecruitmentBonus.present) {
-      map['has_used_recruitment_bonus'] = Variable<bool>(
-        hasUsedRecruitmentBonus.value,
-      );
-    }
-    if (bonusHealth.present) {
-      map['bonus_health'] = Variable<int>(bonusHealth.value);
-    }
-    if (heroicAbilityKeys.present) {
-      map['heroic_ability_keys'] = Variable<String>(heroicAbilityKeys.value);
-    }
-    if (spellKeys.present) {
-      map['spell_keys'] = Variable<String>(spellKeys.value);
-    }
-    if (statusEffects.present) {
-      map['status_effects'] = Variable<String>(statusEffects.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('RangerCompanionsCompanion(')
-          ..write('id: $id, ')
-          ..write('rangerId: $rangerId, ')
-          ..write('companionTypeId: $companionTypeId, ')
-          ..write('customName: $customName, ')
-          ..write('progressionPoints: $progressionPoints, ')
-          ..write('isAlive: $isAlive, ')
-          ..write('permanentInjuries: $permanentInjuries, ')
-          ..write('customSkills: $customSkills, ')
-          ..write('isActive: $isActive, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('claimedProgressionRewards: $claimedProgressionRewards, ')
-          ..write('hasUsedRecruitmentBonus: $hasUsedRecruitmentBonus, ')
-          ..write('bonusHealth: $bonusHealth, ')
-          ..write('heroicAbilityKeys: $heroicAbilityKeys, ')
-          ..write('spellKeys: $spellKeys, ')
-          ..write('statusEffects: $statusEffects')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $EquipmentTable extends Equipment
     with TableInfo<$EquipmentTable, EquipmentData> {
   @override
@@ -3306,21 +2955,6 @@ class $EquipmentTable extends Equipment
     requiredDuringInsert: false,
     defaultValue: const Constant('{}'),
   );
-  static const VerificationMeta _hasUsesMeta = const VerificationMeta(
-    'hasUses',
-  );
-  @override
-  late final GeneratedColumn<bool> hasUses = GeneratedColumn<bool>(
-    'has_uses',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("has_uses" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
   static const VerificationMeta _maxUsesMeta = const VerificationMeta(
     'maxUses',
   );
@@ -3340,7 +2974,6 @@ class $EquipmentTable extends Equipment
     category,
     description,
     effects,
-    hasUses,
     maxUses,
   ];
   @override
@@ -3397,12 +3030,6 @@ class $EquipmentTable extends Equipment
         effects.isAcceptableOrUnknown(data['effects']!, _effectsMeta),
       );
     }
-    if (data.containsKey('has_uses')) {
-      context.handle(
-        _hasUsesMeta,
-        hasUses.isAcceptableOrUnknown(data['has_uses']!, _hasUsesMeta),
-      );
-    }
     if (data.containsKey('max_uses')) {
       context.handle(
         _maxUsesMeta,
@@ -3442,10 +3069,6 @@ class $EquipmentTable extends Equipment
         DriftSqlType.string,
         data['${effectivePrefix}effects'],
       )!,
-      hasUses: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}has_uses'],
-      )!,
       maxUses: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}max_uses'],
@@ -3466,7 +3089,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
   final String category;
   final String description;
   final String effects;
-  final bool hasUses;
   final int? maxUses;
   const EquipmentData({
     required this.id,
@@ -3475,7 +3097,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
     required this.category,
     required this.description,
     required this.effects,
-    required this.hasUses,
     this.maxUses,
   });
   @override
@@ -3487,7 +3108,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
     map['category'] = Variable<String>(category);
     map['description'] = Variable<String>(description);
     map['effects'] = Variable<String>(effects);
-    map['has_uses'] = Variable<bool>(hasUses);
     if (!nullToAbsent || maxUses != null) {
       map['max_uses'] = Variable<int>(maxUses);
     }
@@ -3502,7 +3122,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
       category: Value(category),
       description: Value(description),
       effects: Value(effects),
-      hasUses: Value(hasUses),
       maxUses: maxUses == null && nullToAbsent
           ? const Value.absent()
           : Value(maxUses),
@@ -3521,7 +3140,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
       category: serializer.fromJson<String>(json['category']),
       description: serializer.fromJson<String>(json['description']),
       effects: serializer.fromJson<String>(json['effects']),
-      hasUses: serializer.fromJson<bool>(json['hasUses']),
       maxUses: serializer.fromJson<int?>(json['maxUses']),
     );
   }
@@ -3535,7 +3153,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
       'category': serializer.toJson<String>(category),
       'description': serializer.toJson<String>(description),
       'effects': serializer.toJson<String>(effects),
-      'hasUses': serializer.toJson<bool>(hasUses),
       'maxUses': serializer.toJson<int?>(maxUses),
     };
   }
@@ -3547,7 +3164,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
     String? category,
     String? description,
     String? effects,
-    bool? hasUses,
     Value<int?> maxUses = const Value.absent(),
   }) => EquipmentData(
     id: id ?? this.id,
@@ -3556,7 +3172,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
     category: category ?? this.category,
     description: description ?? this.description,
     effects: effects ?? this.effects,
-    hasUses: hasUses ?? this.hasUses,
     maxUses: maxUses.present ? maxUses.value : this.maxUses,
   );
   EquipmentData copyWithCompanion(EquipmentCompanion data) {
@@ -3569,7 +3184,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
           ? data.description.value
           : this.description,
       effects: data.effects.present ? data.effects.value : this.effects,
-      hasUses: data.hasUses.present ? data.hasUses.value : this.hasUses,
       maxUses: data.maxUses.present ? data.maxUses.value : this.maxUses,
     );
   }
@@ -3583,23 +3197,14 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
           ..write('category: $category, ')
           ..write('description: $description, ')
           ..write('effects: $effects, ')
-          ..write('hasUses: $hasUses, ')
           ..write('maxUses: $maxUses')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    itemKey,
-    name,
-    category,
-    description,
-    effects,
-    hasUses,
-    maxUses,
-  );
+  int get hashCode =>
+      Object.hash(id, itemKey, name, category, description, effects, maxUses);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3610,7 +3215,6 @@ class EquipmentData extends DataClass implements Insertable<EquipmentData> {
           other.category == this.category &&
           other.description == this.description &&
           other.effects == this.effects &&
-          other.hasUses == this.hasUses &&
           other.maxUses == this.maxUses);
 }
 
@@ -3621,7 +3225,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
   final Value<String> category;
   final Value<String> description;
   final Value<String> effects;
-  final Value<bool> hasUses;
   final Value<int?> maxUses;
   const EquipmentCompanion({
     this.id = const Value.absent(),
@@ -3630,7 +3233,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
     this.category = const Value.absent(),
     this.description = const Value.absent(),
     this.effects = const Value.absent(),
-    this.hasUses = const Value.absent(),
     this.maxUses = const Value.absent(),
   });
   EquipmentCompanion.insert({
@@ -3640,7 +3242,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
     required String category,
     this.description = const Value.absent(),
     this.effects = const Value.absent(),
-    this.hasUses = const Value.absent(),
     this.maxUses = const Value.absent(),
   }) : itemKey = Value(itemKey),
        name = Value(name),
@@ -3652,7 +3253,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
     Expression<String>? category,
     Expression<String>? description,
     Expression<String>? effects,
-    Expression<bool>? hasUses,
     Expression<int>? maxUses,
   }) {
     return RawValuesInsertable({
@@ -3662,7 +3262,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
       if (category != null) 'category': category,
       if (description != null) 'description': description,
       if (effects != null) 'effects': effects,
-      if (hasUses != null) 'has_uses': hasUses,
       if (maxUses != null) 'max_uses': maxUses,
     });
   }
@@ -3674,7 +3273,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
     Value<String>? category,
     Value<String>? description,
     Value<String>? effects,
-    Value<bool>? hasUses,
     Value<int?>? maxUses,
   }) {
     return EquipmentCompanion(
@@ -3684,7 +3282,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
       category: category ?? this.category,
       description: description ?? this.description,
       effects: effects ?? this.effects,
-      hasUses: hasUses ?? this.hasUses,
       maxUses: maxUses ?? this.maxUses,
     );
   }
@@ -3710,9 +3307,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
     if (effects.present) {
       map['effects'] = Variable<String>(effects.value);
     }
-    if (hasUses.present) {
-      map['has_uses'] = Variable<bool>(hasUses.value);
-    }
     if (maxUses.present) {
       map['max_uses'] = Variable<int>(maxUses.value);
     }
@@ -3728,7 +3322,6 @@ class EquipmentCompanion extends UpdateCompanion<EquipmentData> {
           ..write('category: $category, ')
           ..write('description: $description, ')
           ..write('effects: $effects, ')
-          ..write('hasUses: $hasUses, ')
           ..write('maxUses: $maxUses')
           ..write(')'))
         .toString();
@@ -3805,6 +3398,20 @@ class $RangerEquipmentTable extends RangerEquipment
     requiredDuringInsert: false,
     defaultValue: const Constant('ranger'),
   );
+  static const VerificationMeta _companionIdMeta = const VerificationMeta(
+    'companionId',
+  );
+  @override
+  late final GeneratedColumn<int> companionId = GeneratedColumn<int>(
+    'companion_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ranger_companions (id)',
+    ),
+  );
   static const VerificationMeta _slotIndexMeta = const VerificationMeta(
     'slotIndex',
   );
@@ -3838,6 +3445,7 @@ class $RangerEquipmentTable extends RangerEquipment
     equipmentId,
     currentUses,
     equippedBy,
+    companionId,
     slotIndex,
     isActive,
   ];
@@ -3890,6 +3498,15 @@ class $RangerEquipmentTable extends RangerEquipment
         equippedBy.isAcceptableOrUnknown(data['equipped_by']!, _equippedByMeta),
       );
     }
+    if (data.containsKey('companion_id')) {
+      context.handle(
+        _companionIdMeta,
+        companionId.isAcceptableOrUnknown(
+          data['companion_id']!,
+          _companionIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('slot_index')) {
       context.handle(
         _slotIndexMeta,
@@ -3931,6 +3548,10 @@ class $RangerEquipmentTable extends RangerEquipment
         DriftSqlType.string,
         data['${effectivePrefix}equipped_by'],
       )!,
+      companionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_id'],
+      ),
       slotIndex: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}slot_index'],
@@ -3955,6 +3576,7 @@ class RangerEquipmentData extends DataClass
   final int equipmentId;
   final int? currentUses;
   final String equippedBy;
+  final int? companionId;
   final int? slotIndex;
   final bool isActive;
   const RangerEquipmentData({
@@ -3963,6 +3585,7 @@ class RangerEquipmentData extends DataClass
     required this.equipmentId,
     this.currentUses,
     required this.equippedBy,
+    this.companionId,
     this.slotIndex,
     required this.isActive,
   });
@@ -3976,6 +3599,9 @@ class RangerEquipmentData extends DataClass
       map['current_uses'] = Variable<int>(currentUses);
     }
     map['equipped_by'] = Variable<String>(equippedBy);
+    if (!nullToAbsent || companionId != null) {
+      map['companion_id'] = Variable<int>(companionId);
+    }
     if (!nullToAbsent || slotIndex != null) {
       map['slot_index'] = Variable<int>(slotIndex);
     }
@@ -3992,6 +3618,9 @@ class RangerEquipmentData extends DataClass
           ? const Value.absent()
           : Value(currentUses),
       equippedBy: Value(equippedBy),
+      companionId: companionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(companionId),
       slotIndex: slotIndex == null && nullToAbsent
           ? const Value.absent()
           : Value(slotIndex),
@@ -4010,6 +3639,7 @@ class RangerEquipmentData extends DataClass
       equipmentId: serializer.fromJson<int>(json['equipmentId']),
       currentUses: serializer.fromJson<int?>(json['currentUses']),
       equippedBy: serializer.fromJson<String>(json['equippedBy']),
+      companionId: serializer.fromJson<int?>(json['companionId']),
       slotIndex: serializer.fromJson<int?>(json['slotIndex']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
@@ -4023,6 +3653,7 @@ class RangerEquipmentData extends DataClass
       'equipmentId': serializer.toJson<int>(equipmentId),
       'currentUses': serializer.toJson<int?>(currentUses),
       'equippedBy': serializer.toJson<String>(equippedBy),
+      'companionId': serializer.toJson<int?>(companionId),
       'slotIndex': serializer.toJson<int?>(slotIndex),
       'isActive': serializer.toJson<bool>(isActive),
     };
@@ -4034,6 +3665,7 @@ class RangerEquipmentData extends DataClass
     int? equipmentId,
     Value<int?> currentUses = const Value.absent(),
     String? equippedBy,
+    Value<int?> companionId = const Value.absent(),
     Value<int?> slotIndex = const Value.absent(),
     bool? isActive,
   }) => RangerEquipmentData(
@@ -4042,6 +3674,7 @@ class RangerEquipmentData extends DataClass
     equipmentId: equipmentId ?? this.equipmentId,
     currentUses: currentUses.present ? currentUses.value : this.currentUses,
     equippedBy: equippedBy ?? this.equippedBy,
+    companionId: companionId.present ? companionId.value : this.companionId,
     slotIndex: slotIndex.present ? slotIndex.value : this.slotIndex,
     isActive: isActive ?? this.isActive,
   );
@@ -4058,6 +3691,9 @@ class RangerEquipmentData extends DataClass
       equippedBy: data.equippedBy.present
           ? data.equippedBy.value
           : this.equippedBy,
+      companionId: data.companionId.present
+          ? data.companionId.value
+          : this.companionId,
       slotIndex: data.slotIndex.present ? data.slotIndex.value : this.slotIndex,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
@@ -4071,6 +3707,7 @@ class RangerEquipmentData extends DataClass
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
           ..write('equippedBy: $equippedBy, ')
+          ..write('companionId: $companionId, ')
           ..write('slotIndex: $slotIndex, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -4084,6 +3721,7 @@ class RangerEquipmentData extends DataClass
     equipmentId,
     currentUses,
     equippedBy,
+    companionId,
     slotIndex,
     isActive,
   );
@@ -4096,6 +3734,7 @@ class RangerEquipmentData extends DataClass
           other.equipmentId == this.equipmentId &&
           other.currentUses == this.currentUses &&
           other.equippedBy == this.equippedBy &&
+          other.companionId == this.companionId &&
           other.slotIndex == this.slotIndex &&
           other.isActive == this.isActive);
 }
@@ -4106,6 +3745,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
   final Value<int> equipmentId;
   final Value<int?> currentUses;
   final Value<String> equippedBy;
+  final Value<int?> companionId;
   final Value<int?> slotIndex;
   final Value<bool> isActive;
   const RangerEquipmentCompanion({
@@ -4114,6 +3754,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     this.equipmentId = const Value.absent(),
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
+    this.companionId = const Value.absent(),
     this.slotIndex = const Value.absent(),
     this.isActive = const Value.absent(),
   });
@@ -4123,6 +3764,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     required int equipmentId,
     this.currentUses = const Value.absent(),
     this.equippedBy = const Value.absent(),
+    this.companionId = const Value.absent(),
     this.slotIndex = const Value.absent(),
     this.isActive = const Value.absent(),
   }) : rangerId = Value(rangerId),
@@ -4133,6 +3775,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Expression<int>? equipmentId,
     Expression<int>? currentUses,
     Expression<String>? equippedBy,
+    Expression<int>? companionId,
     Expression<int>? slotIndex,
     Expression<bool>? isActive,
   }) {
@@ -4142,6 +3785,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       if (equipmentId != null) 'equipment_id': equipmentId,
       if (currentUses != null) 'current_uses': currentUses,
       if (equippedBy != null) 'equipped_by': equippedBy,
+      if (companionId != null) 'companion_id': companionId,
       if (slotIndex != null) 'slot_index': slotIndex,
       if (isActive != null) 'is_active': isActive,
     });
@@ -4153,6 +3797,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     Value<int>? equipmentId,
     Value<int?>? currentUses,
     Value<String>? equippedBy,
+    Value<int?>? companionId,
     Value<int?>? slotIndex,
     Value<bool>? isActive,
   }) {
@@ -4162,6 +3807,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
       equipmentId: equipmentId ?? this.equipmentId,
       currentUses: currentUses ?? this.currentUses,
       equippedBy: equippedBy ?? this.equippedBy,
+      companionId: companionId ?? this.companionId,
       slotIndex: slotIndex ?? this.slotIndex,
       isActive: isActive ?? this.isActive,
     );
@@ -4185,6 +3831,9 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
     if (equippedBy.present) {
       map['equipped_by'] = Variable<String>(equippedBy.value);
     }
+    if (companionId.present) {
+      map['companion_id'] = Variable<int>(companionId.value);
+    }
     if (slotIndex.present) {
       map['slot_index'] = Variable<int>(slotIndex.value);
     }
@@ -4202,6 +3851,7 @@ class RangerEquipmentCompanion extends UpdateCompanion<RangerEquipmentData> {
           ..write('equipmentId: $equipmentId, ')
           ..write('currentUses: $currentUses, ')
           ..write('equippedBy: $equippedBy, ')
+          ..write('companionId: $companionId, ')
           ..write('slotIndex: $slotIndex, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -5756,18 +5406,1452 @@ class SessionEventsCompanion extends UpdateCompanion<SessionEvent> {
   }
 }
 
+class $StatusEffectsTable extends StatusEffects
+    with TableInfo<$StatusEffectsTable, StatusEffect> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StatusEffectsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _rangerIdMeta = const VerificationMeta(
+    'rangerId',
+  );
+  @override
+  late final GeneratedColumn<int> rangerId = GeneratedColumn<int>(
+    'ranger_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES rangers (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _companionIdMeta = const VerificationMeta(
+    'companionId',
+  );
+  @override
+  late final GeneratedColumn<int> companionId = GeneratedColumn<int>(
+    'companion_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ranger_companions (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _statusEffectKeyMeta = const VerificationMeta(
+    'statusEffectKey',
+  );
+  @override
+  late final GeneratedColumn<String> statusEffectKey = GeneratedColumn<String>(
+    'status_effect_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    rangerId,
+    companionId,
+    statusEffectKey,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'status_effects';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StatusEffect> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('ranger_id')) {
+      context.handle(
+        _rangerIdMeta,
+        rangerId.isAcceptableOrUnknown(data['ranger_id']!, _rangerIdMeta),
+      );
+    }
+    if (data.containsKey('companion_id')) {
+      context.handle(
+        _companionIdMeta,
+        companionId.isAcceptableOrUnknown(
+          data['companion_id']!,
+          _companionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status_effect_key')) {
+      context.handle(
+        _statusEffectKeyMeta,
+        statusEffectKey.isAcceptableOrUnknown(
+          data['status_effect_key']!,
+          _statusEffectKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_statusEffectKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StatusEffect map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StatusEffect(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      rangerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ranger_id'],
+      ),
+      companionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_id'],
+      ),
+      statusEffectKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_effect_key'],
+      )!,
+    );
+  }
+
+  @override
+  $StatusEffectsTable createAlias(String alias) {
+    return $StatusEffectsTable(attachedDatabase, alias);
+  }
+}
+
+class StatusEffect extends DataClass implements Insertable<StatusEffect> {
+  final int id;
+  final int? rangerId;
+  final int? companionId;
+  final String statusEffectKey;
+  const StatusEffect({
+    required this.id,
+    this.rangerId,
+    this.companionId,
+    required this.statusEffectKey,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || rangerId != null) {
+      map['ranger_id'] = Variable<int>(rangerId);
+    }
+    if (!nullToAbsent || companionId != null) {
+      map['companion_id'] = Variable<int>(companionId);
+    }
+    map['status_effect_key'] = Variable<String>(statusEffectKey);
+    return map;
+  }
+
+  StatusEffectsCompanion toCompanion(bool nullToAbsent) {
+    return StatusEffectsCompanion(
+      id: Value(id),
+      rangerId: rangerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rangerId),
+      companionId: companionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(companionId),
+      statusEffectKey: Value(statusEffectKey),
+    );
+  }
+
+  factory StatusEffect.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StatusEffect(
+      id: serializer.fromJson<int>(json['id']),
+      rangerId: serializer.fromJson<int?>(json['rangerId']),
+      companionId: serializer.fromJson<int?>(json['companionId']),
+      statusEffectKey: serializer.fromJson<String>(json['statusEffectKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'rangerId': serializer.toJson<int?>(rangerId),
+      'companionId': serializer.toJson<int?>(companionId),
+      'statusEffectKey': serializer.toJson<String>(statusEffectKey),
+    };
+  }
+
+  StatusEffect copyWith({
+    int? id,
+    Value<int?> rangerId = const Value.absent(),
+    Value<int?> companionId = const Value.absent(),
+    String? statusEffectKey,
+  }) => StatusEffect(
+    id: id ?? this.id,
+    rangerId: rangerId.present ? rangerId.value : this.rangerId,
+    companionId: companionId.present ? companionId.value : this.companionId,
+    statusEffectKey: statusEffectKey ?? this.statusEffectKey,
+  );
+  StatusEffect copyWithCompanion(StatusEffectsCompanion data) {
+    return StatusEffect(
+      id: data.id.present ? data.id.value : this.id,
+      rangerId: data.rangerId.present ? data.rangerId.value : this.rangerId,
+      companionId: data.companionId.present
+          ? data.companionId.value
+          : this.companionId,
+      statusEffectKey: data.statusEffectKey.present
+          ? data.statusEffectKey.value
+          : this.statusEffectKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatusEffect(')
+          ..write('id: $id, ')
+          ..write('rangerId: $rangerId, ')
+          ..write('companionId: $companionId, ')
+          ..write('statusEffectKey: $statusEffectKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, rangerId, companionId, statusEffectKey);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StatusEffect &&
+          other.id == this.id &&
+          other.rangerId == this.rangerId &&
+          other.companionId == this.companionId &&
+          other.statusEffectKey == this.statusEffectKey);
+}
+
+class StatusEffectsCompanion extends UpdateCompanion<StatusEffect> {
+  final Value<int> id;
+  final Value<int?> rangerId;
+  final Value<int?> companionId;
+  final Value<String> statusEffectKey;
+  const StatusEffectsCompanion({
+    this.id = const Value.absent(),
+    this.rangerId = const Value.absent(),
+    this.companionId = const Value.absent(),
+    this.statusEffectKey = const Value.absent(),
+  });
+  StatusEffectsCompanion.insert({
+    this.id = const Value.absent(),
+    this.rangerId = const Value.absent(),
+    this.companionId = const Value.absent(),
+    required String statusEffectKey,
+  }) : statusEffectKey = Value(statusEffectKey);
+  static Insertable<StatusEffect> custom({
+    Expression<int>? id,
+    Expression<int>? rangerId,
+    Expression<int>? companionId,
+    Expression<String>? statusEffectKey,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rangerId != null) 'ranger_id': rangerId,
+      if (companionId != null) 'companion_id': companionId,
+      if (statusEffectKey != null) 'status_effect_key': statusEffectKey,
+    });
+  }
+
+  StatusEffectsCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? rangerId,
+    Value<int?>? companionId,
+    Value<String>? statusEffectKey,
+  }) {
+    return StatusEffectsCompanion(
+      id: id ?? this.id,
+      rangerId: rangerId ?? this.rangerId,
+      companionId: companionId ?? this.companionId,
+      statusEffectKey: statusEffectKey ?? this.statusEffectKey,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (rangerId.present) {
+      map['ranger_id'] = Variable<int>(rangerId.value);
+    }
+    if (companionId.present) {
+      map['companion_id'] = Variable<int>(companionId.value);
+    }
+    if (statusEffectKey.present) {
+      map['status_effect_key'] = Variable<String>(statusEffectKey.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatusEffectsCompanion(')
+          ..write('id: $id, ')
+          ..write('rangerId: $rangerId, ')
+          ..write('companionId: $companionId, ')
+          ..write('statusEffectKey: $statusEffectKey')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CompanionSkillsTable extends CompanionSkills
+    with TableInfo<$CompanionSkillsTable, CompanionSkill> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanionSkillsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _companionIdMeta = const VerificationMeta(
+    'companionId',
+  );
+  @override
+  late final GeneratedColumn<int> companionId = GeneratedColumn<int>(
+    'companion_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ranger_companions (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _skillKeyMeta = const VerificationMeta(
+    'skillKey',
+  );
+  @override
+  late final GeneratedColumn<String> skillKey = GeneratedColumn<String>(
+    'skill_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [companionId, skillKey, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'companion_skills';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanionSkill> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('companion_id')) {
+      context.handle(
+        _companionIdMeta,
+        companionId.isAcceptableOrUnknown(
+          data['companion_id']!,
+          _companionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_companionIdMeta);
+    }
+    if (data.containsKey('skill_key')) {
+      context.handle(
+        _skillKeyMeta,
+        skillKey.isAcceptableOrUnknown(data['skill_key']!, _skillKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_skillKeyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {companionId, skillKey};
+  @override
+  CompanionSkill map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanionSkill(
+      companionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_id'],
+      )!,
+      skillKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skill_key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  @override
+  $CompanionSkillsTable createAlias(String alias) {
+    return $CompanionSkillsTable(attachedDatabase, alias);
+  }
+}
+
+class CompanionSkill extends DataClass implements Insertable<CompanionSkill> {
+  final int companionId;
+  final String skillKey;
+  final int value;
+  const CompanionSkill({
+    required this.companionId,
+    required this.skillKey,
+    required this.value,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['companion_id'] = Variable<int>(companionId);
+    map['skill_key'] = Variable<String>(skillKey);
+    map['value'] = Variable<int>(value);
+    return map;
+  }
+
+  CompanionSkillsCompanion toCompanion(bool nullToAbsent) {
+    return CompanionSkillsCompanion(
+      companionId: Value(companionId),
+      skillKey: Value(skillKey),
+      value: Value(value),
+    );
+  }
+
+  factory CompanionSkill.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanionSkill(
+      companionId: serializer.fromJson<int>(json['companionId']),
+      skillKey: serializer.fromJson<String>(json['skillKey']),
+      value: serializer.fromJson<int>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'companionId': serializer.toJson<int>(companionId),
+      'skillKey': serializer.toJson<String>(skillKey),
+      'value': serializer.toJson<int>(value),
+    };
+  }
+
+  CompanionSkill copyWith({int? companionId, String? skillKey, int? value}) =>
+      CompanionSkill(
+        companionId: companionId ?? this.companionId,
+        skillKey: skillKey ?? this.skillKey,
+        value: value ?? this.value,
+      );
+  CompanionSkill copyWithCompanion(CompanionSkillsCompanion data) {
+    return CompanionSkill(
+      companionId: data.companionId.present
+          ? data.companionId.value
+          : this.companionId,
+      skillKey: data.skillKey.present ? data.skillKey.value : this.skillKey,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionSkill(')
+          ..write('companionId: $companionId, ')
+          ..write('skillKey: $skillKey, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(companionId, skillKey, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanionSkill &&
+          other.companionId == this.companionId &&
+          other.skillKey == this.skillKey &&
+          other.value == this.value);
+}
+
+class CompanionSkillsCompanion extends UpdateCompanion<CompanionSkill> {
+  final Value<int> companionId;
+  final Value<String> skillKey;
+  final Value<int> value;
+  final Value<int> rowid;
+  const CompanionSkillsCompanion({
+    this.companionId = const Value.absent(),
+    this.skillKey = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CompanionSkillsCompanion.insert({
+    required int companionId,
+    required String skillKey,
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : companionId = Value(companionId),
+       skillKey = Value(skillKey);
+  static Insertable<CompanionSkill> custom({
+    Expression<int>? companionId,
+    Expression<String>? skillKey,
+    Expression<int>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (companionId != null) 'companion_id': companionId,
+      if (skillKey != null) 'skill_key': skillKey,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CompanionSkillsCompanion copyWith({
+    Value<int>? companionId,
+    Value<String>? skillKey,
+    Value<int>? value,
+    Value<int>? rowid,
+  }) {
+    return CompanionSkillsCompanion(
+      companionId: companionId ?? this.companionId,
+      skillKey: skillKey ?? this.skillKey,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (companionId.present) {
+      map['companion_id'] = Variable<int>(companionId.value);
+    }
+    if (skillKey.present) {
+      map['skill_key'] = Variable<String>(skillKey.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionSkillsCompanion(')
+          ..write('companionId: $companionId, ')
+          ..write('skillKey: $skillKey, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CompanionTypeSkillsTable extends CompanionTypeSkills
+    with TableInfo<$CompanionTypeSkillsTable, CompanionTypeSkill> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanionTypeSkillsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _companionTypeIdMeta = const VerificationMeta(
+    'companionTypeId',
+  );
+  @override
+  late final GeneratedColumn<int> companionTypeId = GeneratedColumn<int>(
+    'companion_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES companion_types (id)',
+    ),
+  );
+  static const VerificationMeta _skillKeyMeta = const VerificationMeta(
+    'skillKey',
+  );
+  @override
+  late final GeneratedColumn<String> skillKey = GeneratedColumn<String>(
+    'skill_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [companionTypeId, skillKey, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'companion_type_skills';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanionTypeSkill> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('companion_type_id')) {
+      context.handle(
+        _companionTypeIdMeta,
+        companionTypeId.isAcceptableOrUnknown(
+          data['companion_type_id']!,
+          _companionTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_companionTypeIdMeta);
+    }
+    if (data.containsKey('skill_key')) {
+      context.handle(
+        _skillKeyMeta,
+        skillKey.isAcceptableOrUnknown(data['skill_key']!, _skillKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_skillKeyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {companionTypeId, skillKey};
+  @override
+  CompanionTypeSkill map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanionTypeSkill(
+      companionTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_type_id'],
+      )!,
+      skillKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skill_key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  @override
+  $CompanionTypeSkillsTable createAlias(String alias) {
+    return $CompanionTypeSkillsTable(attachedDatabase, alias);
+  }
+}
+
+class CompanionTypeSkill extends DataClass
+    implements Insertable<CompanionTypeSkill> {
+  final int companionTypeId;
+  final String skillKey;
+  final int value;
+  const CompanionTypeSkill({
+    required this.companionTypeId,
+    required this.skillKey,
+    required this.value,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['companion_type_id'] = Variable<int>(companionTypeId);
+    map['skill_key'] = Variable<String>(skillKey);
+    map['value'] = Variable<int>(value);
+    return map;
+  }
+
+  CompanionTypeSkillsCompanion toCompanion(bool nullToAbsent) {
+    return CompanionTypeSkillsCompanion(
+      companionTypeId: Value(companionTypeId),
+      skillKey: Value(skillKey),
+      value: Value(value),
+    );
+  }
+
+  factory CompanionTypeSkill.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanionTypeSkill(
+      companionTypeId: serializer.fromJson<int>(json['companionTypeId']),
+      skillKey: serializer.fromJson<String>(json['skillKey']),
+      value: serializer.fromJson<int>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'companionTypeId': serializer.toJson<int>(companionTypeId),
+      'skillKey': serializer.toJson<String>(skillKey),
+      'value': serializer.toJson<int>(value),
+    };
+  }
+
+  CompanionTypeSkill copyWith({
+    int? companionTypeId,
+    String? skillKey,
+    int? value,
+  }) => CompanionTypeSkill(
+    companionTypeId: companionTypeId ?? this.companionTypeId,
+    skillKey: skillKey ?? this.skillKey,
+    value: value ?? this.value,
+  );
+  CompanionTypeSkill copyWithCompanion(CompanionTypeSkillsCompanion data) {
+    return CompanionTypeSkill(
+      companionTypeId: data.companionTypeId.present
+          ? data.companionTypeId.value
+          : this.companionTypeId,
+      skillKey: data.skillKey.present ? data.skillKey.value : this.skillKey,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionTypeSkill(')
+          ..write('companionTypeId: $companionTypeId, ')
+          ..write('skillKey: $skillKey, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(companionTypeId, skillKey, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanionTypeSkill &&
+          other.companionTypeId == this.companionTypeId &&
+          other.skillKey == this.skillKey &&
+          other.value == this.value);
+}
+
+class CompanionTypeSkillsCompanion extends UpdateCompanion<CompanionTypeSkill> {
+  final Value<int> companionTypeId;
+  final Value<String> skillKey;
+  final Value<int> value;
+  final Value<int> rowid;
+  const CompanionTypeSkillsCompanion({
+    this.companionTypeId = const Value.absent(),
+    this.skillKey = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CompanionTypeSkillsCompanion.insert({
+    required int companionTypeId,
+    required String skillKey,
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : companionTypeId = Value(companionTypeId),
+       skillKey = Value(skillKey);
+  static Insertable<CompanionTypeSkill> custom({
+    Expression<int>? companionTypeId,
+    Expression<String>? skillKey,
+    Expression<int>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (companionTypeId != null) 'companion_type_id': companionTypeId,
+      if (skillKey != null) 'skill_key': skillKey,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CompanionTypeSkillsCompanion copyWith({
+    Value<int>? companionTypeId,
+    Value<String>? skillKey,
+    Value<int>? value,
+    Value<int>? rowid,
+  }) {
+    return CompanionTypeSkillsCompanion(
+      companionTypeId: companionTypeId ?? this.companionTypeId,
+      skillKey: skillKey ?? this.skillKey,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (companionTypeId.present) {
+      map['companion_type_id'] = Variable<int>(companionTypeId.value);
+    }
+    if (skillKey.present) {
+      map['skill_key'] = Variable<String>(skillKey.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionTypeSkillsCompanion(')
+          ..write('companionTypeId: $companionTypeId, ')
+          ..write('skillKey: $skillKey, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CompanionProgressionClaimsTable extends CompanionProgressionClaims
+    with
+        TableInfo<$CompanionProgressionClaimsTable, CompanionProgressionClaim> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CompanionProgressionClaimsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _companionIdMeta = const VerificationMeta(
+    'companionId',
+  );
+  @override
+  late final GeneratedColumn<int> companionId = GeneratedColumn<int>(
+    'companion_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES ranger_companions (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _thresholdMeta = const VerificationMeta(
+    'threshold',
+  );
+  @override
+  late final GeneratedColumn<int> threshold = GeneratedColumn<int>(
+    'threshold',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _claimedAtMeta = const VerificationMeta(
+    'claimedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> claimedAt = GeneratedColumn<DateTime>(
+    'claimed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [companionId, threshold, claimedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'companion_progression_claims';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CompanionProgressionClaim> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('companion_id')) {
+      context.handle(
+        _companionIdMeta,
+        companionId.isAcceptableOrUnknown(
+          data['companion_id']!,
+          _companionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_companionIdMeta);
+    }
+    if (data.containsKey('threshold')) {
+      context.handle(
+        _thresholdMeta,
+        threshold.isAcceptableOrUnknown(data['threshold']!, _thresholdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_thresholdMeta);
+    }
+    if (data.containsKey('claimed_at')) {
+      context.handle(
+        _claimedAtMeta,
+        claimedAt.isAcceptableOrUnknown(data['claimed_at']!, _claimedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {companionId, threshold};
+  @override
+  CompanionProgressionClaim map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CompanionProgressionClaim(
+      companionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}companion_id'],
+      )!,
+      threshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}threshold'],
+      )!,
+      claimedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}claimed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CompanionProgressionClaimsTable createAlias(String alias) {
+    return $CompanionProgressionClaimsTable(attachedDatabase, alias);
+  }
+}
+
+class CompanionProgressionClaim extends DataClass
+    implements Insertable<CompanionProgressionClaim> {
+  final int companionId;
+  final int threshold;
+  final DateTime claimedAt;
+  const CompanionProgressionClaim({
+    required this.companionId,
+    required this.threshold,
+    required this.claimedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['companion_id'] = Variable<int>(companionId);
+    map['threshold'] = Variable<int>(threshold);
+    map['claimed_at'] = Variable<DateTime>(claimedAt);
+    return map;
+  }
+
+  CompanionProgressionClaimsCompanion toCompanion(bool nullToAbsent) {
+    return CompanionProgressionClaimsCompanion(
+      companionId: Value(companionId),
+      threshold: Value(threshold),
+      claimedAt: Value(claimedAt),
+    );
+  }
+
+  factory CompanionProgressionClaim.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CompanionProgressionClaim(
+      companionId: serializer.fromJson<int>(json['companionId']),
+      threshold: serializer.fromJson<int>(json['threshold']),
+      claimedAt: serializer.fromJson<DateTime>(json['claimedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'companionId': serializer.toJson<int>(companionId),
+      'threshold': serializer.toJson<int>(threshold),
+      'claimedAt': serializer.toJson<DateTime>(claimedAt),
+    };
+  }
+
+  CompanionProgressionClaim copyWith({
+    int? companionId,
+    int? threshold,
+    DateTime? claimedAt,
+  }) => CompanionProgressionClaim(
+    companionId: companionId ?? this.companionId,
+    threshold: threshold ?? this.threshold,
+    claimedAt: claimedAt ?? this.claimedAt,
+  );
+  CompanionProgressionClaim copyWithCompanion(
+    CompanionProgressionClaimsCompanion data,
+  ) {
+    return CompanionProgressionClaim(
+      companionId: data.companionId.present
+          ? data.companionId.value
+          : this.companionId,
+      threshold: data.threshold.present ? data.threshold.value : this.threshold,
+      claimedAt: data.claimedAt.present ? data.claimedAt.value : this.claimedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionProgressionClaim(')
+          ..write('companionId: $companionId, ')
+          ..write('threshold: $threshold, ')
+          ..write('claimedAt: $claimedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(companionId, threshold, claimedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CompanionProgressionClaim &&
+          other.companionId == this.companionId &&
+          other.threshold == this.threshold &&
+          other.claimedAt == this.claimedAt);
+}
+
+class CompanionProgressionClaimsCompanion
+    extends UpdateCompanion<CompanionProgressionClaim> {
+  final Value<int> companionId;
+  final Value<int> threshold;
+  final Value<DateTime> claimedAt;
+  final Value<int> rowid;
+  const CompanionProgressionClaimsCompanion({
+    this.companionId = const Value.absent(),
+    this.threshold = const Value.absent(),
+    this.claimedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CompanionProgressionClaimsCompanion.insert({
+    required int companionId,
+    required int threshold,
+    this.claimedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : companionId = Value(companionId),
+       threshold = Value(threshold);
+  static Insertable<CompanionProgressionClaim> custom({
+    Expression<int>? companionId,
+    Expression<int>? threshold,
+    Expression<DateTime>? claimedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (companionId != null) 'companion_id': companionId,
+      if (threshold != null) 'threshold': threshold,
+      if (claimedAt != null) 'claimed_at': claimedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CompanionProgressionClaimsCompanion copyWith({
+    Value<int>? companionId,
+    Value<int>? threshold,
+    Value<DateTime>? claimedAt,
+    Value<int>? rowid,
+  }) {
+    return CompanionProgressionClaimsCompanion(
+      companionId: companionId ?? this.companionId,
+      threshold: threshold ?? this.threshold,
+      claimedAt: claimedAt ?? this.claimedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (companionId.present) {
+      map['companion_id'] = Variable<int>(companionId.value);
+    }
+    if (threshold.present) {
+      map['threshold'] = Variable<int>(threshold.value);
+    }
+    if (claimedAt.present) {
+      map['claimed_at'] = Variable<DateTime>(claimedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CompanionProgressionClaimsCompanion(')
+          ..write('companionId: $companionId, ')
+          ..write('threshold: $threshold, ')
+          ..write('claimedAt: $claimedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EquipmentEffectModifiersTable extends EquipmentEffectModifiers
+    with TableInfo<$EquipmentEffectModifiersTable, EquipmentEffectModifier> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EquipmentEffectModifiersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _equipmentIdMeta = const VerificationMeta(
+    'equipmentId',
+  );
+  @override
+  late final GeneratedColumn<int> equipmentId = GeneratedColumn<int>(
+    'equipment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES equipment (id)',
+    ),
+  );
+  static const VerificationMeta _statKeyMeta = const VerificationMeta(
+    'statKey',
+  );
+  @override
+  late final GeneratedColumn<String> statKey = GeneratedColumn<String>(
+    'stat_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modifierMeta = const VerificationMeta(
+    'modifier',
+  );
+  @override
+  late final GeneratedColumn<int> modifier = GeneratedColumn<int>(
+    'modifier',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [equipmentId, statKey, modifier];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'equipment_effect_modifiers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EquipmentEffectModifier> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('equipment_id')) {
+      context.handle(
+        _equipmentIdMeta,
+        equipmentId.isAcceptableOrUnknown(
+          data['equipment_id']!,
+          _equipmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_equipmentIdMeta);
+    }
+    if (data.containsKey('stat_key')) {
+      context.handle(
+        _statKeyMeta,
+        statKey.isAcceptableOrUnknown(data['stat_key']!, _statKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statKeyMeta);
+    }
+    if (data.containsKey('modifier')) {
+      context.handle(
+        _modifierMeta,
+        modifier.isAcceptableOrUnknown(data['modifier']!, _modifierMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_modifierMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {equipmentId, statKey};
+  @override
+  EquipmentEffectModifier map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EquipmentEffectModifier(
+      equipmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}equipment_id'],
+      )!,
+      statKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stat_key'],
+      )!,
+      modifier: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}modifier'],
+      )!,
+    );
+  }
+
+  @override
+  $EquipmentEffectModifiersTable createAlias(String alias) {
+    return $EquipmentEffectModifiersTable(attachedDatabase, alias);
+  }
+}
+
+class EquipmentEffectModifier extends DataClass
+    implements Insertable<EquipmentEffectModifier> {
+  final int equipmentId;
+  final String statKey;
+  final int modifier;
+  const EquipmentEffectModifier({
+    required this.equipmentId,
+    required this.statKey,
+    required this.modifier,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['equipment_id'] = Variable<int>(equipmentId);
+    map['stat_key'] = Variable<String>(statKey);
+    map['modifier'] = Variable<int>(modifier);
+    return map;
+  }
+
+  EquipmentEffectModifiersCompanion toCompanion(bool nullToAbsent) {
+    return EquipmentEffectModifiersCompanion(
+      equipmentId: Value(equipmentId),
+      statKey: Value(statKey),
+      modifier: Value(modifier),
+    );
+  }
+
+  factory EquipmentEffectModifier.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EquipmentEffectModifier(
+      equipmentId: serializer.fromJson<int>(json['equipmentId']),
+      statKey: serializer.fromJson<String>(json['statKey']),
+      modifier: serializer.fromJson<int>(json['modifier']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'equipmentId': serializer.toJson<int>(equipmentId),
+      'statKey': serializer.toJson<String>(statKey),
+      'modifier': serializer.toJson<int>(modifier),
+    };
+  }
+
+  EquipmentEffectModifier copyWith({
+    int? equipmentId,
+    String? statKey,
+    int? modifier,
+  }) => EquipmentEffectModifier(
+    equipmentId: equipmentId ?? this.equipmentId,
+    statKey: statKey ?? this.statKey,
+    modifier: modifier ?? this.modifier,
+  );
+  EquipmentEffectModifier copyWithCompanion(
+    EquipmentEffectModifiersCompanion data,
+  ) {
+    return EquipmentEffectModifier(
+      equipmentId: data.equipmentId.present
+          ? data.equipmentId.value
+          : this.equipmentId,
+      statKey: data.statKey.present ? data.statKey.value : this.statKey,
+      modifier: data.modifier.present ? data.modifier.value : this.modifier,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentEffectModifier(')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('statKey: $statKey, ')
+          ..write('modifier: $modifier')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(equipmentId, statKey, modifier);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EquipmentEffectModifier &&
+          other.equipmentId == this.equipmentId &&
+          other.statKey == this.statKey &&
+          other.modifier == this.modifier);
+}
+
+class EquipmentEffectModifiersCompanion
+    extends UpdateCompanion<EquipmentEffectModifier> {
+  final Value<int> equipmentId;
+  final Value<String> statKey;
+  final Value<int> modifier;
+  final Value<int> rowid;
+  const EquipmentEffectModifiersCompanion({
+    this.equipmentId = const Value.absent(),
+    this.statKey = const Value.absent(),
+    this.modifier = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EquipmentEffectModifiersCompanion.insert({
+    required int equipmentId,
+    required String statKey,
+    required int modifier,
+    this.rowid = const Value.absent(),
+  }) : equipmentId = Value(equipmentId),
+       statKey = Value(statKey),
+       modifier = Value(modifier);
+  static Insertable<EquipmentEffectModifier> custom({
+    Expression<int>? equipmentId,
+    Expression<String>? statKey,
+    Expression<int>? modifier,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (equipmentId != null) 'equipment_id': equipmentId,
+      if (statKey != null) 'stat_key': statKey,
+      if (modifier != null) 'modifier': modifier,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EquipmentEffectModifiersCompanion copyWith({
+    Value<int>? equipmentId,
+    Value<String>? statKey,
+    Value<int>? modifier,
+    Value<int>? rowid,
+  }) {
+    return EquipmentEffectModifiersCompanion(
+      equipmentId: equipmentId ?? this.equipmentId,
+      statKey: statKey ?? this.statKey,
+      modifier: modifier ?? this.modifier,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (equipmentId.present) {
+      map['equipment_id'] = Variable<int>(equipmentId.value);
+    }
+    if (statKey.present) {
+      map['stat_key'] = Variable<String>(statKey.value);
+    }
+    if (modifier.present) {
+      map['modifier'] = Variable<int>(modifier.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentEffectModifiersCompanion(')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('statKey: $statKey, ')
+          ..write('modifier: $modifier, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RangersTable rangers = $RangersTable(this);
-  late final $RangerAbilitiesTable rangerAbilities = $RangerAbilitiesTable(
-    this,
-  );
-  late final $RangerSkillsTable rangerSkills = $RangerSkillsTable(this);
   late final $CompanionTypesTable companionTypes = $CompanionTypesTable(this);
   late final $RangerCompanionsTable rangerCompanions = $RangerCompanionsTable(
     this,
   );
+  late final $RangerAbilitiesTable rangerAbilities = $RangerAbilitiesTable(
+    this,
+  );
+  late final $RangerSkillsTable rangerSkills = $RangerSkillsTable(this);
   late final $EquipmentTable equipment = $EquipmentTable(this);
   late final $RangerEquipmentTable rangerEquipment = $RangerEquipmentTable(
     this,
@@ -5775,22 +6859,70 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $InjuriesTable injuries = $InjuriesTable(this);
   late final $SessionsTable sessions = $SessionsTable(this);
   late final $SessionEventsTable sessionEvents = $SessionEventsTable(this);
+  late final $StatusEffectsTable statusEffects = $StatusEffectsTable(this);
+  late final $CompanionSkillsTable companionSkills = $CompanionSkillsTable(
+    this,
+  );
+  late final $CompanionTypeSkillsTable companionTypeSkills =
+      $CompanionTypeSkillsTable(this);
+  late final $CompanionProgressionClaimsTable companionProgressionClaims =
+      $CompanionProgressionClaimsTable(this);
+  late final $EquipmentEffectModifiersTable equipmentEffectModifiers =
+      $EquipmentEffectModifiersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     rangers,
-    rangerAbilities,
-    rangerSkills,
     companionTypes,
     rangerCompanions,
+    rangerAbilities,
+    rangerSkills,
     equipment,
     rangerEquipment,
     injuries,
     sessions,
     sessionEvents,
+    statusEffects,
+    companionSkills,
+    companionTypeSkills,
+    companionProgressionClaims,
+    equipmentEffectModifiers,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'rangers',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('status_effects', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'ranger_companions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('status_effects', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'ranger_companions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('companion_skills', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'ranger_companions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('companion_progression_claims', kind: UpdateKind.delete),
+      ],
+    ),
+  ]);
 }
 
 typedef $$RangersTableCreateCompanionBuilder =
@@ -5810,7 +6942,6 @@ typedef $$RangersTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<String> notes,
-      Value<String> statusEffects,
     });
 typedef $$RangersTableUpdateCompanionBuilder =
     RangersCompanion Function({
@@ -5829,12 +6960,34 @@ typedef $$RangersTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> notes,
-      Value<String> statusEffects,
     });
 
 final class $$RangersTableReferences
     extends BaseReferences<_$AppDatabase, $RangersTable, Ranger> {
   $$RangersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$RangerCompanionsTable, List<RangerCompanion>>
+  _rangerCompanionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.rangerCompanions,
+    aliasName: $_aliasNameGenerator(
+      db.rangers.id,
+      db.rangerCompanions.rangerId,
+    ),
+  );
+
+  $$RangerCompanionsTableProcessedTableManager get rangerCompanionsRefs {
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.rangerId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rangerCompanionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 
   static MultiTypedResultKey<$RangerAbilitiesTable, List<RangerAbility>>
   _rangerAbilitiesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -5869,29 +7022,6 @@ final class $$RangersTableReferences
     ).filter((f) => f.rangerId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_rangerSkillsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$RangerCompanionsTable, List<RangerCompanion>>
-  _rangerCompanionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.rangerCompanions,
-    aliasName: $_aliasNameGenerator(
-      db.rangers.id,
-      db.rangerCompanions.rangerId,
-    ),
-  );
-
-  $$RangerCompanionsTableProcessedTableManager get rangerCompanionsRefs {
-    final manager = $$RangerCompanionsTableTableManager(
-      $_db,
-      $_db.rangerCompanions,
-    ).filter((f) => f.rangerId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _rangerCompanionsRefsTable($_db),
-    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5950,6 +7080,24 @@ final class $$RangersTableReferences
     ).filter((f) => f.rangerId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_sessionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StatusEffectsTable, List<StatusEffect>>
+  _statusEffectsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.statusEffects,
+    aliasName: $_aliasNameGenerator(db.rangers.id, db.statusEffects.rangerId),
+  );
+
+  $$StatusEffectsTableProcessedTableManager get statusEffectsRefs {
+    final manager = $$StatusEffectsTableTableManager(
+      $_db,
+      $_db.statusEffects,
+    ).filter((f) => f.rangerId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_statusEffectsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6040,10 +7188,30 @@ class $$RangersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => ColumnFilters(column),
-  );
+  Expression<bool> rangerCompanionsRefs(
+    Expression<bool> Function($$RangerCompanionsTableFilterComposer f) f,
+  ) {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.rangerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<bool> rangerAbilitiesRefs(
     Expression<bool> Function($$RangerAbilitiesTableFilterComposer f) f,
@@ -6086,31 +7254,6 @@ class $$RangersTableFilterComposer
           }) => $$RangerSkillsTableFilterComposer(
             $db: $db,
             $table: $db.rangerSkills,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> rangerCompanionsRefs(
-    Expression<bool> Function($$RangerCompanionsTableFilterComposer f) f,
-  ) {
-    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rangerCompanions,
-      getReferencedColumn: (t) => t.rangerId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangerCompanionsTableFilterComposer(
-            $db: $db,
-            $table: $db.rangerCompanions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6186,6 +7329,31 @@ class $$RangersTableFilterComposer
           }) => $$SessionsTableFilterComposer(
             $db: $db,
             $table: $db.sessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> statusEffectsRefs(
+    Expression<bool> Function($$StatusEffectsTableFilterComposer f) f,
+  ) {
+    final $$StatusEffectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.statusEffects,
+      getReferencedColumn: (t) => t.rangerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StatusEffectsTableFilterComposer(
+            $db: $db,
+            $table: $db.statusEffects,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6279,11 +7447,6 @@ class $$RangersTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$RangersTableAnnotationComposer
@@ -6346,10 +7509,30 @@ class $$RangersTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
-  GeneratedColumn<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => column,
-  );
+  Expression<T> rangerCompanionsRefs<T extends Object>(
+    Expression<T> Function($$RangerCompanionsTableAnnotationComposer a) f,
+  ) {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.rangerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<T> rangerAbilitiesRefs<T extends Object>(
     Expression<T> Function($$RangerAbilitiesTableAnnotationComposer a) f,
@@ -6392,31 +7575,6 @@ class $$RangersTableAnnotationComposer
           }) => $$RangerSkillsTableAnnotationComposer(
             $db: $db,
             $table: $db.rangerSkills,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> rangerCompanionsRefs<T extends Object>(
-    Expression<T> Function($$RangerCompanionsTableAnnotationComposer a) f,
-  ) {
-    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rangerCompanions,
-      getReferencedColumn: (t) => t.rangerId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangerCompanionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.rangerCompanions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6500,6 +7658,31 @@ class $$RangersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> statusEffectsRefs<T extends Object>(
+    Expression<T> Function($$StatusEffectsTableAnnotationComposer a) f,
+  ) {
+    final $$StatusEffectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.statusEffects,
+      getReferencedColumn: (t) => t.rangerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StatusEffectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.statusEffects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$RangersTableTableManager
@@ -6516,12 +7699,13 @@ class $$RangersTableTableManager
           (Ranger, $$RangersTableReferences),
           Ranger,
           PrefetchHooks Function({
+            bool rangerCompanionsRefs,
             bool rangerAbilitiesRefs,
             bool rangerSkillsRefs,
-            bool rangerCompanionsRefs,
             bool rangerEquipmentRefs,
             bool injuriesRefs,
             bool sessionsRefs,
+            bool statusEffectsRefs,
           })
         > {
   $$RangersTableTableManager(_$AppDatabase db, $RangersTable table)
@@ -6552,7 +7736,6 @@ class $$RangersTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> notes = const Value.absent(),
-                Value<String> statusEffects = const Value.absent(),
               }) => RangersCompanion(
                 id: id,
                 name: name,
@@ -6569,7 +7752,6 @@ class $$RangersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 notes: notes,
-                statusEffects: statusEffects,
               ),
           createCompanionCallback:
               ({
@@ -6588,7 +7770,6 @@ class $$RangersTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String> notes = const Value.absent(),
-                Value<String> statusEffects = const Value.absent(),
               }) => RangersCompanion.insert(
                 id: id,
                 name: name,
@@ -6605,7 +7786,6 @@ class $$RangersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 notes: notes,
-                statusEffects: statusEffects,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6617,26 +7797,49 @@ class $$RangersTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                rangerCompanionsRefs = false,
                 rangerAbilitiesRefs = false,
                 rangerSkillsRefs = false,
-                rangerCompanionsRefs = false,
                 rangerEquipmentRefs = false,
                 injuriesRefs = false,
                 sessionsRefs = false,
+                statusEffectsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (rangerCompanionsRefs) db.rangerCompanions,
                     if (rangerAbilitiesRefs) db.rangerAbilities,
                     if (rangerSkillsRefs) db.rangerSkills,
-                    if (rangerCompanionsRefs) db.rangerCompanions,
                     if (rangerEquipmentRefs) db.rangerEquipment,
                     if (injuriesRefs) db.injuries,
                     if (sessionsRefs) db.sessions,
+                    if (statusEffectsRefs) db.statusEffects,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (rangerCompanionsRefs)
+                        await $_getPrefetchedData<
+                          Ranger,
+                          $RangersTable,
+                          RangerCompanion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangersTableReferences
+                              ._rangerCompanionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rangerCompanionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.rangerId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (rangerAbilitiesRefs)
                         await $_getPrefetchedData<
                           Ranger,
@@ -6673,27 +7876,6 @@ class $$RangersTableTableManager
                                 table,
                                 p0,
                               ).rangerSkillsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.rangerId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (rangerCompanionsRefs)
-                        await $_getPrefetchedData<
-                          Ranger,
-                          $RangersTable,
-                          RangerCompanion
-                        >(
-                          currentTable: table,
-                          referencedTable: $$RangersTableReferences
-                              ._rangerCompanionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$RangersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).rangerCompanionsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.rangerId == item.id,
@@ -6763,6 +7945,27 @@ class $$RangersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (statusEffectsRefs)
+                        await $_getPrefetchedData<
+                          Ranger,
+                          $RangersTable,
+                          StatusEffect
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangersTableReferences
+                              ._statusEffectsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).statusEffectsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.rangerId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6784,18 +7987,1700 @@ typedef $$RangersTableProcessedTableManager =
       (Ranger, $$RangersTableReferences),
       Ranger,
       PrefetchHooks Function({
+        bool rangerCompanionsRefs,
         bool rangerAbilitiesRefs,
         bool rangerSkillsRefs,
-        bool rangerCompanionsRefs,
         bool rangerEquipmentRefs,
         bool injuriesRefs,
         bool sessionsRefs,
+        bool statusEffectsRefs,
+      })
+    >;
+typedef $$CompanionTypesTableCreateCompanionBuilder =
+    CompanionTypesCompanion Function({
+      Value<int> id,
+      required String typeKey,
+      required String name,
+      required int rpCost,
+      required int move,
+      required int fight,
+      required int shoot,
+      required int armour,
+      required int will,
+      required int health,
+      Value<String> notes,
+      Value<bool> isAnimal,
+    });
+typedef $$CompanionTypesTableUpdateCompanionBuilder =
+    CompanionTypesCompanion Function({
+      Value<int> id,
+      Value<String> typeKey,
+      Value<String> name,
+      Value<int> rpCost,
+      Value<int> move,
+      Value<int> fight,
+      Value<int> shoot,
+      Value<int> armour,
+      Value<int> will,
+      Value<int> health,
+      Value<String> notes,
+      Value<bool> isAnimal,
+    });
+
+final class $$CompanionTypesTableReferences
+    extends BaseReferences<_$AppDatabase, $CompanionTypesTable, CompanionType> {
+  $$CompanionTypesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$RangerCompanionsTable, List<RangerCompanion>>
+  _rangerCompanionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.rangerCompanions,
+    aliasName: $_aliasNameGenerator(
+      db.companionTypes.id,
+      db.rangerCompanions.companionTypeId,
+    ),
+  );
+
+  $$RangerCompanionsTableProcessedTableManager get rangerCompanionsRefs {
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.companionTypeId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rangerCompanionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $CompanionTypeSkillsTable,
+    List<CompanionTypeSkill>
+  >
+  _companionTypeSkillsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.companionTypeSkills,
+        aliasName: $_aliasNameGenerator(
+          db.companionTypes.id,
+          db.companionTypeSkills.companionTypeId,
+        ),
+      );
+
+  $$CompanionTypeSkillsTableProcessedTableManager get companionTypeSkillsRefs {
+    final manager = $$CompanionTypeSkillsTableTableManager(
+      $_db,
+      $_db.companionTypeSkills,
+    ).filter((f) => f.companionTypeId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _companionTypeSkillsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CompanionTypesTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanionTypesTable> {
+  $$CompanionTypesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get typeKey => $composableBuilder(
+    column: $table.typeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rpCost => $composableBuilder(
+    column: $table.rpCost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get move => $composableBuilder(
+    column: $table.move,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fight => $composableBuilder(
+    column: $table.fight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get shoot => $composableBuilder(
+    column: $table.shoot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get armour => $composableBuilder(
+    column: $table.armour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get will => $composableBuilder(
+    column: $table.will,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get health => $composableBuilder(
+    column: $table.health,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAnimal => $composableBuilder(
+    column: $table.isAnimal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> rangerCompanionsRefs(
+    Expression<bool> Function($$RangerCompanionsTableFilterComposer f) f,
+  ) {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.companionTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> companionTypeSkillsRefs(
+    Expression<bool> Function($$CompanionTypeSkillsTableFilterComposer f) f,
+  ) {
+    final $$CompanionTypeSkillsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.companionTypeSkills,
+      getReferencedColumn: (t) => t.companionTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypeSkillsTableFilterComposer(
+            $db: $db,
+            $table: $db.companionTypeSkills,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CompanionTypesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanionTypesTable> {
+  $$CompanionTypesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get typeKey => $composableBuilder(
+    column: $table.typeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rpCost => $composableBuilder(
+    column: $table.rpCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get move => $composableBuilder(
+    column: $table.move,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fight => $composableBuilder(
+    column: $table.fight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get shoot => $composableBuilder(
+    column: $table.shoot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get armour => $composableBuilder(
+    column: $table.armour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get will => $composableBuilder(
+    column: $table.will,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get health => $composableBuilder(
+    column: $table.health,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAnimal => $composableBuilder(
+    column: $table.isAnimal,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CompanionTypesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanionTypesTable> {
+  $$CompanionTypesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get typeKey =>
+      $composableBuilder(column: $table.typeKey, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get rpCost =>
+      $composableBuilder(column: $table.rpCost, builder: (column) => column);
+
+  GeneratedColumn<int> get move =>
+      $composableBuilder(column: $table.move, builder: (column) => column);
+
+  GeneratedColumn<int> get fight =>
+      $composableBuilder(column: $table.fight, builder: (column) => column);
+
+  GeneratedColumn<int> get shoot =>
+      $composableBuilder(column: $table.shoot, builder: (column) => column);
+
+  GeneratedColumn<int> get armour =>
+      $composableBuilder(column: $table.armour, builder: (column) => column);
+
+  GeneratedColumn<int> get will =>
+      $composableBuilder(column: $table.will, builder: (column) => column);
+
+  GeneratedColumn<int> get health =>
+      $composableBuilder(column: $table.health, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAnimal =>
+      $composableBuilder(column: $table.isAnimal, builder: (column) => column);
+
+  Expression<T> rangerCompanionsRefs<T extends Object>(
+    Expression<T> Function($$RangerCompanionsTableAnnotationComposer a) f,
+  ) {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.companionTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> companionTypeSkillsRefs<T extends Object>(
+    Expression<T> Function($$CompanionTypeSkillsTableAnnotationComposer a) f,
+  ) {
+    final $$CompanionTypeSkillsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.companionTypeSkills,
+          getReferencedColumn: (t) => t.companionTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CompanionTypeSkillsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.companionTypeSkills,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$CompanionTypesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanionTypesTable,
+          CompanionType,
+          $$CompanionTypesTableFilterComposer,
+          $$CompanionTypesTableOrderingComposer,
+          $$CompanionTypesTableAnnotationComposer,
+          $$CompanionTypesTableCreateCompanionBuilder,
+          $$CompanionTypesTableUpdateCompanionBuilder,
+          (CompanionType, $$CompanionTypesTableReferences),
+          CompanionType,
+          PrefetchHooks Function({
+            bool rangerCompanionsRefs,
+            bool companionTypeSkillsRefs,
+          })
+        > {
+  $$CompanionTypesTableTableManager(
+    _$AppDatabase db,
+    $CompanionTypesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanionTypesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CompanionTypesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CompanionTypesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> typeKey = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rpCost = const Value.absent(),
+                Value<int> move = const Value.absent(),
+                Value<int> fight = const Value.absent(),
+                Value<int> shoot = const Value.absent(),
+                Value<int> armour = const Value.absent(),
+                Value<int> will = const Value.absent(),
+                Value<int> health = const Value.absent(),
+                Value<String> notes = const Value.absent(),
+                Value<bool> isAnimal = const Value.absent(),
+              }) => CompanionTypesCompanion(
+                id: id,
+                typeKey: typeKey,
+                name: name,
+                rpCost: rpCost,
+                move: move,
+                fight: fight,
+                shoot: shoot,
+                armour: armour,
+                will: will,
+                health: health,
+                notes: notes,
+                isAnimal: isAnimal,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String typeKey,
+                required String name,
+                required int rpCost,
+                required int move,
+                required int fight,
+                required int shoot,
+                required int armour,
+                required int will,
+                required int health,
+                Value<String> notes = const Value.absent(),
+                Value<bool> isAnimal = const Value.absent(),
+              }) => CompanionTypesCompanion.insert(
+                id: id,
+                typeKey: typeKey,
+                name: name,
+                rpCost: rpCost,
+                move: move,
+                fight: fight,
+                shoot: shoot,
+                armour: armour,
+                will: will,
+                health: health,
+                notes: notes,
+                isAnimal: isAnimal,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CompanionTypesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                rangerCompanionsRefs = false,
+                companionTypeSkillsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (rangerCompanionsRefs) db.rangerCompanions,
+                    if (companionTypeSkillsRefs) db.companionTypeSkills,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (rangerCompanionsRefs)
+                        await $_getPrefetchedData<
+                          CompanionType,
+                          $CompanionTypesTable,
+                          RangerCompanion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CompanionTypesTableReferences
+                              ._rangerCompanionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CompanionTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rangerCompanionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (companionTypeSkillsRefs)
+                        await $_getPrefetchedData<
+                          CompanionType,
+                          $CompanionTypesTable,
+                          CompanionTypeSkill
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CompanionTypesTableReferences
+                              ._companionTypeSkillsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CompanionTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).companionTypeSkillsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$CompanionTypesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanionTypesTable,
+      CompanionType,
+      $$CompanionTypesTableFilterComposer,
+      $$CompanionTypesTableOrderingComposer,
+      $$CompanionTypesTableAnnotationComposer,
+      $$CompanionTypesTableCreateCompanionBuilder,
+      $$CompanionTypesTableUpdateCompanionBuilder,
+      (CompanionType, $$CompanionTypesTableReferences),
+      CompanionType,
+      PrefetchHooks Function({
+        bool rangerCompanionsRefs,
+        bool companionTypeSkillsRefs,
+      })
+    >;
+typedef $$RangerCompanionsTableCreateCompanionBuilder =
+    RangerCompanionsCompanion Function({
+      Value<int> id,
+      required int rangerId,
+      required int companionTypeId,
+      required String customName,
+      Value<int> progressionPoints,
+      Value<bool> isAlive,
+      Value<bool> isActive,
+      required DateTime createdAt,
+      Value<bool> hasUsedRecruitmentBonus,
+      Value<int> bonusHealth,
+    });
+typedef $$RangerCompanionsTableUpdateCompanionBuilder =
+    RangerCompanionsCompanion Function({
+      Value<int> id,
+      Value<int> rangerId,
+      Value<int> companionTypeId,
+      Value<String> customName,
+      Value<int> progressionPoints,
+      Value<bool> isAlive,
+      Value<bool> isActive,
+      Value<DateTime> createdAt,
+      Value<bool> hasUsedRecruitmentBonus,
+      Value<int> bonusHealth,
+    });
+
+final class $$RangerCompanionsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $RangerCompanionsTable, RangerCompanion> {
+  $$RangerCompanionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $RangersTable _rangerIdTable(_$AppDatabase db) =>
+      db.rangers.createAlias(
+        $_aliasNameGenerator(db.rangerCompanions.rangerId, db.rangers.id),
+      );
+
+  $$RangersTableProcessedTableManager get rangerId {
+    final $_column = $_itemColumn<int>('ranger_id')!;
+
+    final manager = $$RangersTableTableManager(
+      $_db,
+      $_db.rangers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_rangerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CompanionTypesTable _companionTypeIdTable(_$AppDatabase db) =>
+      db.companionTypes.createAlias(
+        $_aliasNameGenerator(
+          db.rangerCompanions.companionTypeId,
+          db.companionTypes.id,
+        ),
+      );
+
+  $$CompanionTypesTableProcessedTableManager get companionTypeId {
+    final $_column = $_itemColumn<int>('companion_type_id')!;
+
+    final manager = $$CompanionTypesTableTableManager(
+      $_db,
+      $_db.companionTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$RangerAbilitiesTable, List<RangerAbility>>
+  _rangerAbilitiesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.rangerAbilities,
+    aliasName: $_aliasNameGenerator(
+      db.rangerCompanions.id,
+      db.rangerAbilities.companionId,
+    ),
+  );
+
+  $$RangerAbilitiesTableProcessedTableManager get rangerAbilitiesRefs {
+    final manager = $$RangerAbilitiesTableTableManager(
+      $_db,
+      $_db.rangerAbilities,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rangerAbilitiesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$RangerEquipmentTable, List<RangerEquipmentData>>
+  _rangerEquipmentRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.rangerEquipment,
+    aliasName: $_aliasNameGenerator(
+      db.rangerCompanions.id,
+      db.rangerEquipment.companionId,
+    ),
+  );
+
+  $$RangerEquipmentTableProcessedTableManager get rangerEquipmentRefs {
+    final manager = $$RangerEquipmentTableTableManager(
+      $_db,
+      $_db.rangerEquipment,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rangerEquipmentRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$InjuriesTable, List<Injury>> _injuriesRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.injuries,
+    aliasName: $_aliasNameGenerator(
+      db.rangerCompanions.id,
+      db.injuries.companionId,
+    ),
+  );
+
+  $$InjuriesTableProcessedTableManager get injuriesRefs {
+    final manager = $$InjuriesTableTableManager(
+      $_db,
+      $_db.injuries,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_injuriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StatusEffectsTable, List<StatusEffect>>
+  _statusEffectsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.statusEffects,
+    aliasName: $_aliasNameGenerator(
+      db.rangerCompanions.id,
+      db.statusEffects.companionId,
+    ),
+  );
+
+  $$StatusEffectsTableProcessedTableManager get statusEffectsRefs {
+    final manager = $$StatusEffectsTableTableManager(
+      $_db,
+      $_db.statusEffects,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_statusEffectsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CompanionSkillsTable, List<CompanionSkill>>
+  _companionSkillsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.companionSkills,
+    aliasName: $_aliasNameGenerator(
+      db.rangerCompanions.id,
+      db.companionSkills.companionId,
+    ),
+  );
+
+  $$CompanionSkillsTableProcessedTableManager get companionSkillsRefs {
+    final manager = $$CompanionSkillsTableTableManager(
+      $_db,
+      $_db.companionSkills,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _companionSkillsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $CompanionProgressionClaimsTable,
+    List<CompanionProgressionClaim>
+  >
+  _companionProgressionClaimsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.companionProgressionClaims,
+        aliasName: $_aliasNameGenerator(
+          db.rangerCompanions.id,
+          db.companionProgressionClaims.companionId,
+        ),
+      );
+
+  $$CompanionProgressionClaimsTableProcessedTableManager
+  get companionProgressionClaimsRefs {
+    final manager = $$CompanionProgressionClaimsTableTableManager(
+      $_db,
+      $_db.companionProgressionClaims,
+    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _companionProgressionClaimsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$RangerCompanionsTableFilterComposer
+    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
+  $$RangerCompanionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customName => $composableBuilder(
+    column: $table.customName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progressionPoints => $composableBuilder(
+    column: $table.progressionPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAlive => $composableBuilder(
+    column: $table.isAlive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasUsedRecruitmentBonus => $composableBuilder(
+    column: $table.hasUsedRecruitmentBonus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bonusHealth => $composableBuilder(
+    column: $table.bonusHealth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RangersTableFilterComposer get rangerId {
+    final $$RangersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableFilterComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CompanionTypesTableFilterComposer get companionTypeId {
+    final $$CompanionTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> rangerAbilitiesRefs(
+    Expression<bool> Function($$RangerAbilitiesTableFilterComposer f) f,
+  ) {
+    final $$RangerAbilitiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerAbilities,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerAbilitiesTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerAbilities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> rangerEquipmentRefs(
+    Expression<bool> Function($$RangerEquipmentTableFilterComposer f) f,
+  ) {
+    final $$RangerEquipmentTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerEquipment,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerEquipmentTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerEquipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> injuriesRefs(
+    Expression<bool> Function($$InjuriesTableFilterComposer f) f,
+  ) {
+    final $$InjuriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.injuries,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InjuriesTableFilterComposer(
+            $db: $db,
+            $table: $db.injuries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> statusEffectsRefs(
+    Expression<bool> Function($$StatusEffectsTableFilterComposer f) f,
+  ) {
+    final $$StatusEffectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.statusEffects,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StatusEffectsTableFilterComposer(
+            $db: $db,
+            $table: $db.statusEffects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> companionSkillsRefs(
+    Expression<bool> Function($$CompanionSkillsTableFilterComposer f) f,
+  ) {
+    final $$CompanionSkillsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.companionSkills,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionSkillsTableFilterComposer(
+            $db: $db,
+            $table: $db.companionSkills,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> companionProgressionClaimsRefs(
+    Expression<bool> Function($$CompanionProgressionClaimsTableFilterComposer f)
+    f,
+  ) {
+    final $$CompanionProgressionClaimsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.companionProgressionClaims,
+          getReferencedColumn: (t) => t.companionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CompanionProgressionClaimsTableFilterComposer(
+                $db: $db,
+                $table: $db.companionProgressionClaims,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$RangerCompanionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
+  $$RangerCompanionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customName => $composableBuilder(
+    column: $table.customName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progressionPoints => $composableBuilder(
+    column: $table.progressionPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAlive => $composableBuilder(
+    column: $table.isAlive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get hasUsedRecruitmentBonus => $composableBuilder(
+    column: $table.hasUsedRecruitmentBonus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bonusHealth => $composableBuilder(
+    column: $table.bonusHealth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RangersTableOrderingComposer get rangerId {
+    final $$RangersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CompanionTypesTableOrderingComposer get companionTypeId {
+    final $$CompanionTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RangerCompanionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
+  $$RangerCompanionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get customName => $composableBuilder(
+    column: $table.customName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get progressionPoints => $composableBuilder(
+    column: $table.progressionPoints,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isAlive =>
+      $composableBuilder(column: $table.isAlive, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get hasUsedRecruitmentBonus => $composableBuilder(
+    column: $table.hasUsedRecruitmentBonus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bonusHealth => $composableBuilder(
+    column: $table.bonusHealth,
+    builder: (column) => column,
+  );
+
+  $$RangersTableAnnotationComposer get rangerId {
+    final $$RangersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CompanionTypesTableAnnotationComposer get companionTypeId {
+    final $$CompanionTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> rangerAbilitiesRefs<T extends Object>(
+    Expression<T> Function($$RangerAbilitiesTableAnnotationComposer a) f,
+  ) {
+    final $$RangerAbilitiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerAbilities,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerAbilitiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerAbilities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> rangerEquipmentRefs<T extends Object>(
+    Expression<T> Function($$RangerEquipmentTableAnnotationComposer a) f,
+  ) {
+    final $$RangerEquipmentTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rangerEquipment,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerEquipmentTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerEquipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> injuriesRefs<T extends Object>(
+    Expression<T> Function($$InjuriesTableAnnotationComposer a) f,
+  ) {
+    final $$InjuriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.injuries,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InjuriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.injuries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> statusEffectsRefs<T extends Object>(
+    Expression<T> Function($$StatusEffectsTableAnnotationComposer a) f,
+  ) {
+    final $$StatusEffectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.statusEffects,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StatusEffectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.statusEffects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> companionSkillsRefs<T extends Object>(
+    Expression<T> Function($$CompanionSkillsTableAnnotationComposer a) f,
+  ) {
+    final $$CompanionSkillsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.companionSkills,
+      getReferencedColumn: (t) => t.companionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionSkillsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.companionSkills,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> companionProgressionClaimsRefs<T extends Object>(
+    Expression<T> Function(
+      $$CompanionProgressionClaimsTableAnnotationComposer a,
+    )
+    f,
+  ) {
+    final $$CompanionProgressionClaimsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.companionProgressionClaims,
+          getReferencedColumn: (t) => t.companionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CompanionProgressionClaimsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.companionProgressionClaims,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$RangerCompanionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RangerCompanionsTable,
+          RangerCompanion,
+          $$RangerCompanionsTableFilterComposer,
+          $$RangerCompanionsTableOrderingComposer,
+          $$RangerCompanionsTableAnnotationComposer,
+          $$RangerCompanionsTableCreateCompanionBuilder,
+          $$RangerCompanionsTableUpdateCompanionBuilder,
+          (RangerCompanion, $$RangerCompanionsTableReferences),
+          RangerCompanion,
+          PrefetchHooks Function({
+            bool rangerId,
+            bool companionTypeId,
+            bool rangerAbilitiesRefs,
+            bool rangerEquipmentRefs,
+            bool injuriesRefs,
+            bool statusEffectsRefs,
+            bool companionSkillsRefs,
+            bool companionProgressionClaimsRefs,
+          })
+        > {
+  $$RangerCompanionsTableTableManager(
+    _$AppDatabase db,
+    $RangerCompanionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RangerCompanionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RangerCompanionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RangerCompanionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> rangerId = const Value.absent(),
+                Value<int> companionTypeId = const Value.absent(),
+                Value<String> customName = const Value.absent(),
+                Value<int> progressionPoints = const Value.absent(),
+                Value<bool> isAlive = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
+                Value<int> bonusHealth = const Value.absent(),
+              }) => RangerCompanionsCompanion(
+                id: id,
+                rangerId: rangerId,
+                companionTypeId: companionTypeId,
+                customName: customName,
+                progressionPoints: progressionPoints,
+                isAlive: isAlive,
+                isActive: isActive,
+                createdAt: createdAt,
+                hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
+                bonusHealth: bonusHealth,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int rangerId,
+                required int companionTypeId,
+                required String customName,
+                Value<int> progressionPoints = const Value.absent(),
+                Value<bool> isAlive = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                required DateTime createdAt,
+                Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
+                Value<int> bonusHealth = const Value.absent(),
+              }) => RangerCompanionsCompanion.insert(
+                id: id,
+                rangerId: rangerId,
+                companionTypeId: companionTypeId,
+                customName: customName,
+                progressionPoints: progressionPoints,
+                isAlive: isAlive,
+                isActive: isActive,
+                createdAt: createdAt,
+                hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
+                bonusHealth: bonusHealth,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RangerCompanionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                rangerId = false,
+                companionTypeId = false,
+                rangerAbilitiesRefs = false,
+                rangerEquipmentRefs = false,
+                injuriesRefs = false,
+                statusEffectsRefs = false,
+                companionSkillsRefs = false,
+                companionProgressionClaimsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (rangerAbilitiesRefs) db.rangerAbilities,
+                    if (rangerEquipmentRefs) db.rangerEquipment,
+                    if (injuriesRefs) db.injuries,
+                    if (statusEffectsRefs) db.statusEffects,
+                    if (companionSkillsRefs) db.companionSkills,
+                    if (companionProgressionClaimsRefs)
+                      db.companionProgressionClaims,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (rangerId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.rangerId,
+                                    referencedTable:
+                                        $$RangerCompanionsTableReferences
+                                            ._rangerIdTable(db),
+                                    referencedColumn:
+                                        $$RangerCompanionsTableReferences
+                                            ._rangerIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (companionTypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.companionTypeId,
+                                    referencedTable:
+                                        $$RangerCompanionsTableReferences
+                                            ._companionTypeIdTable(db),
+                                    referencedColumn:
+                                        $$RangerCompanionsTableReferences
+                                            ._companionTypeIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (rangerAbilitiesRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          RangerAbility
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._rangerAbilitiesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rangerAbilitiesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (rangerEquipmentRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          RangerEquipmentData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._rangerEquipmentRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rangerEquipmentRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (injuriesRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          Injury
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._injuriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).injuriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (statusEffectsRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          StatusEffect
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._statusEffectsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).statusEffectsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (companionSkillsRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          CompanionSkill
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._companionSkillsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).companionSkillsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (companionProgressionClaimsRefs)
+                        await $_getPrefetchedData<
+                          RangerCompanion,
+                          $RangerCompanionsTable,
+                          CompanionProgressionClaim
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RangerCompanionsTableReferences
+                              ._companionProgressionClaimsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RangerCompanionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).companionProgressionClaimsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.companionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$RangerCompanionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RangerCompanionsTable,
+      RangerCompanion,
+      $$RangerCompanionsTableFilterComposer,
+      $$RangerCompanionsTableOrderingComposer,
+      $$RangerCompanionsTableAnnotationComposer,
+      $$RangerCompanionsTableCreateCompanionBuilder,
+      $$RangerCompanionsTableUpdateCompanionBuilder,
+      (RangerCompanion, $$RangerCompanionsTableReferences),
+      RangerCompanion,
+      PrefetchHooks Function({
+        bool rangerId,
+        bool companionTypeId,
+        bool rangerAbilitiesRefs,
+        bool rangerEquipmentRefs,
+        bool injuriesRefs,
+        bool statusEffectsRefs,
+        bool companionSkillsRefs,
+        bool companionProgressionClaimsRefs,
       })
     >;
 typedef $$RangerAbilitiesTableCreateCompanionBuilder =
     RangerAbilitiesCompanion Function({
       Value<int> id,
       required int rangerId,
+      Value<int?> companionId,
       required String abilityType,
       required String abilityKey,
       Value<bool> isUsedThisScenario,
@@ -6804,6 +9689,7 @@ typedef $$RangerAbilitiesTableUpdateCompanionBuilder =
     RangerAbilitiesCompanion Function({
       Value<int> id,
       Value<int> rangerId,
+      Value<int?> companionId,
       Value<String> abilityType,
       Value<String> abilityKey,
       Value<bool> isUsedThisScenario,
@@ -6831,6 +9717,28 @@ final class $$RangerAbilitiesTableReferences
       $_db.rangers,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_rangerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RangerCompanionsTable _companionIdTable(_$AppDatabase db) =>
+      db.rangerCompanions.createAlias(
+        $_aliasNameGenerator(
+          db.rangerAbilities.companionId,
+          db.rangerCompanions.id,
+        ),
+      );
+
+  $$RangerCompanionsTableProcessedTableManager? get companionId {
+    final $_column = $_itemColumn<int>('companion_id');
+    if ($_column == null) return null;
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -6881,6 +9789,29 @@ class $$RangerAbilitiesTableFilterComposer
           }) => $$RangersTableFilterComposer(
             $db: $db,
             $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RangerCompanionsTableFilterComposer get companionId {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6942,6 +9873,29 @@ class $$RangerAbilitiesTableOrderingComposer
     );
     return composer;
   }
+
+  $$RangerCompanionsTableOrderingComposer get companionId {
+    final $$RangerCompanionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RangerAbilitiesTableAnnotationComposer
@@ -6993,6 +9947,29 @@ class $$RangerAbilitiesTableAnnotationComposer
     );
     return composer;
   }
+
+  $$RangerCompanionsTableAnnotationComposer get companionId {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RangerAbilitiesTableTableManager
@@ -7008,7 +9985,7 @@ class $$RangerAbilitiesTableTableManager
           $$RangerAbilitiesTableUpdateCompanionBuilder,
           (RangerAbility, $$RangerAbilitiesTableReferences),
           RangerAbility,
-          PrefetchHooks Function({bool rangerId})
+          PrefetchHooks Function({bool rangerId, bool companionId})
         > {
   $$RangerAbilitiesTableTableManager(
     _$AppDatabase db,
@@ -7027,12 +10004,14 @@ class $$RangerAbilitiesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> rangerId = const Value.absent(),
+                Value<int?> companionId = const Value.absent(),
                 Value<String> abilityType = const Value.absent(),
                 Value<String> abilityKey = const Value.absent(),
                 Value<bool> isUsedThisScenario = const Value.absent(),
               }) => RangerAbilitiesCompanion(
                 id: id,
                 rangerId: rangerId,
+                companionId: companionId,
                 abilityType: abilityType,
                 abilityKey: abilityKey,
                 isUsedThisScenario: isUsedThisScenario,
@@ -7041,12 +10020,14 @@ class $$RangerAbilitiesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int rangerId,
+                Value<int?> companionId = const Value.absent(),
                 required String abilityType,
                 required String abilityKey,
                 Value<bool> isUsedThisScenario = const Value.absent(),
               }) => RangerAbilitiesCompanion.insert(
                 id: id,
                 rangerId: rangerId,
+                companionId: companionId,
                 abilityType: abilityType,
                 abilityKey: abilityKey,
                 isUsedThisScenario: isUsedThisScenario,
@@ -7059,7 +10040,7 @@ class $$RangerAbilitiesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({rangerId = false}) {
+          prefetchHooksCallback: ({rangerId = false, companionId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -7094,6 +10075,21 @@ class $$RangerAbilitiesTableTableManager
                               )
                               as T;
                     }
+                    if (companionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.companionId,
+                                referencedTable:
+                                    $$RangerAbilitiesTableReferences
+                                        ._companionIdTable(db),
+                                referencedColumn:
+                                    $$RangerAbilitiesTableReferences
+                                        ._companionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -7118,7 +10114,7 @@ typedef $$RangerAbilitiesTableProcessedTableManager =
       $$RangerAbilitiesTableUpdateCompanionBuilder,
       (RangerAbility, $$RangerAbilitiesTableReferences),
       RangerAbility,
-      PrefetchHooks Function({bool rangerId})
+      PrefetchHooks Function({bool rangerId, bool companionId})
     >;
 typedef $$RangerSkillsTableCreateCompanionBuilder =
     RangerSkillsCompanion Function({
@@ -7414,1219 +10410,6 @@ typedef $$RangerSkillsTableProcessedTableManager =
       RangerSkill,
       PrefetchHooks Function({bool rangerId})
     >;
-typedef $$CompanionTypesTableCreateCompanionBuilder =
-    CompanionTypesCompanion Function({
-      Value<int> id,
-      required String typeKey,
-      required String name,
-      required int rpCost,
-      required int move,
-      required int fight,
-      required int shoot,
-      required int armour,
-      required int will,
-      required int health,
-      Value<String> notes,
-      Value<bool> isAnimal,
-      Value<String> baseSkills,
-    });
-typedef $$CompanionTypesTableUpdateCompanionBuilder =
-    CompanionTypesCompanion Function({
-      Value<int> id,
-      Value<String> typeKey,
-      Value<String> name,
-      Value<int> rpCost,
-      Value<int> move,
-      Value<int> fight,
-      Value<int> shoot,
-      Value<int> armour,
-      Value<int> will,
-      Value<int> health,
-      Value<String> notes,
-      Value<bool> isAnimal,
-      Value<String> baseSkills,
-    });
-
-final class $$CompanionTypesTableReferences
-    extends BaseReferences<_$AppDatabase, $CompanionTypesTable, CompanionType> {
-  $$CompanionTypesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<$RangerCompanionsTable, List<RangerCompanion>>
-  _rangerCompanionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.rangerCompanions,
-    aliasName: $_aliasNameGenerator(
-      db.companionTypes.id,
-      db.rangerCompanions.companionTypeId,
-    ),
-  );
-
-  $$RangerCompanionsTableProcessedTableManager get rangerCompanionsRefs {
-    final manager = $$RangerCompanionsTableTableManager(
-      $_db,
-      $_db.rangerCompanions,
-    ).filter((f) => f.companionTypeId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _rangerCompanionsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$CompanionTypesTableFilterComposer
-    extends Composer<_$AppDatabase, $CompanionTypesTable> {
-  $$CompanionTypesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get typeKey => $composableBuilder(
-    column: $table.typeKey,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get rpCost => $composableBuilder(
-    column: $table.rpCost,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get move => $composableBuilder(
-    column: $table.move,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get fight => $composableBuilder(
-    column: $table.fight,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get shoot => $composableBuilder(
-    column: $table.shoot,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get armour => $composableBuilder(
-    column: $table.armour,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get will => $composableBuilder(
-    column: $table.will,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get health => $composableBuilder(
-    column: $table.health,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get notes => $composableBuilder(
-    column: $table.notes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isAnimal => $composableBuilder(
-    column: $table.isAnimal,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get baseSkills => $composableBuilder(
-    column: $table.baseSkills,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  Expression<bool> rangerCompanionsRefs(
-    Expression<bool> Function($$RangerCompanionsTableFilterComposer f) f,
-  ) {
-    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rangerCompanions,
-      getReferencedColumn: (t) => t.companionTypeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangerCompanionsTableFilterComposer(
-            $db: $db,
-            $table: $db.rangerCompanions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$CompanionTypesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CompanionTypesTable> {
-  $$CompanionTypesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get typeKey => $composableBuilder(
-    column: $table.typeKey,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get rpCost => $composableBuilder(
-    column: $table.rpCost,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get move => $composableBuilder(
-    column: $table.move,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get fight => $composableBuilder(
-    column: $table.fight,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get shoot => $composableBuilder(
-    column: $table.shoot,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get armour => $composableBuilder(
-    column: $table.armour,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get will => $composableBuilder(
-    column: $table.will,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get health => $composableBuilder(
-    column: $table.health,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get notes => $composableBuilder(
-    column: $table.notes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isAnimal => $composableBuilder(
-    column: $table.isAnimal,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get baseSkills => $composableBuilder(
-    column: $table.baseSkills,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$CompanionTypesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CompanionTypesTable> {
-  $$CompanionTypesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get typeKey =>
-      $composableBuilder(column: $table.typeKey, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<int> get rpCost =>
-      $composableBuilder(column: $table.rpCost, builder: (column) => column);
-
-  GeneratedColumn<int> get move =>
-      $composableBuilder(column: $table.move, builder: (column) => column);
-
-  GeneratedColumn<int> get fight =>
-      $composableBuilder(column: $table.fight, builder: (column) => column);
-
-  GeneratedColumn<int> get shoot =>
-      $composableBuilder(column: $table.shoot, builder: (column) => column);
-
-  GeneratedColumn<int> get armour =>
-      $composableBuilder(column: $table.armour, builder: (column) => column);
-
-  GeneratedColumn<int> get will =>
-      $composableBuilder(column: $table.will, builder: (column) => column);
-
-  GeneratedColumn<int> get health =>
-      $composableBuilder(column: $table.health, builder: (column) => column);
-
-  GeneratedColumn<String> get notes =>
-      $composableBuilder(column: $table.notes, builder: (column) => column);
-
-  GeneratedColumn<bool> get isAnimal =>
-      $composableBuilder(column: $table.isAnimal, builder: (column) => column);
-
-  GeneratedColumn<String> get baseSkills => $composableBuilder(
-    column: $table.baseSkills,
-    builder: (column) => column,
-  );
-
-  Expression<T> rangerCompanionsRefs<T extends Object>(
-    Expression<T> Function($$RangerCompanionsTableAnnotationComposer a) f,
-  ) {
-    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rangerCompanions,
-      getReferencedColumn: (t) => t.companionTypeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangerCompanionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.rangerCompanions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$CompanionTypesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $CompanionTypesTable,
-          CompanionType,
-          $$CompanionTypesTableFilterComposer,
-          $$CompanionTypesTableOrderingComposer,
-          $$CompanionTypesTableAnnotationComposer,
-          $$CompanionTypesTableCreateCompanionBuilder,
-          $$CompanionTypesTableUpdateCompanionBuilder,
-          (CompanionType, $$CompanionTypesTableReferences),
-          CompanionType,
-          PrefetchHooks Function({bool rangerCompanionsRefs})
-        > {
-  $$CompanionTypesTableTableManager(
-    _$AppDatabase db,
-    $CompanionTypesTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$CompanionTypesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$CompanionTypesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$CompanionTypesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> typeKey = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<int> rpCost = const Value.absent(),
-                Value<int> move = const Value.absent(),
-                Value<int> fight = const Value.absent(),
-                Value<int> shoot = const Value.absent(),
-                Value<int> armour = const Value.absent(),
-                Value<int> will = const Value.absent(),
-                Value<int> health = const Value.absent(),
-                Value<String> notes = const Value.absent(),
-                Value<bool> isAnimal = const Value.absent(),
-                Value<String> baseSkills = const Value.absent(),
-              }) => CompanionTypesCompanion(
-                id: id,
-                typeKey: typeKey,
-                name: name,
-                rpCost: rpCost,
-                move: move,
-                fight: fight,
-                shoot: shoot,
-                armour: armour,
-                will: will,
-                health: health,
-                notes: notes,
-                isAnimal: isAnimal,
-                baseSkills: baseSkills,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String typeKey,
-                required String name,
-                required int rpCost,
-                required int move,
-                required int fight,
-                required int shoot,
-                required int armour,
-                required int will,
-                required int health,
-                Value<String> notes = const Value.absent(),
-                Value<bool> isAnimal = const Value.absent(),
-                Value<String> baseSkills = const Value.absent(),
-              }) => CompanionTypesCompanion.insert(
-                id: id,
-                typeKey: typeKey,
-                name: name,
-                rpCost: rpCost,
-                move: move,
-                fight: fight,
-                shoot: shoot,
-                armour: armour,
-                will: will,
-                health: health,
-                notes: notes,
-                isAnimal: isAnimal,
-                baseSkills: baseSkills,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$CompanionTypesTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({rangerCompanionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (rangerCompanionsRefs) db.rangerCompanions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (rangerCompanionsRefs)
-                    await $_getPrefetchedData<
-                      CompanionType,
-                      $CompanionTypesTable,
-                      RangerCompanion
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CompanionTypesTableReferences
-                          ._rangerCompanionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CompanionTypesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).rangerCompanionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.companionTypeId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$CompanionTypesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $CompanionTypesTable,
-      CompanionType,
-      $$CompanionTypesTableFilterComposer,
-      $$CompanionTypesTableOrderingComposer,
-      $$CompanionTypesTableAnnotationComposer,
-      $$CompanionTypesTableCreateCompanionBuilder,
-      $$CompanionTypesTableUpdateCompanionBuilder,
-      (CompanionType, $$CompanionTypesTableReferences),
-      CompanionType,
-      PrefetchHooks Function({bool rangerCompanionsRefs})
-    >;
-typedef $$RangerCompanionsTableCreateCompanionBuilder =
-    RangerCompanionsCompanion Function({
-      Value<int> id,
-      required int rangerId,
-      required int companionTypeId,
-      required String customName,
-      Value<int> progressionPoints,
-      Value<bool> isAlive,
-      Value<String> permanentInjuries,
-      Value<String> customSkills,
-      Value<bool> isActive,
-      required DateTime createdAt,
-      Value<String> claimedProgressionRewards,
-      Value<bool> hasUsedRecruitmentBonus,
-      Value<int> bonusHealth,
-      Value<String> heroicAbilityKeys,
-      Value<String> spellKeys,
-      Value<String> statusEffects,
-    });
-typedef $$RangerCompanionsTableUpdateCompanionBuilder =
-    RangerCompanionsCompanion Function({
-      Value<int> id,
-      Value<int> rangerId,
-      Value<int> companionTypeId,
-      Value<String> customName,
-      Value<int> progressionPoints,
-      Value<bool> isAlive,
-      Value<String> permanentInjuries,
-      Value<String> customSkills,
-      Value<bool> isActive,
-      Value<DateTime> createdAt,
-      Value<String> claimedProgressionRewards,
-      Value<bool> hasUsedRecruitmentBonus,
-      Value<int> bonusHealth,
-      Value<String> heroicAbilityKeys,
-      Value<String> spellKeys,
-      Value<String> statusEffects,
-    });
-
-final class $$RangerCompanionsTableReferences
-    extends
-        BaseReferences<_$AppDatabase, $RangerCompanionsTable, RangerCompanion> {
-  $$RangerCompanionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $RangersTable _rangerIdTable(_$AppDatabase db) =>
-      db.rangers.createAlias(
-        $_aliasNameGenerator(db.rangerCompanions.rangerId, db.rangers.id),
-      );
-
-  $$RangersTableProcessedTableManager get rangerId {
-    final $_column = $_itemColumn<int>('ranger_id')!;
-
-    final manager = $$RangersTableTableManager(
-      $_db,
-      $_db.rangers,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_rangerIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $CompanionTypesTable _companionTypeIdTable(_$AppDatabase db) =>
-      db.companionTypes.createAlias(
-        $_aliasNameGenerator(
-          db.rangerCompanions.companionTypeId,
-          db.companionTypes.id,
-        ),
-      );
-
-  $$CompanionTypesTableProcessedTableManager get companionTypeId {
-    final $_column = $_itemColumn<int>('companion_type_id')!;
-
-    final manager = $$CompanionTypesTableTableManager(
-      $_db,
-      $_db.companionTypes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_companionTypeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$InjuriesTable, List<Injury>> _injuriesRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.injuries,
-    aliasName: $_aliasNameGenerator(
-      db.rangerCompanions.id,
-      db.injuries.companionId,
-    ),
-  );
-
-  $$InjuriesTableProcessedTableManager get injuriesRefs {
-    final manager = $$InjuriesTableTableManager(
-      $_db,
-      $_db.injuries,
-    ).filter((f) => f.companionId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_injuriesRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$RangerCompanionsTableFilterComposer
-    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
-  $$RangerCompanionsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get customName => $composableBuilder(
-    column: $table.customName,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get progressionPoints => $composableBuilder(
-    column: $table.progressionPoints,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isAlive => $composableBuilder(
-    column: $table.isAlive,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get permanentInjuries => $composableBuilder(
-    column: $table.permanentInjuries,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get customSkills => $composableBuilder(
-    column: $table.customSkills,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isActive => $composableBuilder(
-    column: $table.isActive,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get claimedProgressionRewards => $composableBuilder(
-    column: $table.claimedProgressionRewards,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get hasUsedRecruitmentBonus => $composableBuilder(
-    column: $table.hasUsedRecruitmentBonus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get bonusHealth => $composableBuilder(
-    column: $table.bonusHealth,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get heroicAbilityKeys => $composableBuilder(
-    column: $table.heroicAbilityKeys,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get spellKeys => $composableBuilder(
-    column: $table.spellKeys,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$RangersTableFilterComposer get rangerId {
-    final $$RangersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.rangerId,
-      referencedTable: $db.rangers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangersTableFilterComposer(
-            $db: $db,
-            $table: $db.rangers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$CompanionTypesTableFilterComposer get companionTypeId {
-    final $$CompanionTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.companionTypeId,
-      referencedTable: $db.companionTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CompanionTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.companionTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> injuriesRefs(
-    Expression<bool> Function($$InjuriesTableFilterComposer f) f,
-  ) {
-    final $$InjuriesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.injuries,
-      getReferencedColumn: (t) => t.companionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$InjuriesTableFilterComposer(
-            $db: $db,
-            $table: $db.injuries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$RangerCompanionsTableOrderingComposer
-    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
-  $$RangerCompanionsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get customName => $composableBuilder(
-    column: $table.customName,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get progressionPoints => $composableBuilder(
-    column: $table.progressionPoints,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isAlive => $composableBuilder(
-    column: $table.isAlive,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get permanentInjuries => $composableBuilder(
-    column: $table.permanentInjuries,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get customSkills => $composableBuilder(
-    column: $table.customSkills,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isActive => $composableBuilder(
-    column: $table.isActive,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get claimedProgressionRewards => $composableBuilder(
-    column: $table.claimedProgressionRewards,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get hasUsedRecruitmentBonus => $composableBuilder(
-    column: $table.hasUsedRecruitmentBonus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get bonusHealth => $composableBuilder(
-    column: $table.bonusHealth,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get heroicAbilityKeys => $composableBuilder(
-    column: $table.heroicAbilityKeys,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get spellKeys => $composableBuilder(
-    column: $table.spellKeys,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$RangersTableOrderingComposer get rangerId {
-    final $$RangersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.rangerId,
-      referencedTable: $db.rangers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangersTableOrderingComposer(
-            $db: $db,
-            $table: $db.rangers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$CompanionTypesTableOrderingComposer get companionTypeId {
-    final $$CompanionTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.companionTypeId,
-      referencedTable: $db.companionTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CompanionTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.companionTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$RangerCompanionsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $RangerCompanionsTable> {
-  $$RangerCompanionsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get customName => $composableBuilder(
-    column: $table.customName,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get progressionPoints => $composableBuilder(
-    column: $table.progressionPoints,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get isAlive =>
-      $composableBuilder(column: $table.isAlive, builder: (column) => column);
-
-  GeneratedColumn<String> get permanentInjuries => $composableBuilder(
-    column: $table.permanentInjuries,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get customSkills => $composableBuilder(
-    column: $table.customSkills,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get isActive =>
-      $composableBuilder(column: $table.isActive, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<String> get claimedProgressionRewards => $composableBuilder(
-    column: $table.claimedProgressionRewards,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get hasUsedRecruitmentBonus => $composableBuilder(
-    column: $table.hasUsedRecruitmentBonus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get bonusHealth => $composableBuilder(
-    column: $table.bonusHealth,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get heroicAbilityKeys => $composableBuilder(
-    column: $table.heroicAbilityKeys,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get spellKeys =>
-      $composableBuilder(column: $table.spellKeys, builder: (column) => column);
-
-  GeneratedColumn<String> get statusEffects => $composableBuilder(
-    column: $table.statusEffects,
-    builder: (column) => column,
-  );
-
-  $$RangersTableAnnotationComposer get rangerId {
-    final $$RangersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.rangerId,
-      referencedTable: $db.rangers,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RangersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.rangers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$CompanionTypesTableAnnotationComposer get companionTypeId {
-    final $$CompanionTypesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.companionTypeId,
-      referencedTable: $db.companionTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CompanionTypesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.companionTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> injuriesRefs<T extends Object>(
-    Expression<T> Function($$InjuriesTableAnnotationComposer a) f,
-  ) {
-    final $$InjuriesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.injuries,
-      getReferencedColumn: (t) => t.companionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$InjuriesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.injuries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$RangerCompanionsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $RangerCompanionsTable,
-          RangerCompanion,
-          $$RangerCompanionsTableFilterComposer,
-          $$RangerCompanionsTableOrderingComposer,
-          $$RangerCompanionsTableAnnotationComposer,
-          $$RangerCompanionsTableCreateCompanionBuilder,
-          $$RangerCompanionsTableUpdateCompanionBuilder,
-          (RangerCompanion, $$RangerCompanionsTableReferences),
-          RangerCompanion,
-          PrefetchHooks Function({
-            bool rangerId,
-            bool companionTypeId,
-            bool injuriesRefs,
-          })
-        > {
-  $$RangerCompanionsTableTableManager(
-    _$AppDatabase db,
-    $RangerCompanionsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$RangerCompanionsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$RangerCompanionsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$RangerCompanionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> rangerId = const Value.absent(),
-                Value<int> companionTypeId = const Value.absent(),
-                Value<String> customName = const Value.absent(),
-                Value<int> progressionPoints = const Value.absent(),
-                Value<bool> isAlive = const Value.absent(),
-                Value<String> permanentInjuries = const Value.absent(),
-                Value<String> customSkills = const Value.absent(),
-                Value<bool> isActive = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<String> claimedProgressionRewards = const Value.absent(),
-                Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
-                Value<int> bonusHealth = const Value.absent(),
-                Value<String> heroicAbilityKeys = const Value.absent(),
-                Value<String> spellKeys = const Value.absent(),
-                Value<String> statusEffects = const Value.absent(),
-              }) => RangerCompanionsCompanion(
-                id: id,
-                rangerId: rangerId,
-                companionTypeId: companionTypeId,
-                customName: customName,
-                progressionPoints: progressionPoints,
-                isAlive: isAlive,
-                permanentInjuries: permanentInjuries,
-                customSkills: customSkills,
-                isActive: isActive,
-                createdAt: createdAt,
-                claimedProgressionRewards: claimedProgressionRewards,
-                hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
-                bonusHealth: bonusHealth,
-                heroicAbilityKeys: heroicAbilityKeys,
-                spellKeys: spellKeys,
-                statusEffects: statusEffects,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int rangerId,
-                required int companionTypeId,
-                required String customName,
-                Value<int> progressionPoints = const Value.absent(),
-                Value<bool> isAlive = const Value.absent(),
-                Value<String> permanentInjuries = const Value.absent(),
-                Value<String> customSkills = const Value.absent(),
-                Value<bool> isActive = const Value.absent(),
-                required DateTime createdAt,
-                Value<String> claimedProgressionRewards = const Value.absent(),
-                Value<bool> hasUsedRecruitmentBonus = const Value.absent(),
-                Value<int> bonusHealth = const Value.absent(),
-                Value<String> heroicAbilityKeys = const Value.absent(),
-                Value<String> spellKeys = const Value.absent(),
-                Value<String> statusEffects = const Value.absent(),
-              }) => RangerCompanionsCompanion.insert(
-                id: id,
-                rangerId: rangerId,
-                companionTypeId: companionTypeId,
-                customName: customName,
-                progressionPoints: progressionPoints,
-                isAlive: isAlive,
-                permanentInjuries: permanentInjuries,
-                customSkills: customSkills,
-                isActive: isActive,
-                createdAt: createdAt,
-                claimedProgressionRewards: claimedProgressionRewards,
-                hasUsedRecruitmentBonus: hasUsedRecruitmentBonus,
-                bonusHealth: bonusHealth,
-                heroicAbilityKeys: heroicAbilityKeys,
-                spellKeys: spellKeys,
-                statusEffects: statusEffects,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$RangerCompanionsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({
-                rangerId = false,
-                companionTypeId = false,
-                injuriesRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [if (injuriesRefs) db.injuries],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (rangerId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.rangerId,
-                                    referencedTable:
-                                        $$RangerCompanionsTableReferences
-                                            ._rangerIdTable(db),
-                                    referencedColumn:
-                                        $$RangerCompanionsTableReferences
-                                            ._rangerIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-                        if (companionTypeId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.companionTypeId,
-                                    referencedTable:
-                                        $$RangerCompanionsTableReferences
-                                            ._companionTypeIdTable(db),
-                                    referencedColumn:
-                                        $$RangerCompanionsTableReferences
-                                            ._companionTypeIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (injuriesRefs)
-                        await $_getPrefetchedData<
-                          RangerCompanion,
-                          $RangerCompanionsTable,
-                          Injury
-                        >(
-                          currentTable: table,
-                          referencedTable: $$RangerCompanionsTableReferences
-                              ._injuriesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$RangerCompanionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).injuriesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.companionId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$RangerCompanionsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $RangerCompanionsTable,
-      RangerCompanion,
-      $$RangerCompanionsTableFilterComposer,
-      $$RangerCompanionsTableOrderingComposer,
-      $$RangerCompanionsTableAnnotationComposer,
-      $$RangerCompanionsTableCreateCompanionBuilder,
-      $$RangerCompanionsTableUpdateCompanionBuilder,
-      (RangerCompanion, $$RangerCompanionsTableReferences),
-      RangerCompanion,
-      PrefetchHooks Function({
-        bool rangerId,
-        bool companionTypeId,
-        bool injuriesRefs,
-      })
-    >;
 typedef $$EquipmentTableCreateCompanionBuilder =
     EquipmentCompanion Function({
       Value<int> id,
@@ -8635,7 +10418,6 @@ typedef $$EquipmentTableCreateCompanionBuilder =
       required String category,
       Value<String> description,
       Value<String> effects,
-      Value<bool> hasUses,
       Value<int?> maxUses,
     });
 typedef $$EquipmentTableUpdateCompanionBuilder =
@@ -8646,7 +10428,6 @@ typedef $$EquipmentTableUpdateCompanionBuilder =
       Value<String> category,
       Value<String> description,
       Value<String> effects,
-      Value<bool> hasUses,
       Value<int?> maxUses,
     });
 
@@ -8671,6 +10452,34 @@ final class $$EquipmentTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _rangerEquipmentRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $EquipmentEffectModifiersTable,
+    List<EquipmentEffectModifier>
+  >
+  _equipmentEffectModifiersRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.equipmentEffectModifiers,
+        aliasName: $_aliasNameGenerator(
+          db.equipment.id,
+          db.equipmentEffectModifiers.equipmentId,
+        ),
+      );
+
+  $$EquipmentEffectModifiersTableProcessedTableManager
+  get equipmentEffectModifiersRefs {
+    final manager = $$EquipmentEffectModifiersTableTableManager(
+      $_db,
+      $_db.equipmentEffectModifiers,
+    ).filter((f) => f.equipmentId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _equipmentEffectModifiersRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -8717,11 +10526,6 @@ class $$EquipmentTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get hasUses => $composableBuilder(
-    column: $table.hasUses,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get maxUses => $composableBuilder(
     column: $table.maxUses,
     builder: (column) => ColumnFilters(column),
@@ -8749,6 +10553,33 @@ class $$EquipmentTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> equipmentEffectModifiersRefs(
+    Expression<bool> Function($$EquipmentEffectModifiersTableFilterComposer f)
+    f,
+  ) {
+    final $$EquipmentEffectModifiersTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.equipmentEffectModifiers,
+          getReferencedColumn: (t) => t.equipmentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EquipmentEffectModifiersTableFilterComposer(
+                $db: $db,
+                $table: $db.equipmentEffectModifiers,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -8792,11 +10623,6 @@ class $$EquipmentTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get hasUses => $composableBuilder(
-    column: $table.hasUses,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get maxUses => $composableBuilder(
     column: $table.maxUses,
     builder: (column) => ColumnOrderings(column),
@@ -8832,9 +10658,6 @@ class $$EquipmentTableAnnotationComposer
   GeneratedColumn<String> get effects =>
       $composableBuilder(column: $table.effects, builder: (column) => column);
 
-  GeneratedColumn<bool> get hasUses =>
-      $composableBuilder(column: $table.hasUses, builder: (column) => column);
-
   GeneratedColumn<int> get maxUses =>
       $composableBuilder(column: $table.maxUses, builder: (column) => column);
 
@@ -8862,6 +10685,33 @@ class $$EquipmentTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> equipmentEffectModifiersRefs<T extends Object>(
+    Expression<T> Function($$EquipmentEffectModifiersTableAnnotationComposer a)
+    f,
+  ) {
+    final $$EquipmentEffectModifiersTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.equipmentEffectModifiers,
+          getReferencedColumn: (t) => t.equipmentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EquipmentEffectModifiersTableAnnotationComposer(
+                $db: $db,
+                $table: $db.equipmentEffectModifiers,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$EquipmentTableTableManager
@@ -8877,7 +10727,10 @@ class $$EquipmentTableTableManager
           $$EquipmentTableUpdateCompanionBuilder,
           (EquipmentData, $$EquipmentTableReferences),
           EquipmentData,
-          PrefetchHooks Function({bool rangerEquipmentRefs})
+          PrefetchHooks Function({
+            bool rangerEquipmentRefs,
+            bool equipmentEffectModifiersRefs,
+          })
         > {
   $$EquipmentTableTableManager(_$AppDatabase db, $EquipmentTable table)
     : super(
@@ -8898,7 +10751,6 @@ class $$EquipmentTableTableManager
                 Value<String> category = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<String> effects = const Value.absent(),
-                Value<bool> hasUses = const Value.absent(),
                 Value<int?> maxUses = const Value.absent(),
               }) => EquipmentCompanion(
                 id: id,
@@ -8907,7 +10759,6 @@ class $$EquipmentTableTableManager
                 category: category,
                 description: description,
                 effects: effects,
-                hasUses: hasUses,
                 maxUses: maxUses,
               ),
           createCompanionCallback:
@@ -8918,7 +10769,6 @@ class $$EquipmentTableTableManager
                 required String category,
                 Value<String> description = const Value.absent(),
                 Value<String> effects = const Value.absent(),
-                Value<bool> hasUses = const Value.absent(),
                 Value<int?> maxUses = const Value.absent(),
               }) => EquipmentCompanion.insert(
                 id: id,
@@ -8927,7 +10777,6 @@ class $$EquipmentTableTableManager
                 category: category,
                 description: description,
                 effects: effects,
-                hasUses: hasUses,
                 maxUses: maxUses,
               ),
           withReferenceMapper: (p0) => p0
@@ -8938,40 +10787,67 @@ class $$EquipmentTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({rangerEquipmentRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (rangerEquipmentRefs) db.rangerEquipment,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (rangerEquipmentRefs)
-                    await $_getPrefetchedData<
-                      EquipmentData,
-                      $EquipmentTable,
-                      RangerEquipmentData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$EquipmentTableReferences
-                          ._rangerEquipmentRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$EquipmentTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).rangerEquipmentRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.equipmentId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                rangerEquipmentRefs = false,
+                equipmentEffectModifiersRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (rangerEquipmentRefs) db.rangerEquipment,
+                    if (equipmentEffectModifiersRefs)
+                      db.equipmentEffectModifiers,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (rangerEquipmentRefs)
+                        await $_getPrefetchedData<
+                          EquipmentData,
+                          $EquipmentTable,
+                          RangerEquipmentData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EquipmentTableReferences
+                              ._rangerEquipmentRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EquipmentTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rangerEquipmentRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.equipmentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (equipmentEffectModifiersRefs)
+                        await $_getPrefetchedData<
+                          EquipmentData,
+                          $EquipmentTable,
+                          EquipmentEffectModifier
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EquipmentTableReferences
+                              ._equipmentEffectModifiersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EquipmentTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).equipmentEffectModifiersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.equipmentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -8988,7 +10864,10 @@ typedef $$EquipmentTableProcessedTableManager =
       $$EquipmentTableUpdateCompanionBuilder,
       (EquipmentData, $$EquipmentTableReferences),
       EquipmentData,
-      PrefetchHooks Function({bool rangerEquipmentRefs})
+      PrefetchHooks Function({
+        bool rangerEquipmentRefs,
+        bool equipmentEffectModifiersRefs,
+      })
     >;
 typedef $$RangerEquipmentTableCreateCompanionBuilder =
     RangerEquipmentCompanion Function({
@@ -8997,6 +10876,7 @@ typedef $$RangerEquipmentTableCreateCompanionBuilder =
       required int equipmentId,
       Value<int?> currentUses,
       Value<String> equippedBy,
+      Value<int?> companionId,
       Value<int?> slotIndex,
       Value<bool> isActive,
     });
@@ -9007,6 +10887,7 @@ typedef $$RangerEquipmentTableUpdateCompanionBuilder =
       Value<int> equipmentId,
       Value<int?> currentUses,
       Value<String> equippedBy,
+      Value<int?> companionId,
       Value<int?> slotIndex,
       Value<bool> isActive,
     });
@@ -9056,6 +10937,28 @@ final class $$RangerEquipmentTableReferences
       $_db.equipment,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_equipmentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RangerCompanionsTable _companionIdTable(_$AppDatabase db) =>
+      db.rangerCompanions.createAlias(
+        $_aliasNameGenerator(
+          db.rangerEquipment.companionId,
+          db.rangerCompanions.id,
+        ),
+      );
+
+  $$RangerCompanionsTableProcessedTableManager? get companionId {
+    final $_column = $_itemColumn<int>('companion_id');
+    if ($_column == null) return null;
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -9134,6 +11037,29 @@ class $$RangerEquipmentTableFilterComposer
           }) => $$EquipmentTableFilterComposer(
             $db: $db,
             $table: $db.equipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RangerCompanionsTableFilterComposer get companionId {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -9223,6 +11149,29 @@ class $$RangerEquipmentTableOrderingComposer
     );
     return composer;
   }
+
+  $$RangerCompanionsTableOrderingComposer get companionId {
+    final $$RangerCompanionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RangerEquipmentTableAnnotationComposer
@@ -9298,6 +11247,29 @@ class $$RangerEquipmentTableAnnotationComposer
     );
     return composer;
   }
+
+  $$RangerCompanionsTableAnnotationComposer get companionId {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RangerEquipmentTableTableManager
@@ -9313,7 +11285,11 @@ class $$RangerEquipmentTableTableManager
           $$RangerEquipmentTableUpdateCompanionBuilder,
           (RangerEquipmentData, $$RangerEquipmentTableReferences),
           RangerEquipmentData,
-          PrefetchHooks Function({bool rangerId, bool equipmentId})
+          PrefetchHooks Function({
+            bool rangerId,
+            bool equipmentId,
+            bool companionId,
+          })
         > {
   $$RangerEquipmentTableTableManager(
     _$AppDatabase db,
@@ -9335,6 +11311,7 @@ class $$RangerEquipmentTableTableManager
                 Value<int> equipmentId = const Value.absent(),
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
+                Value<int?> companionId = const Value.absent(),
                 Value<int?> slotIndex = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => RangerEquipmentCompanion(
@@ -9343,6 +11320,7 @@ class $$RangerEquipmentTableTableManager
                 equipmentId: equipmentId,
                 currentUses: currentUses,
                 equippedBy: equippedBy,
+                companionId: companionId,
                 slotIndex: slotIndex,
                 isActive: isActive,
               ),
@@ -9353,6 +11331,7 @@ class $$RangerEquipmentTableTableManager
                 required int equipmentId,
                 Value<int?> currentUses = const Value.absent(),
                 Value<String> equippedBy = const Value.absent(),
+                Value<int?> companionId = const Value.absent(),
                 Value<int?> slotIndex = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => RangerEquipmentCompanion.insert(
@@ -9361,6 +11340,7 @@ class $$RangerEquipmentTableTableManager
                 equipmentId: equipmentId,
                 currentUses: currentUses,
                 equippedBy: equippedBy,
+                companionId: companionId,
                 slotIndex: slotIndex,
                 isActive: isActive,
               ),
@@ -9372,64 +11352,80 @@ class $$RangerEquipmentTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({rangerId = false, equipmentId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (rangerId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.rangerId,
-                                referencedTable:
-                                    $$RangerEquipmentTableReferences
-                                        ._rangerIdTable(db),
-                                referencedColumn:
-                                    $$RangerEquipmentTableReferences
-                                        ._rangerIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (equipmentId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.equipmentId,
-                                referencedTable:
-                                    $$RangerEquipmentTableReferences
-                                        ._equipmentIdTable(db),
-                                referencedColumn:
-                                    $$RangerEquipmentTableReferences
-                                        ._equipmentIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({rangerId = false, equipmentId = false, companionId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (rangerId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.rangerId,
+                                    referencedTable:
+                                        $$RangerEquipmentTableReferences
+                                            ._rangerIdTable(db),
+                                    referencedColumn:
+                                        $$RangerEquipmentTableReferences
+                                            ._rangerIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (equipmentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.equipmentId,
+                                    referencedTable:
+                                        $$RangerEquipmentTableReferences
+                                            ._equipmentIdTable(db),
+                                    referencedColumn:
+                                        $$RangerEquipmentTableReferences
+                                            ._equipmentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (companionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.companionId,
+                                    referencedTable:
+                                        $$RangerEquipmentTableReferences
+                                            ._companionIdTable(db),
+                                    referencedColumn:
+                                        $$RangerEquipmentTableReferences
+                                            ._companionIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -9446,7 +11442,11 @@ typedef $$RangerEquipmentTableProcessedTableManager =
       $$RangerEquipmentTableUpdateCompanionBuilder,
       (RangerEquipmentData, $$RangerEquipmentTableReferences),
       RangerEquipmentData,
-      PrefetchHooks Function({bool rangerId, bool equipmentId})
+      PrefetchHooks Function({
+        bool rangerId,
+        bool equipmentId,
+        bool companionId,
+      })
     >;
 typedef $$InjuriesTableCreateCompanionBuilder =
     InjuriesCompanion Function({
@@ -10761,20 +12761,1622 @@ typedef $$SessionEventsTableProcessedTableManager =
       SessionEvent,
       PrefetchHooks Function({bool sessionId})
     >;
+typedef $$StatusEffectsTableCreateCompanionBuilder =
+    StatusEffectsCompanion Function({
+      Value<int> id,
+      Value<int?> rangerId,
+      Value<int?> companionId,
+      required String statusEffectKey,
+    });
+typedef $$StatusEffectsTableUpdateCompanionBuilder =
+    StatusEffectsCompanion Function({
+      Value<int> id,
+      Value<int?> rangerId,
+      Value<int?> companionId,
+      Value<String> statusEffectKey,
+    });
+
+final class $$StatusEffectsTableReferences
+    extends BaseReferences<_$AppDatabase, $StatusEffectsTable, StatusEffect> {
+  $$StatusEffectsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $RangersTable _rangerIdTable(_$AppDatabase db) =>
+      db.rangers.createAlias(
+        $_aliasNameGenerator(db.statusEffects.rangerId, db.rangers.id),
+      );
+
+  $$RangersTableProcessedTableManager? get rangerId {
+    final $_column = $_itemColumn<int>('ranger_id');
+    if ($_column == null) return null;
+    final manager = $$RangersTableTableManager(
+      $_db,
+      $_db.rangers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_rangerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RangerCompanionsTable _companionIdTable(_$AppDatabase db) =>
+      db.rangerCompanions.createAlias(
+        $_aliasNameGenerator(
+          db.statusEffects.companionId,
+          db.rangerCompanions.id,
+        ),
+      );
+
+  $$RangerCompanionsTableProcessedTableManager? get companionId {
+    final $_column = $_itemColumn<int>('companion_id');
+    if ($_column == null) return null;
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StatusEffectsTableFilterComposer
+    extends Composer<_$AppDatabase, $StatusEffectsTable> {
+  $$StatusEffectsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusEffectKey => $composableBuilder(
+    column: $table.statusEffectKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RangersTableFilterComposer get rangerId {
+    final $$RangersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableFilterComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RangerCompanionsTableFilterComposer get companionId {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StatusEffectsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StatusEffectsTable> {
+  $$StatusEffectsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusEffectKey => $composableBuilder(
+    column: $table.statusEffectKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RangersTableOrderingComposer get rangerId {
+    final $$RangersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RangerCompanionsTableOrderingComposer get companionId {
+    final $$RangerCompanionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StatusEffectsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StatusEffectsTable> {
+  $$StatusEffectsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get statusEffectKey => $composableBuilder(
+    column: $table.statusEffectKey,
+    builder: (column) => column,
+  );
+
+  $$RangersTableAnnotationComposer get rangerId {
+    final $$RangersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rangerId,
+      referencedTable: $db.rangers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RangerCompanionsTableAnnotationComposer get companionId {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StatusEffectsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StatusEffectsTable,
+          StatusEffect,
+          $$StatusEffectsTableFilterComposer,
+          $$StatusEffectsTableOrderingComposer,
+          $$StatusEffectsTableAnnotationComposer,
+          $$StatusEffectsTableCreateCompanionBuilder,
+          $$StatusEffectsTableUpdateCompanionBuilder,
+          (StatusEffect, $$StatusEffectsTableReferences),
+          StatusEffect,
+          PrefetchHooks Function({bool rangerId, bool companionId})
+        > {
+  $$StatusEffectsTableTableManager(_$AppDatabase db, $StatusEffectsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StatusEffectsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StatusEffectsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StatusEffectsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> rangerId = const Value.absent(),
+                Value<int?> companionId = const Value.absent(),
+                Value<String> statusEffectKey = const Value.absent(),
+              }) => StatusEffectsCompanion(
+                id: id,
+                rangerId: rangerId,
+                companionId: companionId,
+                statusEffectKey: statusEffectKey,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> rangerId = const Value.absent(),
+                Value<int?> companionId = const Value.absent(),
+                required String statusEffectKey,
+              }) => StatusEffectsCompanion.insert(
+                id: id,
+                rangerId: rangerId,
+                companionId: companionId,
+                statusEffectKey: statusEffectKey,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StatusEffectsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({rangerId = false, companionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (rangerId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.rangerId,
+                                referencedTable: $$StatusEffectsTableReferences
+                                    ._rangerIdTable(db),
+                                referencedColumn: $$StatusEffectsTableReferences
+                                    ._rangerIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (companionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.companionId,
+                                referencedTable: $$StatusEffectsTableReferences
+                                    ._companionIdTable(db),
+                                referencedColumn: $$StatusEffectsTableReferences
+                                    ._companionIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StatusEffectsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StatusEffectsTable,
+      StatusEffect,
+      $$StatusEffectsTableFilterComposer,
+      $$StatusEffectsTableOrderingComposer,
+      $$StatusEffectsTableAnnotationComposer,
+      $$StatusEffectsTableCreateCompanionBuilder,
+      $$StatusEffectsTableUpdateCompanionBuilder,
+      (StatusEffect, $$StatusEffectsTableReferences),
+      StatusEffect,
+      PrefetchHooks Function({bool rangerId, bool companionId})
+    >;
+typedef $$CompanionSkillsTableCreateCompanionBuilder =
+    CompanionSkillsCompanion Function({
+      required int companionId,
+      required String skillKey,
+      Value<int> value,
+      Value<int> rowid,
+    });
+typedef $$CompanionSkillsTableUpdateCompanionBuilder =
+    CompanionSkillsCompanion Function({
+      Value<int> companionId,
+      Value<String> skillKey,
+      Value<int> value,
+      Value<int> rowid,
+    });
+
+final class $$CompanionSkillsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $CompanionSkillsTable, CompanionSkill> {
+  $$CompanionSkillsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $RangerCompanionsTable _companionIdTable(_$AppDatabase db) =>
+      db.rangerCompanions.createAlias(
+        $_aliasNameGenerator(
+          db.companionSkills.companionId,
+          db.rangerCompanions.id,
+        ),
+      );
+
+  $$RangerCompanionsTableProcessedTableManager get companionId {
+    final $_column = $_itemColumn<int>('companion_id')!;
+
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CompanionSkillsTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanionSkillsTable> {
+  $$CompanionSkillsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get skillKey => $composableBuilder(
+    column: $table.skillKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RangerCompanionsTableFilterComposer get companionId {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionSkillsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanionSkillsTable> {
+  $$CompanionSkillsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get skillKey => $composableBuilder(
+    column: $table.skillKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RangerCompanionsTableOrderingComposer get companionId {
+    final $$RangerCompanionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionSkillsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanionSkillsTable> {
+  $$CompanionSkillsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get skillKey =>
+      $composableBuilder(column: $table.skillKey, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$RangerCompanionsTableAnnotationComposer get companionId {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionSkillsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanionSkillsTable,
+          CompanionSkill,
+          $$CompanionSkillsTableFilterComposer,
+          $$CompanionSkillsTableOrderingComposer,
+          $$CompanionSkillsTableAnnotationComposer,
+          $$CompanionSkillsTableCreateCompanionBuilder,
+          $$CompanionSkillsTableUpdateCompanionBuilder,
+          (CompanionSkill, $$CompanionSkillsTableReferences),
+          CompanionSkill,
+          PrefetchHooks Function({bool companionId})
+        > {
+  $$CompanionSkillsTableTableManager(
+    _$AppDatabase db,
+    $CompanionSkillsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanionSkillsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CompanionSkillsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CompanionSkillsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> companionId = const Value.absent(),
+                Value<String> skillKey = const Value.absent(),
+                Value<int> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionSkillsCompanion(
+                companionId: companionId,
+                skillKey: skillKey,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int companionId,
+                required String skillKey,
+                Value<int> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionSkillsCompanion.insert(
+                companionId: companionId,
+                skillKey: skillKey,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CompanionSkillsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({companionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (companionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.companionId,
+                                referencedTable:
+                                    $$CompanionSkillsTableReferences
+                                        ._companionIdTable(db),
+                                referencedColumn:
+                                    $$CompanionSkillsTableReferences
+                                        ._companionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CompanionSkillsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanionSkillsTable,
+      CompanionSkill,
+      $$CompanionSkillsTableFilterComposer,
+      $$CompanionSkillsTableOrderingComposer,
+      $$CompanionSkillsTableAnnotationComposer,
+      $$CompanionSkillsTableCreateCompanionBuilder,
+      $$CompanionSkillsTableUpdateCompanionBuilder,
+      (CompanionSkill, $$CompanionSkillsTableReferences),
+      CompanionSkill,
+      PrefetchHooks Function({bool companionId})
+    >;
+typedef $$CompanionTypeSkillsTableCreateCompanionBuilder =
+    CompanionTypeSkillsCompanion Function({
+      required int companionTypeId,
+      required String skillKey,
+      Value<int> value,
+      Value<int> rowid,
+    });
+typedef $$CompanionTypeSkillsTableUpdateCompanionBuilder =
+    CompanionTypeSkillsCompanion Function({
+      Value<int> companionTypeId,
+      Value<String> skillKey,
+      Value<int> value,
+      Value<int> rowid,
+    });
+
+final class $$CompanionTypeSkillsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $CompanionTypeSkillsTable,
+          CompanionTypeSkill
+        > {
+  $$CompanionTypeSkillsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CompanionTypesTable _companionTypeIdTable(_$AppDatabase db) =>
+      db.companionTypes.createAlias(
+        $_aliasNameGenerator(
+          db.companionTypeSkills.companionTypeId,
+          db.companionTypes.id,
+        ),
+      );
+
+  $$CompanionTypesTableProcessedTableManager get companionTypeId {
+    final $_column = $_itemColumn<int>('companion_type_id')!;
+
+    final manager = $$CompanionTypesTableTableManager(
+      $_db,
+      $_db.companionTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CompanionTypeSkillsTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanionTypeSkillsTable> {
+  $$CompanionTypeSkillsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get skillKey => $composableBuilder(
+    column: $table.skillKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CompanionTypesTableFilterComposer get companionTypeId {
+    final $$CompanionTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionTypeSkillsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanionTypeSkillsTable> {
+  $$CompanionTypeSkillsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get skillKey => $composableBuilder(
+    column: $table.skillKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CompanionTypesTableOrderingComposer get companionTypeId {
+    final $$CompanionTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionTypeSkillsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanionTypeSkillsTable> {
+  $$CompanionTypeSkillsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get skillKey =>
+      $composableBuilder(column: $table.skillKey, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$CompanionTypesTableAnnotationComposer get companionTypeId {
+    final $$CompanionTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionTypeId,
+      referencedTable: $db.companionTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CompanionTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.companionTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionTypeSkillsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanionTypeSkillsTable,
+          CompanionTypeSkill,
+          $$CompanionTypeSkillsTableFilterComposer,
+          $$CompanionTypeSkillsTableOrderingComposer,
+          $$CompanionTypeSkillsTableAnnotationComposer,
+          $$CompanionTypeSkillsTableCreateCompanionBuilder,
+          $$CompanionTypeSkillsTableUpdateCompanionBuilder,
+          (CompanionTypeSkill, $$CompanionTypeSkillsTableReferences),
+          CompanionTypeSkill,
+          PrefetchHooks Function({bool companionTypeId})
+        > {
+  $$CompanionTypeSkillsTableTableManager(
+    _$AppDatabase db,
+    $CompanionTypeSkillsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanionTypeSkillsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CompanionTypeSkillsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CompanionTypeSkillsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> companionTypeId = const Value.absent(),
+                Value<String> skillKey = const Value.absent(),
+                Value<int> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionTypeSkillsCompanion(
+                companionTypeId: companionTypeId,
+                skillKey: skillKey,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int companionTypeId,
+                required String skillKey,
+                Value<int> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionTypeSkillsCompanion.insert(
+                companionTypeId: companionTypeId,
+                skillKey: skillKey,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CompanionTypeSkillsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({companionTypeId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (companionTypeId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.companionTypeId,
+                                referencedTable:
+                                    $$CompanionTypeSkillsTableReferences
+                                        ._companionTypeIdTable(db),
+                                referencedColumn:
+                                    $$CompanionTypeSkillsTableReferences
+                                        ._companionTypeIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CompanionTypeSkillsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanionTypeSkillsTable,
+      CompanionTypeSkill,
+      $$CompanionTypeSkillsTableFilterComposer,
+      $$CompanionTypeSkillsTableOrderingComposer,
+      $$CompanionTypeSkillsTableAnnotationComposer,
+      $$CompanionTypeSkillsTableCreateCompanionBuilder,
+      $$CompanionTypeSkillsTableUpdateCompanionBuilder,
+      (CompanionTypeSkill, $$CompanionTypeSkillsTableReferences),
+      CompanionTypeSkill,
+      PrefetchHooks Function({bool companionTypeId})
+    >;
+typedef $$CompanionProgressionClaimsTableCreateCompanionBuilder =
+    CompanionProgressionClaimsCompanion Function({
+      required int companionId,
+      required int threshold,
+      Value<DateTime> claimedAt,
+      Value<int> rowid,
+    });
+typedef $$CompanionProgressionClaimsTableUpdateCompanionBuilder =
+    CompanionProgressionClaimsCompanion Function({
+      Value<int> companionId,
+      Value<int> threshold,
+      Value<DateTime> claimedAt,
+      Value<int> rowid,
+    });
+
+final class $$CompanionProgressionClaimsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $CompanionProgressionClaimsTable,
+          CompanionProgressionClaim
+        > {
+  $$CompanionProgressionClaimsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $RangerCompanionsTable _companionIdTable(_$AppDatabase db) =>
+      db.rangerCompanions.createAlias(
+        $_aliasNameGenerator(
+          db.companionProgressionClaims.companionId,
+          db.rangerCompanions.id,
+        ),
+      );
+
+  $$RangerCompanionsTableProcessedTableManager get companionId {
+    final $_column = $_itemColumn<int>('companion_id')!;
+
+    final manager = $$RangerCompanionsTableTableManager(
+      $_db,
+      $_db.rangerCompanions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_companionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CompanionProgressionClaimsTableFilterComposer
+    extends Composer<_$AppDatabase, $CompanionProgressionClaimsTable> {
+  $$CompanionProgressionClaimsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get threshold => $composableBuilder(
+    column: $table.threshold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get claimedAt => $composableBuilder(
+    column: $table.claimedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RangerCompanionsTableFilterComposer get companionId {
+    final $$RangerCompanionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableFilterComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionProgressionClaimsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CompanionProgressionClaimsTable> {
+  $$CompanionProgressionClaimsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get threshold => $composableBuilder(
+    column: $table.threshold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get claimedAt => $composableBuilder(
+    column: $table.claimedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RangerCompanionsTableOrderingComposer get companionId {
+    final $$RangerCompanionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionProgressionClaimsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CompanionProgressionClaimsTable> {
+  $$CompanionProgressionClaimsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get threshold =>
+      $composableBuilder(column: $table.threshold, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get claimedAt =>
+      $composableBuilder(column: $table.claimedAt, builder: (column) => column);
+
+  $$RangerCompanionsTableAnnotationComposer get companionId {
+    final $$RangerCompanionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.companionId,
+      referencedTable: $db.rangerCompanions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RangerCompanionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rangerCompanions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CompanionProgressionClaimsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CompanionProgressionClaimsTable,
+          CompanionProgressionClaim,
+          $$CompanionProgressionClaimsTableFilterComposer,
+          $$CompanionProgressionClaimsTableOrderingComposer,
+          $$CompanionProgressionClaimsTableAnnotationComposer,
+          $$CompanionProgressionClaimsTableCreateCompanionBuilder,
+          $$CompanionProgressionClaimsTableUpdateCompanionBuilder,
+          (
+            CompanionProgressionClaim,
+            $$CompanionProgressionClaimsTableReferences,
+          ),
+          CompanionProgressionClaim,
+          PrefetchHooks Function({bool companionId})
+        > {
+  $$CompanionProgressionClaimsTableTableManager(
+    _$AppDatabase db,
+    $CompanionProgressionClaimsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CompanionProgressionClaimsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CompanionProgressionClaimsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CompanionProgressionClaimsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> companionId = const Value.absent(),
+                Value<int> threshold = const Value.absent(),
+                Value<DateTime> claimedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionProgressionClaimsCompanion(
+                companionId: companionId,
+                threshold: threshold,
+                claimedAt: claimedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int companionId,
+                required int threshold,
+                Value<DateTime> claimedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CompanionProgressionClaimsCompanion.insert(
+                companionId: companionId,
+                threshold: threshold,
+                claimedAt: claimedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CompanionProgressionClaimsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({companionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (companionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.companionId,
+                                referencedTable:
+                                    $$CompanionProgressionClaimsTableReferences
+                                        ._companionIdTable(db),
+                                referencedColumn:
+                                    $$CompanionProgressionClaimsTableReferences
+                                        ._companionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CompanionProgressionClaimsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CompanionProgressionClaimsTable,
+      CompanionProgressionClaim,
+      $$CompanionProgressionClaimsTableFilterComposer,
+      $$CompanionProgressionClaimsTableOrderingComposer,
+      $$CompanionProgressionClaimsTableAnnotationComposer,
+      $$CompanionProgressionClaimsTableCreateCompanionBuilder,
+      $$CompanionProgressionClaimsTableUpdateCompanionBuilder,
+      (CompanionProgressionClaim, $$CompanionProgressionClaimsTableReferences),
+      CompanionProgressionClaim,
+      PrefetchHooks Function({bool companionId})
+    >;
+typedef $$EquipmentEffectModifiersTableCreateCompanionBuilder =
+    EquipmentEffectModifiersCompanion Function({
+      required int equipmentId,
+      required String statKey,
+      required int modifier,
+      Value<int> rowid,
+    });
+typedef $$EquipmentEffectModifiersTableUpdateCompanionBuilder =
+    EquipmentEffectModifiersCompanion Function({
+      Value<int> equipmentId,
+      Value<String> statKey,
+      Value<int> modifier,
+      Value<int> rowid,
+    });
+
+final class $$EquipmentEffectModifiersTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $EquipmentEffectModifiersTable,
+          EquipmentEffectModifier
+        > {
+  $$EquipmentEffectModifiersTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $EquipmentTable _equipmentIdTable(_$AppDatabase db) =>
+      db.equipment.createAlias(
+        $_aliasNameGenerator(
+          db.equipmentEffectModifiers.equipmentId,
+          db.equipment.id,
+        ),
+      );
+
+  $$EquipmentTableProcessedTableManager get equipmentId {
+    final $_column = $_itemColumn<int>('equipment_id')!;
+
+    final manager = $$EquipmentTableTableManager(
+      $_db,
+      $_db.equipment,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_equipmentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EquipmentEffectModifiersTableFilterComposer
+    extends Composer<_$AppDatabase, $EquipmentEffectModifiersTable> {
+  $$EquipmentEffectModifiersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get statKey => $composableBuilder(
+    column: $table.statKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get modifier => $composableBuilder(
+    column: $table.modifier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EquipmentTableFilterComposer get equipmentId {
+    final $$EquipmentTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.equipmentId,
+      referencedTable: $db.equipment,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EquipmentTableFilterComposer(
+            $db: $db,
+            $table: $db.equipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EquipmentEffectModifiersTableOrderingComposer
+    extends Composer<_$AppDatabase, $EquipmentEffectModifiersTable> {
+  $$EquipmentEffectModifiersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get statKey => $composableBuilder(
+    column: $table.statKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get modifier => $composableBuilder(
+    column: $table.modifier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EquipmentTableOrderingComposer get equipmentId {
+    final $$EquipmentTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.equipmentId,
+      referencedTable: $db.equipment,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EquipmentTableOrderingComposer(
+            $db: $db,
+            $table: $db.equipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EquipmentEffectModifiersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EquipmentEffectModifiersTable> {
+  $$EquipmentEffectModifiersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get statKey =>
+      $composableBuilder(column: $table.statKey, builder: (column) => column);
+
+  GeneratedColumn<int> get modifier =>
+      $composableBuilder(column: $table.modifier, builder: (column) => column);
+
+  $$EquipmentTableAnnotationComposer get equipmentId {
+    final $$EquipmentTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.equipmentId,
+      referencedTable: $db.equipment,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EquipmentTableAnnotationComposer(
+            $db: $db,
+            $table: $db.equipment,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EquipmentEffectModifiersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EquipmentEffectModifiersTable,
+          EquipmentEffectModifier,
+          $$EquipmentEffectModifiersTableFilterComposer,
+          $$EquipmentEffectModifiersTableOrderingComposer,
+          $$EquipmentEffectModifiersTableAnnotationComposer,
+          $$EquipmentEffectModifiersTableCreateCompanionBuilder,
+          $$EquipmentEffectModifiersTableUpdateCompanionBuilder,
+          (EquipmentEffectModifier, $$EquipmentEffectModifiersTableReferences),
+          EquipmentEffectModifier,
+          PrefetchHooks Function({bool equipmentId})
+        > {
+  $$EquipmentEffectModifiersTableTableManager(
+    _$AppDatabase db,
+    $EquipmentEffectModifiersTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EquipmentEffectModifiersTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$EquipmentEffectModifiersTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$EquipmentEffectModifiersTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> equipmentId = const Value.absent(),
+                Value<String> statKey = const Value.absent(),
+                Value<int> modifier = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EquipmentEffectModifiersCompanion(
+                equipmentId: equipmentId,
+                statKey: statKey,
+                modifier: modifier,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int equipmentId,
+                required String statKey,
+                required int modifier,
+                Value<int> rowid = const Value.absent(),
+              }) => EquipmentEffectModifiersCompanion.insert(
+                equipmentId: equipmentId,
+                statKey: statKey,
+                modifier: modifier,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$EquipmentEffectModifiersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({equipmentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (equipmentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.equipmentId,
+                                referencedTable:
+                                    $$EquipmentEffectModifiersTableReferences
+                                        ._equipmentIdTable(db),
+                                referencedColumn:
+                                    $$EquipmentEffectModifiersTableReferences
+                                        ._equipmentIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EquipmentEffectModifiersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EquipmentEffectModifiersTable,
+      EquipmentEffectModifier,
+      $$EquipmentEffectModifiersTableFilterComposer,
+      $$EquipmentEffectModifiersTableOrderingComposer,
+      $$EquipmentEffectModifiersTableAnnotationComposer,
+      $$EquipmentEffectModifiersTableCreateCompanionBuilder,
+      $$EquipmentEffectModifiersTableUpdateCompanionBuilder,
+      (EquipmentEffectModifier, $$EquipmentEffectModifiersTableReferences),
+      EquipmentEffectModifier,
+      PrefetchHooks Function({bool equipmentId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$RangersTableTableManager get rangers =>
       $$RangersTableTableManager(_db, _db.rangers);
-  $$RangerAbilitiesTableTableManager get rangerAbilities =>
-      $$RangerAbilitiesTableTableManager(_db, _db.rangerAbilities);
-  $$RangerSkillsTableTableManager get rangerSkills =>
-      $$RangerSkillsTableTableManager(_db, _db.rangerSkills);
   $$CompanionTypesTableTableManager get companionTypes =>
       $$CompanionTypesTableTableManager(_db, _db.companionTypes);
   $$RangerCompanionsTableTableManager get rangerCompanions =>
       $$RangerCompanionsTableTableManager(_db, _db.rangerCompanions);
+  $$RangerAbilitiesTableTableManager get rangerAbilities =>
+      $$RangerAbilitiesTableTableManager(_db, _db.rangerAbilities);
+  $$RangerSkillsTableTableManager get rangerSkills =>
+      $$RangerSkillsTableTableManager(_db, _db.rangerSkills);
   $$EquipmentTableTableManager get equipment =>
       $$EquipmentTableTableManager(_db, _db.equipment);
   $$RangerEquipmentTableTableManager get rangerEquipment =>
@@ -10785,4 +14387,21 @@ class $AppDatabaseManager {
       $$SessionsTableTableManager(_db, _db.sessions);
   $$SessionEventsTableTableManager get sessionEvents =>
       $$SessionEventsTableTableManager(_db, _db.sessionEvents);
+  $$StatusEffectsTableTableManager get statusEffects =>
+      $$StatusEffectsTableTableManager(_db, _db.statusEffects);
+  $$CompanionSkillsTableTableManager get companionSkills =>
+      $$CompanionSkillsTableTableManager(_db, _db.companionSkills);
+  $$CompanionTypeSkillsTableTableManager get companionTypeSkills =>
+      $$CompanionTypeSkillsTableTableManager(_db, _db.companionTypeSkills);
+  $$CompanionProgressionClaimsTableTableManager
+  get companionProgressionClaims =>
+      $$CompanionProgressionClaimsTableTableManager(
+        _db,
+        _db.companionProgressionClaims,
+      );
+  $$EquipmentEffectModifiersTableTableManager get equipmentEffectModifiers =>
+      $$EquipmentEffectModifiersTableTableManager(
+        _db,
+        _db.equipmentEffectModifiers,
+      );
 }

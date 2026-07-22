@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart' show companionTypeKeyFromId, getCompanionType;
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeEquipmentModifiers;
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
-import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
 import 'package:rangers_mobile/ui/core/widgets/placeholder_image.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
@@ -92,14 +90,16 @@ class RangerCompanionsTab extends ConsumerWidget {
                   final companion = ranger.companions[index];
                   final typeKey = companionTypeKeyFromId(companion.companionTypeId);
                   final type = getCompanionType(typeKey);
-                  final customSkills = Map<String, int>.from(
-                    const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
-                  );
+                  final customSkills = ranger.companionCustomSkills[companion.id] ?? <String, int>{};
                   final companionEquip = ranger.equipment
                     .where((e) => e.slotIndex != null)
-                    .where((e) => e.equipment.equippedBy == companion.id.toString())
+                    .where((e) => e.equipment.companionId == companion.id)
                     .toList();
-                  final equipMods = computeEquipmentModifiers(companionEquip);
+                  final equipMods = computeEquipmentModifiers(companionEquip.map((e) => (
+                    modifiers: e.modifiers,
+                    isActive: e.isActive,
+                    slotIndex: e.slotIndex,
+                  )).toList());
                   int effectiveStat(int base, String key) =>
                       base + (customSkills[key] ?? 0) + (equipMods[key] ?? 0);
                   return Card(

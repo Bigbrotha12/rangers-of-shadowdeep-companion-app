@@ -405,8 +405,8 @@ void main() {
           await notifier.finalize();
 
           // ranger.health is 18 (from createTestRangerCompanion), minus 5 = 13
-          final updatedHealth = await sessionRepo.getRangerCurrentHealth(rangerId);
-          expect(updatedHealth, 13);
+          final ranger = await rangerRepo.getRangerById(rangerId);
+          expect(ranger?.currentHealth, 13);
         });
 
         test('companion Badly Wounded reduces bonusHealth by -5', () async {

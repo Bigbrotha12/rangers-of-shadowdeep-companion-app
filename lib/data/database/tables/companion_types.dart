@@ -13,5 +13,4 @@ class CompanionTypes extends Table {
   IntColumn get health => integer()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isAnimal => boolean().withDefault(const Constant(false))();
-  TextColumn get baseSkills => text().withDefault(const Constant('{}'))();
 }

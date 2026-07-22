@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' show Random, max;
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,10 +71,15 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
 
     // Compute companion PP gains (surviving companions get +1 PP)
     final companionPpList = <CompanionPpState>[];
+    final companionIds = companions
+      .where((c) => !deadCompanionIds.contains(c.id) && c.isAlive)
+      .map((c) => c.id)
+      .toList();
+    final claimedMap = await companionRepo.getClaimedThresholdsForCompanions(companionIds);
     for (final comp in companions) {
       if (!deadCompanionIds.contains(comp.id) && comp.isAlive) {
         final newPp = comp.progressionPoints + 1;
-        final claimed = _parseClaimedRewards(comp.claimedProgressionRewards);
+        final claimed = claimedMap[comp.id] ?? {};
         final unclaimed = getUnclaimedRewards(newPp, claimed);
         companionPpList.add(CompanionPpState(
           id: comp.id,
@@ -144,16 +148,6 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
       availableRp: rp,
       currentCompanions: companionList,
     );
-  }
-
-  Set<int> _parseClaimedRewards(String? raw) {
-    if (raw == null || raw.isEmpty) return {};
-    try {
-      final list = jsonDecode(raw) as List;
-      return list.map((e) => e is int ? e : int.parse(e as String)).toSet();
-    } on FormatException catch (_) {
-      return {};
-    }
   }
 
   void goToStep(int step) {
@@ -478,14 +472,11 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         if (target.result == SurvivalResult.dead) {
           await companionRepo.deleteCompanion(target.id);
         } else {
-          List<String> injuries = [];
-          try {
-            injuries = List<String>.from(jsonDecode(existing.permanentInjuries) as List? ?? []);
-          } on FormatException catch (_) {}
+          final injuries = await companionRepo.getCompanionInjuryKeys(target.id);
 
           if (target.result == SurvivalResult.permanentInjury && target.injury != null) {
             if (canApplyInjury(injuries, target.injury!.key)) {
-              injuries.add(target.injury!.key);
+              await companionRepo.addCompanionInjury(target.id, target.injury!.key);
             }
           }
 
@@ -500,14 +491,10 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
             customName: Value(existing.customName),
             progressionPoints: Value(existing.progressionPoints),
             isAlive: Value(target.result != SurvivalResult.dead),
-            permanentInjuries: Value(jsonEncode(injuries)),
-            customSkills: Value(existing.customSkills),
+
             isActive: Value(existing.isActive),
-            claimedProgressionRewards: Value(existing.claimedProgressionRewards),
             hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
             bonusHealth: Value(newBonusHealth),
-            heroicAbilityKeys: Value(existing.heroicAbilityKeys),
-            spellKeys: Value(existing.spellKeys),
           ));
         }
       }
@@ -528,14 +515,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         customName: Value(existing.customName),
         progressionPoints: Value(ppState.newPp),
         isAlive: Value(existing.isAlive),
-        permanentInjuries: Value(existing.permanentInjuries),
-        customSkills: Value(existing.customSkills),
         isActive: Value(existing.isActive),
-        claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),
-        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
-        spellKeys: Value(existing.spellKeys),
       ));
     }
   }
@@ -563,7 +545,7 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
             rangerId: state!.rangerId,
             equipmentId: match.id,
             equippedBy: const Value('pool'),
-            currentUses: match.hasUses ? Value(match.maxUses) : const Value(null),
+            currentUses: match.maxUses != null ? Value(match.maxUses) : const Value(null),
           ));
         } else {
           collectedItems.add('${tr.name} (${tr.categoryName})');
@@ -610,14 +592,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         customName: Value(existing.customName),
         progressionPoints: Value(existing.progressionPoints),
         isAlive: Value(existing.isAlive),
-        permanentInjuries: Value(existing.permanentInjuries),
-        customSkills: Value(existing.customSkills),
         isActive: const Value(false),
-        claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),
-        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
-        spellKeys: Value(existing.spellKeys),
       ));
     }
   }
@@ -635,14 +612,9 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
         customName: Value(existing.customName),
         progressionPoints: Value(existing.progressionPoints),
         isAlive: Value(existing.isAlive),
-        permanentInjuries: Value(existing.permanentInjuries),
-        customSkills: Value(existing.customSkills),
         isActive: const Value(true),
-        claimedProgressionRewards: Value(existing.claimedProgressionRewards),
         hasUsedRecruitmentBonus: Value(existing.hasUsedRecruitmentBonus),
         bonusHealth: Value(existing.bonusHealth),
-        heroicAbilityKeys: Value(existing.heroicAbilityKeys),
-        spellKeys: Value(existing.spellKeys),
       ));
     }
   }

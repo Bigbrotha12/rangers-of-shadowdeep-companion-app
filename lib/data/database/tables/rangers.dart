@@ -16,5 +16,4 @@ class Rangers extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get notes => text().withDefault(const Constant(''))();
-  TextColumn get statusEffects => text().withDefault(const Constant('[]'))();
 }

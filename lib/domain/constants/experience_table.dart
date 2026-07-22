@@ -93,25 +93,4 @@ int getStatMaxValue(String stat) {
   return 99; // No limit for unknown stats
 }
 
-/// XP rewards for various achievements during a scenario
-class XpReward {
-  const XpReward({
-    required this.key,
-    required this.description,
-    required this.xp,
-  });
 
-  final String key;
-  final String description;
-  final int xp;
-}
-
-const List<XpReward> xpRewards = [
-  XpReward(key: 'kill_monster', description: 'Slay a monster', xp: 5),
-  XpReward(key: 'kill_leader', description: 'Slay a leader creature', xp: 10),
-  XpReward(key: 'rescue_prisoner', description: 'Rescue a prisoner', xp: 15),
-  XpReward(key: 'discover_info', description: 'Discover important information', xp: 10),
-  XpReward(key: 'use_skill', description: 'Successfully use a skill for the war effort', xp: 5),
-  XpReward(key: 'complete_objective', description: 'Complete scenario objective', xp: 20),
-  XpReward(key: 'gold_for_xp', description: 'Trade Gold and Jewels for XP', xp: 10),
-];

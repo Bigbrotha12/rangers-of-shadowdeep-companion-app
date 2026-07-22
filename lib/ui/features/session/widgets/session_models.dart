@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeEquipmentModifiers;
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
 // ── Data Classes ──
@@ -42,7 +42,11 @@ class NamedSkill {
 // ── Helpers ──
 
 Map<String, int> computeEquipMods(List<RangerEquipmentWithName> items) {
-  return computeEquipmentModifiers(items);
+  return computeEquipmentModifiers(items.map((e) => (
+    modifiers: e.modifiers,
+    isActive: e.isActive,
+    slotIndex: e.slotIndex,
+  )).toList());
 }
 
 // ── Stat Table Widget ──

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' show Value;
@@ -8,44 +6,6 @@ import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
-Map<String, int> computeEquipmentModifiers(
-  List<RangerEquipmentWithName> items, {
-  bool equippedOnly = false,
-}) {
-  const effectMappings = {
-    'armour_bonus': 'armour',
-    'fight_bonus': 'fight',
-    'fight_penalty': 'fight',
-    'shoot_bonus': 'shoot',
-    'will_bonus': 'will',
-    'will_penalty': 'will',
-    'move_bonus': 'move',
-    'move_penalty': 'move',
-    'damage_modifier': 'damage',
-  };
-
-  final stats = <String, int>{};
-  for (final item in items) {
-    if (!item.isActive) continue;
-    if (equippedOnly && item.slotIndex == null) continue;
-    try {
-      final effects = item.effects;
-      if (effects.isEmpty) continue;
-      final parsed = Map<String, dynamic>.from(
-        const JsonDecoder().convert(effects) as Map,
-      );
-      for (final entry in effectMappings.entries) {
-        final mod = parsed[entry.key] as int?;
-        if (mod != null) {
-          stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
-        }
-      }
-    } on FormatException catch (_) {
-      // Graceful degradation: invalid effects JSON treated as empty
-    }
-  }
-  return stats;
-}
 
 Future<bool> showUseItemChargeDialog(
   BuildContext context,
@@ -124,7 +84,7 @@ Future<void> addItem(
     rangerId: rangerId,
     equipmentId: equipmentId,
     equippedBy: const Value('pool'),
-    currentUses: equipment?.hasUses == true
+    currentUses: equipment?.maxUses != null
         ? Value(equipment!.maxUses)
         : const Value(null),
   ));

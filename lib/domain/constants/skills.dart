@@ -88,21 +88,4 @@ const List<Skill> skills = [
   ),
 ];
 
-/// All skill keys for validation
-const List<String> skillKeys = [
-  'acrobatics',
-  'ancient_lore',
-  'armoury',
-  'climb',
-  'leadership',
-  'navigation',
-  'perception',
-  'pick_lock',
-  'read_runes',
-  'stealth',
-  'strength',
-  'survival',
-  'swim',
-  'track',
-  'traps',
-];
+

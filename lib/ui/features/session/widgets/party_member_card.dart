@@ -56,10 +56,11 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
         if (ranger == null) return const SizedBox.shrink();
 
         // ── Equipment filtered for this member ──
-        final equippedBy = member.type == 'ranger' ? 'ranger' : member.id.toString();
         final memberEquip = ranger.equipment
           .where((e) => e.slotIndex != null)
-          .where((e) => e.equipment.equippedBy == equippedBy)
+          .where((e) => member.type == 'ranger'
+            ? e.equipment.equippedBy == 'ranger'
+            : e.equipment.companionId == member.id)
           .toList();
 
         // ── Stats computation ──
@@ -110,12 +111,8 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
           if (companion != null) {
             final typeKey = companionTypeKeyFromId(companion.companionTypeId);
             final type = getCompanionType(typeKey);
-            final customSkills = Map<String, int>.from(
-              const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
-            );
-            final injuries = List<String>.from(
-              jsonDecode(companion.permanentInjuries) as List? ?? [],
-            );
+            final customSkills = ranger.companionCustomSkills[companion.id] ?? <String, int>{};
+            final injuries = ranger.companionInjuryKeys[companion.id] ?? <String>[];
             final statusEffectPenaltyMove = computeStatPenalty('move',
               permanentInjuryKeys: injuries,
               statusEffectKeys: member.statusEffects,
@@ -190,12 +187,8 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
             final typeKey = companionTypeKeyFromId(companion.companionTypeId);
             final type = getCompanionType(typeKey);
 
-            final heroicKeys = List<String>.from(
-              const JsonDecoder().convert(companion.heroicAbilityKeys) as List? ?? [],
-            );
-            final spellKeys = List<String>.from(
-              const JsonDecoder().convert(companion.spellKeys) as List? ?? [],
-            );
+            final heroicKeys = ranger.companionHeroicAbilityKeys[companion.id] ?? [];
+            final spellAbilities = ranger.companionSpellAbilities[companion.id] ?? [];
 
             memberHeroicAbilities = heroicKeys.map((key) {
               final data = heroicAbilities.firstWhere(
@@ -205,19 +198,22 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
               return NamedAbility(key: key, name: data.name, description: data.description);
             }).toList();
 
-            memberSpells = spellKeys.map((key) {
+            memberSpells = spellAbilities.map((a) {
               final data = spells.firstWhere(
-                (sp) => sp.key == key,
+                (sp) => sp.key == a.abilityKey,
                 orElse: () => spells.first,
               );
-              return NamedAbility(key: key, name: data.name, description: data.description);
+              return NamedAbility(
+                key: a.abilityKey,
+                name: data.name,
+                description: data.description,
+                abilityId: a.id,
+              );
             }).toList();
 
             final companionSkillValues = <String, int>{};
             if (type != null) companionSkillValues.addAll(type.baseSkills);
-            final customSkills = Map<String, int>.from(
-              const JsonDecoder().convert(companion.customSkills) as Map? ?? {},
-            );
+            final customSkills = ranger.companionCustomSkills[companion.id] ?? <String, int>{};
             for (final e in customSkills.entries) {
               companionSkillValues[e.key] = (companionSkillValues[e.key] ?? 0) + e.value;
             }
@@ -718,12 +714,7 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                 .map((m) => m.group(1)!)
                 .toList()
             : <String>[])
-        : (ranger.companions.where((c) => c.id == member.id).firstOrNull != null
-            ? List<String>.from(
-                jsonDecode(ranger.companions
-                    .firstWhere((c) => c.id == member.id).permanentInjuries) as List? ?? [],
-              )
-            : <String>[]);
+        : (ranger.companionInjuryKeys[member.id] ?? <String>[]);
 
     if (member.statusEffects.isEmpty && displayInjuries.isEmpty) {
       return Card(

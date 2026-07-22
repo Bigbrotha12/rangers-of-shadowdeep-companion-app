@@ -67,20 +67,6 @@ void main() {
     });
   });
 
-  group('hasNewThreshold', () {
-    test('returns true when unclaimed threshold reached', () {
-      expect(hasNewThreshold(5, {}), isTrue);
-    });
-
-    test('returns false when no thresholds reached', () {
-      expect(hasNewThreshold(4, {}), isFalse);
-    });
-
-    test('returns false when all reached thresholds claimed', () {
-      expect(hasNewThreshold(5, {5}), isFalse);
-    });
-  });
-
   group('getUnclaimedRewards', () {
     test('returns all thresholds up to PP not yet claimed', () {
       final rewards = getUnclaimedRewards(15, {5});

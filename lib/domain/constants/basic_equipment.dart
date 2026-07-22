@@ -116,23 +116,5 @@ BasicEquipment? getBasicEquipment(String key) {
   return null;
 }
 
-/// Get all basic weapons
-List<BasicEquipment> get basicWeapons =>
-    basicEquipmentList.where((e) => e.category == 'weapon').toList();
-
-/// Get all basic armour
-List<BasicEquipment> get basicArmour =>
-    basicEquipmentList.where((e) => e.category == 'armour').toList();
-
-/// Get all basic gear
-List<BasicEquipment> get basicGear =>
-    basicEquipmentList.where((e) => e.category == 'gear').toList();
-
-/// Maximum equipment slots for a figure
-const int maxEquipmentSlots = 6;
-
 /// Maximum equipment slots for a companion (non-animal)
 const int maxCompanionEquipmentSlots = 2;
-
-/// Maximum starting equipment items for a new ranger
-const int maxStartingEquipmentItems = 5;

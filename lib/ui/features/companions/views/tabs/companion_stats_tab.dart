@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/domain/constants/companion_progression.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
-import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
+import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeEquipmentModifiers;
 import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
+import 'package:rangers_mobile/ui/core/widgets/stat_display.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 import 'package:rangers_mobile/ui/features/companions/view_models/companion_provider.dart';
 import 'package:rangers_mobile/ui/features/companions/widgets/companion_progression_reward_dialog.dart';
@@ -76,9 +77,7 @@ class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
 
     if (addedPp != null && mounted) {
       final newPp = (widget.companion.progressionPoints + addedPp).clamp(0, maxProgressionPoints);
-      final claimedThresholds = Set<int>.from(
-        widget.companion.claimedProgressionRewards.map(int.parse),
-      );
+      final claimedThresholds = widget.companion.claimedProgressionRewards;
       final unclaimed = getUnclaimedRewards(newPp, claimedThresholds);
 
       if (unclaimed.isNotEmpty) {
@@ -86,7 +85,6 @@ class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
         if (updatedCompanion != null && mounted) {
           await CompanionProgressionRewardDialog.show(
             context,
-            rangerId: widget.rangerId,
             companionId: widget.companionId,
             newPp: newPp,
             unclaimedRewards: unclaimed,
@@ -112,18 +110,20 @@ class CompanionStatsTabState extends ConsumerState<CompanionStatsTab> {
         if (ranger == null) return <RangerEquipmentWithName>[];
         return ranger.equipment
           .where((e) => e.slotIndex != null)
-          .where((e) => e.equipment.equippedBy == widget.companionId.toString())
+          .where((e) => e.equipment.companionId == widget.companionId)
           .toList();
       },
     );
 
     final statModifiers = companionEquipment != null
-        ? computeEquipmentModifiers(companionEquipment)
+        ? computeEquipmentModifiers(companionEquipment.map((e) => (
+            modifiers: e.modifiers,
+            isActive: e.isActive,
+            slotIndex: e.slotIndex,
+          )).toList())
         : <String, int>{};
 
-    final claimedThresholds = Set<int>.from(
-      widget.companion.claimedProgressionRewards.map(int.parse),
-    );
+    final claimedThresholds = widget.companion.claimedProgressionRewards;
     final nextReward = getNextProgressionReward(
       widget.companion.progressionPoints,
       claimedThresholds,

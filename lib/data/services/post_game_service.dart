@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
 import 'package:rangers_mobile/domain/constants/experience_table.dart';
 import 'package:rangers_mobile/domain/constants/treasure_table.dart';
@@ -23,20 +22,9 @@ SurvivalResult rollSurvivalTable(int roll, {bool isRanger = false}) {
   return SurvivalResult.fullRecovery;
 }
 
-SurvivalResult rollSurvival({bool isRanger = false}) {
-  final roll = Random().nextInt(20) + 1;
-  return rollSurvivalTable(roll, isRanger: isRanger);
-}
-
 /* ── Permanent Injury Table (d20) ────────────────────────────
    Delegates to permanent_injuries.dart rollPermanentInjury()
 */
-PermanentInjury rollInjuryTable() {
-  final roll = Random().nextInt(20) + 1;
-  final key = rollPermanentInjury(roll);
-  return permanentInjuries.firstWhere((i) => i.key == key);
-}
-
 PermanentInjury rollInjuryTableWithRoll(int d20) {
   final key = rollPermanentInjury(d20);
   return permanentInjuries.firstWhere((i) => i.key == key);
@@ -45,12 +33,6 @@ PermanentInjury rollInjuryTableWithRoll(int d20) {
 /* ── Treasure Roll (d20 main + d20 sub) ──────────────────────
    Delegates to treasure_table.dart resolveTreasureRoll()
 */
-({String name, String category}) rollTreasure() {
-  final main = Random().nextInt(20) + 1;
-  final sub = Random().nextInt(20) + 1;
-  return resolveTreasureRoll(main, sub);
-}
-
 ({String name, String category}) rollTreasureWithRolls(int mainRoll, int subRoll) {
   return resolveTreasureRoll(mainRoll, subRoll);
 }
@@ -58,8 +40,6 @@ PermanentInjury rollInjuryTableWithRoll(int d20) {
 /* ── Experience & Level ──────────────────────────────────────
    Delegates to experience_table.dart
 */
-int xpCostForLevel(int currentLevel) => getXpCostForLevel(currentLevel);
-
 LevelBonusType bonusTypeForLevel(int newLevel) => getLevelBonusType(newLevel);
 
 int calculateLevel(int totalXp) {
@@ -73,11 +53,4 @@ int calculateLevel(int totalXp) {
   return level;
 }
 
-/* ── Hero/Companion tracking ──────────────────────────────── */
-class SurvivalTarget {
-  final int id;
-  final String name;
-  final bool isRanger;
 
-  SurvivalTarget({required this.id, required this.name, required this.isRanger});
-}

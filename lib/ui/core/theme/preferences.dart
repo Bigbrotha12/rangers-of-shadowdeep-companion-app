@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ThemeModePref { system, light, dark }
-enum BackupAction { export, import, clearAll, about }
 
 final sharedPrefsProvider = Provider<SharedPreferences>((ref) {
   throw StateError('SharedPreferences not initialized');
@@ -47,28 +46,4 @@ class ThemeModeNotifier extends StateNotifier<ThemeModePref> {
   }
 }
 
-final playerCountNotifier =
-    StateNotifierProvider<PlayerCountNotifier, int>((ref) {
-  final prefs = ref.watch(sharedPrefsProvider);
-  return PlayerCountNotifier(prefs);
-});
 
-class PlayerCountNotifier extends StateNotifier<int> {
-  PlayerCountNotifier(SharedPreferences prefs)
-    : _prefs = prefs,
-      super(_playerCountFromPrefs(prefs));
-
-  final SharedPreferences _prefs;
-
-  static int _playerCountFromPrefs(SharedPreferences prefs) {
-    return prefs.getInt('player_count') ?? 4;
-  }
-
-  void update(int count) {
-    if (state == count) return;
-    state = count;
-    unawaited(_prefs.setInt('player_count', count));
-  }
-}
-
-const kClearAllData = 'clear_all_data';

@@ -171,44 +171,4 @@ void main() {
     });
   });
 
-  group('xpRewards', () {
-    test('has 7 XP reward entries', () {
-      expect(xpRewards.length, 7);
-    });
-
-    test('kill_monster rewards 5 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'kill_monster');
-      expect(entry.xp, 5);
-    });
-
-    test('kill_leader rewards 10 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'kill_leader');
-      expect(entry.xp, 10);
-    });
-
-    test('rescue_prisoner rewards 15 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'rescue_prisoner');
-      expect(entry.xp, 15);
-    });
-
-    test('discover_info rewards 10 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'discover_info');
-      expect(entry.xp, 10);
-    });
-
-    test('use_skill rewards 5 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'use_skill');
-      expect(entry.xp, 5);
-    });
-
-    test('complete_objective rewards 20 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'complete_objective');
-      expect(entry.xp, 20);
-    });
-
-    test('gold_for_xp rewards 10 XP', () {
-      final entry = xpRewards.firstWhere((r) => r.key == 'gold_for_xp');
-      expect(entry.xp, 10);
-    });
-  });
 }

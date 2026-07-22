@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
 import 'package:rangers_mobile/domain/constants/status_effects.dart';
 
@@ -46,57 +44,18 @@ List<String> getActiveSpecialRules({
 }
 
 Map<String, int> computeEquipmentModifiers(
-  List<({String effects, bool isActive, int? slotIndex})> items, {
+  List<({Map<String, int> modifiers, bool isActive, int? slotIndex})> items, {
   bool equippedOnly = false,
 }) {
-  const effectMappings = {
-    'armour_bonus': 'armour',
-    'fight_bonus': 'fight',
-    'fight_penalty': 'fight',
-    'shoot_bonus': 'shoot',
-    'will_bonus': 'will',
-    'will_penalty': 'will',
-    'move_bonus': 'move',
-    'move_penalty': 'move',
-    'damage_modifier': 'damage',
-  };
-
   final stats = <String, int>{};
   for (final item in items) {
     if (!item.isActive) continue;
     if (equippedOnly && item.slotIndex == null) continue;
-    try {
-      final effects = item.effects;
-      if (effects.isEmpty) continue;
-      final parsed = Map<String, dynamic>.from(
-        const JsonDecoder().convert(effects) as Map,
-      );
-      for (final entry in effectMappings.entries) {
-        final mod = parsed[entry.key] as int?;
-        if (mod != null) {
-          stats.update(entry.value, (v) => v + mod, ifAbsent: () => mod);
-        }
-      }
-    } on FormatException catch (_) {
-      // Graceful degradation: invalid effects JSON treated as empty
+    for (final entry in item.modifiers.entries) {
+      stats.update(entry.key, (v) => v + entry.value, ifAbsent: () => entry.value);
     }
   }
   return stats;
 }
 
-Map<String, int> computeEquipmentModifiersFromWithName(
-  List<Object> items, {
-  bool equippedOnly = false,
-}) {
-  return computeEquipmentModifiers(
-    items.map((item) {
-      final e = item as dynamic;
-      return (effects: e.effects as String, isActive: e.isActive as bool, slotIndex: e.slotIndex as int?);
-    }).toList(),
-    equippedOnly: equippedOnly,
-  );
-}
 
-bool hasMaxOneAction(List<String> statusEffectKeys) {
-  return statusEffectKeys.contains('poisoned');
-}

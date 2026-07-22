@@ -29,6 +29,15 @@ class BackupService {
       'ranger_equipment': (await _db.select(_db.rangerEquipment).get())
           .map((r) => r.toJson())
           .toList(),
+      'companion_skills': (await _db.select(_db.companionSkills).get())
+          .map((r) => r.toJson())
+          .toList(),
+      'companion_progression_claims': (await _db.select(_db.companionProgressionClaims).get())
+          .map((r) => r.toJson())
+          .toList(),
+      'status_effects': (await _db.select(_db.statusEffects).get())
+          .map((r) => r.toJson())
+          .toList(),
       'injuries': (await _db.select(_db.injuries).get())
           .map((r) => r.toJson())
           .toList(),
@@ -44,7 +53,13 @@ class BackupService {
       'companion_types': (await _db.select(_db.companionTypes).get())
           .map((r) => r.toJson())
           .toList(),
+      'companion_type_skills': (await _db.select(_db.companionTypeSkills).get())
+          .map((r) => r.toJson())
+          .toList(),
       'equipment': (await _db.select(_db.equipment).get())
+          .map((r) => r.toJson())
+          .toList(),
+      'equipment_effect_modifiers': (await _db.select(_db.equipmentEffectModifiers).get())
           .map((r) => r.toJson())
           .toList(),
     };
@@ -121,6 +136,18 @@ class BackupService {
       final parsedEquipment = (data['ranger_equipment'] as List)
           .map((j) => RangerEquipmentData.fromJson(j as Map<String, dynamic>))
           .toList();
+      final parsedCompanionSkills = (data['companion_skills'] as List?)
+              ?.map((j) => CompanionSkill.fromJson(j as Map<String, dynamic>))
+              .toList() ??
+          <CompanionSkill>[];
+      final parsedProgressionClaims = (data['companion_progression_claims'] as List?)
+              ?.map((j) => CompanionProgressionClaim.fromJson(j as Map<String, dynamic>))
+              .toList() ??
+          <CompanionProgressionClaim>[];
+      final parsedStatusEffects = (data['status_effects'] as List?)
+              ?.map((j) => StatusEffect.fromJson(j as Map<String, dynamic>))
+              .toList() ??
+          <StatusEffect>[];
       final parsedInjuries = (data['injuries'] as List)
           .map((j) => Injury.fromJson(j as Map<String, dynamic>))
           .toList();
@@ -179,7 +206,8 @@ class BackupService {
           rangerIdMap[r.id] = newId;
         }
 
-        for (final a in parsedAbilities) {
+        // Import ranger-only abilities first
+        for (final a in parsedAbilities.where((a) => a.companionId == null)) {
           final newRangerId = rangerIdMap[a.rangerId];
           if (newRangerId == null) continue;
           await _db.into(_db.rangerAbilities).insert(
@@ -219,6 +247,22 @@ class BackupService {
           companionIdMap[c.id] = newId;
         }
 
+        // Import companion abilities after companion IDs are remapped
+        for (final a in parsedAbilities.where((a) => a.companionId != null)) {
+          final newRangerId = rangerIdMap[a.rangerId];
+          final newCompanionId = companionIdMap[a.companionId!];
+          if (newRangerId == null || newCompanionId == null) continue;
+          await _db.into(_db.rangerAbilities).insert(
+                RangerAbilitiesCompanion(
+                  rangerId: Value(newRangerId),
+                  companionId: Value<int?>(newCompanionId),
+                  abilityType: Value(a.abilityType),
+                  abilityKey: Value(a.abilityKey),
+                  isUsedThisScenario: Value(a.isUsedThisScenario),
+                ),
+              );
+        }
+
         for (final e in parsedEquipment) {
           final newRangerId = rangerIdMap[e.rangerId];
           if (newRangerId == null) continue;
@@ -226,12 +270,22 @@ class BackupService {
               oldEquipmentIdToNew[e.equipmentId] ?? e.equipmentId;
 
           String remappedEquippedBy = e.equippedBy;
-          if (e.equippedBy != 'ranger') {
+          int? remappedCompanionId = e.companionId;
+
+          if (e.equippedBy == 'companion' && e.companionId != null) {
+            // New format: companionId stored in FK column
+            final newCompanionId = companionIdMap[e.companionId!];
+            if (newCompanionId != null) {
+              remappedCompanionId = newCompanionId;
+            }
+          } else if (e.equippedBy != 'ranger' && e.equippedBy != 'pool' && e.equippedBy != 'companion') {
+            // Old format: companion ID stored as string in equippedBy
             final oldCompanionId = int.tryParse(e.equippedBy);
             if (oldCompanionId != null) {
               final newCompanionId = companionIdMap[oldCompanionId];
               if (newCompanionId != null) {
-                remappedEquippedBy = newCompanionId.toString();
+                remappedEquippedBy = 'companion';
+                remappedCompanionId = newCompanionId;
               }
             }
           }
@@ -244,6 +298,32 @@ class BackupService {
                       ? const Value.absent()
                       : Value(e.currentUses),
                   equippedBy: Value(remappedEquippedBy),
+                  companionId: remappedCompanionId != null
+                      ? Value<int?>(remappedCompanionId)
+                      : const Value.absent(),
+                ),
+              );
+        }
+
+        for (final cs in parsedCompanionSkills) {
+          final newCompanionId = companionIdMap[cs.companionId];
+          if (newCompanionId == null) continue;
+          await _db.into(_db.companionSkills).insert(
+                CompanionSkillsCompanion(
+                  companionId: Value(newCompanionId),
+                  skillKey: Value(cs.skillKey),
+                  value: Value(cs.value),
+                ),
+              );
+        }
+
+        for (final pc in parsedProgressionClaims) {
+          final newCompanionId = companionIdMap[pc.companionId];
+          if (newCompanionId == null) continue;
+          await _db.into(_db.companionProgressionClaims).insert(
+                CompanionProgressionClaimsCompanion.insert(
+                  companionId: newCompanionId,
+                  threshold: pc.threshold,
                 ),
               );
         }
@@ -267,12 +347,34 @@ class BackupService {
               inj.companionId != null ? companionIdMap[inj.companionId] : null;
           if (inj.rangerId != null && newRangerId == null) continue;
           if (inj.companionId != null && newCompanionId == null) continue;
+          if (newRangerId == null && newCompanionId == null) continue;
 
           await _db.into(_db.injuries).insert(
                 InjuriesCompanion(
                   injuryKey: Value(inj.injuryKey),
                   timesReceived: Value(inj.timesReceived),
                   receivedAt: Value(inj.receivedAt),
+                  rangerId: newRangerId != null
+                      ? Value<int?>(newRangerId)
+                      : const Value.absent(),
+                  companionId: newCompanionId != null
+                      ? Value<int?>(newCompanionId)
+                      : const Value.absent(),
+                ),
+              );
+        }
+
+        for (final se in parsedStatusEffects) {
+          final newRangerId =
+              se.rangerId != null ? rangerIdMap[se.rangerId] : null;
+          final newCompanionId =
+              se.companionId != null ? companionIdMap[se.companionId] : null;
+          if (se.rangerId != null && newRangerId == null) continue;
+          if (se.companionId != null && newCompanionId == null) continue;
+          if (newRangerId == null && newCompanionId == null) continue;
+          await _db.into(_db.statusEffects).insert(
+                StatusEffectsCompanion(
+                  statusEffectKey: Value(se.statusEffectKey),
                   rangerId: newRangerId != null
                       ? Value<int?>(newRangerId)
                       : const Value.absent(),
@@ -313,8 +415,10 @@ class BackupService {
   Future<void> _clearUserData() async {
     await _db.delete(_db.sessionEvents).go();
     await _db.delete(_db.sessions).go();
+    await _db.delete(_db.statusEffects).go();
     await _db.delete(_db.injuries).go();
     await _db.delete(_db.rangerEquipment).go();
+    await _db.delete(_db.companionSkills).go();
     await _db.delete(_db.rangerCompanions).go();
     await _db.delete(_db.rangerSkills).go();
     await _db.delete(_db.rangerAbilities).go();

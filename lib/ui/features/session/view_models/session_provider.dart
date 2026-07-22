@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/data/database/app_database.dart';
@@ -196,6 +194,15 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     String missionName = '',
     required List<PartyMemberState> initialParty,
   }) async {
+    // Reset ability usage for new scenario
+    final rangerRepo = _ref.read(rangerRepositoryProvider);
+    await rangerRepo.resetScenarioAbilityUsage(rangerId);
+    final companionRepo = _ref.read(companionRepositoryProvider);
+    final companions = await companionRepo.getCompanionsByRanger(rangerId, isActive: true);
+    for (final comp in companions) {
+      await companionRepo.resetCompanionScenarioAbilityUsage(comp.id);
+    }
+
     final repo = _ref.read(sessionRepositoryProvider);
     
     // Insert session record
@@ -256,14 +263,26 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     // Load ranger data for party
     final rangerRepo = _ref.read(rangerRepositoryProvider);
     final ranger = await rangerRepo.getRangerById(session.rangerId);
-    final companions = await _ref.read(companionRepositoryProvider).getCompanionsByRanger(session.rangerId, isActive: true);
+    final companionRepo = _ref.read(companionRepositoryProvider);
+    final companions = await companionRepo.getCompanionsByRanger(session.rangerId, isActive: true);
 
     // Build party from ranger + companions
     final party = <PartyMemberState>[];
     if (ranger != null) {
-      final rangerEffects = List<String>.from(
-        jsonDecode(ranger.statusEffects) as List? ?? [],
-      );
+      final rangerEffects = await rangerRepo.getRangerStatusEffectKeys(session.rangerId);
+      final rangerAbilities = await rangerRepo.getRangerAbilities(session.rangerId);
+      final usedAbilities = <String, bool>{};
+      // Heroic abilities key the map by raw abilityKey (matches the card's
+      // lookup). Spells key the map by 'spell:<abilityId>' so duplicate spells
+      // and per-copy usage state remain distinguishable.
+      for (final a in rangerAbilities) {
+        if (!a.isUsedThisScenario) continue;
+        if (a.abilityType == 'spell') {
+          usedAbilities['spell:${a.id}'] = true;
+        } else {
+          usedAbilities[a.abilityKey] = true;
+        }
+      }
       party.add(PartyMemberState(
         id: ranger.id,
         name: ranger.name,
@@ -271,15 +290,24 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
         currentHealth: ranger.currentHealth,
         maxHealth: ranger.health,
         statusEffects: rangerEffects,
+        usedAbilities: usedAbilities,
       ));
     }
     for (final comp in companions) {
       final typeKey = companionTypeKeyFromId(comp.companionTypeId);
       final type = getCompanionType(typeKey);
       final baseHealth = type?.health ?? 10;
-      final compEffects = List<String>.from(
-        jsonDecode(comp.statusEffects) as List? ?? [],
-      );
+      final compEffects = await companionRepo.getCompanionStatusEffectKeys(comp.id);
+      final compAbilities = await companionRepo.getCompanionAbilities(comp.id);
+      final usedMap = <String, bool>{};
+      for (final a in compAbilities) {
+        if (!a.isUsedThisScenario) continue;
+        if (a.abilityType == 'spell') {
+          usedMap['spell:${a.id}'] = true;
+        } else {
+          usedMap[a.abilityKey] = true;
+        }
+      }
       party.add(PartyMemberState(
         id: comp.id,
         name: comp.customName,
@@ -288,6 +316,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
         currentHealth: baseHealth + comp.bonusHealth,
         maxHealth: baseHealth + comp.bonusHealth,
         statusEffects: compEffects,
+        usedAbilities: usedMap,
       ));
     }
 
@@ -371,17 +400,44 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
   }
 
   // Toggle whether a heroic ability has been used this scenario
-  void toggleAbilityUsed(int memberId, String memberType, String abilityKey) {
+  Future<void> toggleAbilityUsed(int memberId, String memberType, String abilityKey) async {
+    final newUsed = !(state.party
+      .where((m) => m.id == memberId && m.type == memberType)
+      .firstOrNull
+      ?.usedAbilities[abilityKey] ?? false);
+
     state = state.copyWith(
       party: state.party.map((m) {
         if (m.id == memberId && m.type == memberType) {
           final updated = Map<String, bool>.from(m.usedAbilities);
-          updated[abilityKey] = !(updated[abilityKey] ?? false);
+          updated[abilityKey] = newUsed;
           return m.copyWith(usedAbilities: updated);
         }
         return m;
       }).toList(),
     );
+
+    // Persist to DB
+    // Spell usage is keyed as 'spell:<abilityId>' (the per-row primary key)
+    // so duplicate spells keep their own state. Heroic abilities use the raw
+    // ability key.
+    if (abilityKey.startsWith('spell:')) {
+      final abilityId = int.tryParse(abilityKey.substring('spell:'.length));
+      if (abilityId != null) {
+        final repo = _ref.read(rangerRepositoryProvider);
+        await repo.toggleAbilityUsed(abilityId, newUsed);
+      }
+    } else if (memberType == 'ranger') {
+      final repo = _ref.read(rangerRepositoryProvider);
+      final abilities = await repo.getRangerAbilities(memberId);
+      final matching = abilities.where((a) => a.abilityKey == abilityKey).toList();
+      for (final a in matching) {
+        await repo.toggleAbilityUsed(a.id, newUsed);
+      }
+    } else {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.toggleCompanionAbilityUsed(memberId, abilityKey, newUsed);
+    }
   }
 
   // Update status effects for a party member
@@ -590,26 +646,18 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
       }).toList();
 
       if (member.type == 'ranger') {
-        await _ref.read(rangerRepositoryProvider).updateRangerFields(
+        await _ref.read(rangerRepositoryProvider).setRangerStatusEffects(
           member.id,
-          RangersCompanion(
-            statusEffects: Value(jsonEncode(persistentEffects)),
-          ),
+          persistentEffects,
         );
       } else {
-        final existing = await _ref.read(companionRepositoryProvider).getCompanionById(member.id);
-        if (existing != null) {
-          final currentDbEffects = List<String>.from(
-            jsonDecode(existing.statusEffects) as List? ?? [],
-          );
-          final merged = <String>{...currentDbEffects, ...persistentEffects}.toList();
-          await _ref.read(companionRepositoryProvider).updateCompanion(
-            RangerCompanionsCompanion(
-              id: Value(member.id),
-              statusEffects: Value(jsonEncode(merged)),
-            ),
-          );
-        }
+        final currentDbEffects = await _ref.read(companionRepositoryProvider)
+            .getCompanionStatusEffectKeys(member.id);
+        final merged = <String>{...currentDbEffects, ...persistentEffects}.toList();
+        await _ref.read(companionRepositoryProvider).setCompanionStatusEffects(
+          member.id,
+          merged,
+        );
       }
     }
 

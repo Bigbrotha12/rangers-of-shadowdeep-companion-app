@@ -16,14 +16,6 @@ class SessionRepository {
     return await query.getSingleOrNull();
   }
 
-  Future<List<Session>> getSessionsByRanger(int rangerId) async {
-    final query = _db.select(_db.sessions)
-      ..where((s) => s.rangerId.equals(rangerId));
-    final results = await query.get();
-    results.sort((a, b) => b.datePlayed.compareTo(a.datePlayed));
-    return results;
-  }
-
   Future<List<Session>> getAllSessions() async {
     final query = _db.select(_db.sessions);
     final results = await query.get();
@@ -57,18 +49,6 @@ class SessionRepository {
     return results;
   }
 
-  Future<int> deleteEventsBySession(int sessionId) async {
-    return await (_db.delete(_db.sessionEvents)..where((e) => e.sessionId.equals(sessionId))).go();
-  }
-
-  // Helper: get active (incomplete) session for a ranger
-  Future<Session?> getActiveSession(int rangerId) async {
-    final query = _db.select(_db.sessions)
-      ..where((s) => s.rangerId.equals(rangerId))
-      ..where((s) => s.isCompleted.equals(false));
-    return await query.getSingleOrNull();
-  }
-
   // Helper: mark session as complete
   Future<void> completeSession(int sessionId, {String outcome = '', int experienceEarned = 0, String notes = ''}) async {
     await (_db.update(_db.sessions)..where((s) => s.id.equals(sessionId))).write(
@@ -79,12 +59,6 @@ class SessionRepository {
         notes: Value(notes),
       ),
     );
-  }
-
-  // Helper: get ranger's current health for session setup
-  Future<int> getRangerCurrentHealth(int rangerId) async {
-    final ranger = await (_db.select(_db.rangers)..where((r) => r.id.equals(rangerId))).getSingleOrNull();
-    return ranger?.currentHealth ?? ranger?.health ?? 18;
   }
 
   // Helper: update ranger's current health after session

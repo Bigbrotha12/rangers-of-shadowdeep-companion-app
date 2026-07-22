@@ -367,14 +367,4 @@ MagicItem? getMagicItem(String key) {
   return null;
 }
 
-/// Get all magic weapons
-List<MagicItem> get magicWeapons =>
-    magicItemsList.where((i) => i.category == 'magic_weapon').toList();
 
-/// Get all magic armour
-List<MagicItem> get magicArmour =>
-    magicItemsList.where((i) => i.category == 'magic_armour').toList();
-
-/// Get all unique magic items
-List<MagicItem> get uniqueMagicItems =>
-    magicItemsList.where((i) => i.category == 'magic_item').toList();

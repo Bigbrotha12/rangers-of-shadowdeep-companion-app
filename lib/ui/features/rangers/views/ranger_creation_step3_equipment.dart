@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rangers_mobile/domain/constants/base_stats.dart';
 import 'package:rangers_mobile/domain/constants/basic_equipment.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_creation_provider.dart';
 

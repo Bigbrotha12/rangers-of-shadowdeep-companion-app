@@ -5,7 +5,6 @@ import 'package:drift/drift.dart' show Value;
 import 'package:rangers_mobile/data/database/app_database.dart';
 import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
 import 'package:rangers_mobile/ui/core/widgets/confirm_dialog.dart';
-import 'package:rangers_mobile/ui/core/widgets/equipment_utils.dart';
 import 'package:rangers_mobile/ui/core/widgets/placeholder_image.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
@@ -140,7 +139,7 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                     children: [
                       RangerStatsTab(
                         ranger: ranger,
-                        statModifiers: computeEquipmentModifiers(ranger.equipment, equippedOnly: true),
+                        statModifiers: ranger.equipmentModifiers,
                         onEditNotes: () => _showNotesDialog(context, ref, ranger),
                       ),
                       RangerAbilitiesTab(ranger: ranger),

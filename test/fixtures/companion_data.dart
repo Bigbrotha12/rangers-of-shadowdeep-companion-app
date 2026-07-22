@@ -20,13 +20,8 @@ RangerCompanionsCompanion createTestCompanionCompanion({
     isAlive: Value(isAlive),
     isActive: const Value(true),
     createdAt: Value(DateTime.now()),
-    permanentInjuries: const Value('[]'),
-    customSkills: const Value('{}'),
-    claimedProgressionRewards: const Value('[]'),
     hasUsedRecruitmentBonus: const Value(false),
     bonusHealth: const Value(0),
-    heroicAbilityKeys: const Value('[]'),
-    spellKeys: const Value('[]'),
   );
 }
 

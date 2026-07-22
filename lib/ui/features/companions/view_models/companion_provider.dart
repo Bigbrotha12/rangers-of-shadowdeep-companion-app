@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/data/database/app_database.dart';
 import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
-import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
 import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeStatPenalty;
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
@@ -19,7 +17,7 @@ class CompanionData {
   final Map<String, int> customSkills;
   final bool isActive;
   final DateTime createdAt;
-  final List<String> claimedProgressionRewards;
+  final Set<int> claimedProgressionRewards;
   final bool hasUsedRecruitmentBonus;
   final int bonusHealth;
   final List<String> heroicAbilityKeys;
@@ -37,7 +35,7 @@ class CompanionData {
     this.customSkills = const {},
     this.isActive = true,
     required this.createdAt,
-    this.claimedProgressionRewards = const [],
+    this.claimedProgressionRewards = const {},
     this.hasUsedRecruitmentBonus = false,
     this.bonusHealth = 0,
     this.heroicAbilityKeys = const [],
@@ -46,13 +44,14 @@ class CompanionData {
   });
 
   CompanionTypeDefinition? get type => getCompanionType(
-    _typeKeyFromId(companionTypeId),
+    companionTypeKeyFromId(companionTypeId),
   );
 
   int get effectiveMove {
     final base = type?.move ?? 6;
+    final custom = customSkills['move'] ?? 0;
     final injuryPenalty = _calculateInjuryPenalty('move');
-    return base + injuryPenalty;
+    return base + custom + injuryPenalty;
   }
 
   int get effectiveFight {
@@ -94,29 +93,6 @@ class CompanionData {
     );
   }
 
-  String _typeKeyFromId(int id) {
-    switch (id) {
-      case 1: return 'arcanist';
-      case 2: return 'archer';
-      case 3: return 'barbarian';
-      case 4: return 'conjuror';
-      case 5: return 'guardsman';
-      case 6: return 'hound';
-      case 7: return 'warhound';
-      case 8: return 'bloodhound';
-      case 9: return 'knight';
-      case 10: return 'man_at_arms';
-      case 11: return 'raptor';
-      case 12: return 'recruit';
-      case 13: return 'rogue';
-      case 14: return 'savage';
-      case 15: return 'swordsman';
-      case 16: return 'templar';
-      case 17: return 'tracker';
-      default: return 'recruit';
-    }
-  }
-
   factory CompanionData.fromRow(RangerCompanion row) {
     return CompanionData(
       id: row.id,
@@ -125,50 +101,11 @@ class CompanionData {
       customName: row.customName,
       progressionPoints: row.progressionPoints,
       isAlive: row.isAlive,
-      permanentInjuries: List<String>.from(
-        jsonDecode(row.permanentInjuries) as List? ?? [],
-      ),
-      customSkills: Map<String, int>.from(
-        jsonDecode(row.customSkills) as Map? ?? {},
-      ),
       isActive: row.isActive,
       createdAt: row.createdAt,
-      claimedProgressionRewards: List<String>.from(
-        jsonDecode(row.claimedProgressionRewards) as List? ?? [],
-      ),
       hasUsedRecruitmentBonus: row.hasUsedRecruitmentBonus,
       bonusHealth: row.bonusHealth,
-      heroicAbilityKeys: List<String>.from(
-        jsonDecode(row.heroicAbilityKeys) as List? ?? [],
-      ),
-      spellKeys: List<String>.from(
-        jsonDecode(row.spellKeys) as List? ?? [],
-      ),
-      statusEffects: List<String>.from(
-        jsonDecode(row.statusEffects) as List? ?? [],
-      ),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'rangerId': rangerId,
-      'companionTypeId': companionTypeId,
-      'customName': customName,
-      'progressionPoints': progressionPoints,
-      'isAlive': isAlive,
-      'permanentInjuries': permanentInjuries,
-      'customSkills': customSkills,
-      'isActive': isActive,
-      'createdAt': createdAt.toIso8601String(),
-      'claimedProgressionRewards': claimedProgressionRewards,
-      'hasUsedRecruitmentBonus': hasUsedRecruitmentBonus,
-      'bonusHealth': bonusHealth,
-      'heroicAbilityKeys': heroicAbilityKeys,
-      'spellKeys': spellKeys,
-      'statusEffects': statusEffects,
-    };
   }
 }
 
@@ -188,21 +125,26 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
     final repo = _ref.read(companionRepositoryProvider);
     final row = await repo.getCompanionById(companionId);
     if (row != null) {
-      state = CompanionData.fromRow(row);
+      final injuryKeys = await repo.getCompanionInjuryKeys(companionId);
+      final heroicKeys = await repo.getCompanionHeroicAbilityKeys(companionId);
+      final spellKeys = await repo.getCompanionSpellKeys(companionId);
+      final statusEffectKeys = await repo.getCompanionStatusEffectKeys(companionId);
+      final skills = await repo.getCompanionSkills(companionId);
+      final claimedThresholds = await repo.getClaimedThresholds(companionId);
+      state = CompanionData.fromRow(row).copyWith(
+        permanentInjuries: injuryKeys,
+        heroicAbilityKeys: heroicKeys,
+        spellKeys: spellKeys,
+        statusEffects: statusEffectKeys,
+        customSkills: skills,
+        claimedProgressionRewards: claimedThresholds,
+      );
     }
   }
 
   Future<void> updateName(String name) async {
     if (state != null) {
       state = state!.copyWith(customName: name);
-      await _persist();
-    }
-  }
-
-  Future<void> addProgressionPoints(int points) async {
-    if (state != null) {
-      final newPP = state!.progressionPoints + points;
-      state = state!.copyWith(progressionPoints: newPP);
       await _persist();
     }
   }
@@ -214,21 +156,13 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
     }
   }
 
-  Future<void> addPermanentInjury(String injuryKey) async {
-    if (state != null) {
-      if (!canApplyInjury(state!.permanentInjuries, injuryKey)) return;
-      final injuries = [...state!.permanentInjuries, injuryKey];
-      state = state!.copyWith(permanentInjuries: injuries);
-      await _persist();
-    }
-  }
-
   Future<void> updateCustomSkill(String skillKey, int value) async {
     if (state != null) {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.upsertCompanionSkill(state!.id, skillKey, value);
       final skills = Map<String, int>.from(state!.customSkills);
       skills[skillKey] = value;
       state = state!.copyWith(customSkills: skills);
-      await _persist();
     }
   }
 
@@ -239,11 +173,15 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
     }
   }
 
-  Future<void> markProgressionRewardClaimed(String threshold) async {
+  Future<void> markProgressionRewardClaimed(int threshold) async {
     if (state != null) {
-      final claimed = [...state!.claimedProgressionRewards, threshold];
-      state = state!.copyWith(claimedProgressionRewards: claimed);
-      await _persist();
+      if (state!.claimedProgressionRewards.contains(threshold)) return;
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.markThresholdClaimed(state!.id, threshold);
+      state = state!.copyWith(
+        claimedProgressionRewards: {...state!.claimedProgressionRewards, threshold},
+      );
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
     }
   }
 
@@ -262,68 +200,53 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       customName: Value(state!.customName),
       progressionPoints: Value(state!.progressionPoints),
       isAlive: Value(state!.isAlive),
-      permanentInjuries: Value(jsonEncode(state!.permanentInjuries)),
-      customSkills: Value(jsonEncode(state!.customSkills)),
       isActive: Value(state!.isActive),
-      claimedProgressionRewards: Value(jsonEncode(state!.claimedProgressionRewards)),
       hasUsedRecruitmentBonus: Value(state!.hasUsedRecruitmentBonus),
       bonusHealth: Value(state!.bonusHealth),
-      heroicAbilityKeys: Value(jsonEncode(state!.heroicAbilityKeys)),
-      spellKeys: Value(jsonEncode(state!.spellKeys)),
-      statusEffects: Value(jsonEncode(state!.statusEffects)),
     ));
     _ref.invalidate(rangerDetailProvider(state!.rangerId));
   }
 
   Future<void> updateHeroicAbilityKeys(List<String> keys) async {
     if (state != null) {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.setCompanionAbilities(state!.id, state!.rangerId, 'heroic_ability', keys);
       state = state!.copyWith(heroicAbilityKeys: keys);
-      await _persist();
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
     }
   }
 
   Future<void> addSpellKey(String key) async {
     if (state != null) {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.addCompanionSpell(state!.id, state!.rangerId, key);
       final updated = [...state!.spellKeys, key];
       state = state!.copyWith(spellKeys: updated);
-      await _persist();
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
     }
   }
 
   Future<void> removeSpellKey(String key) async {
     if (state != null) {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.removeCompanionAbilityByIndex(state!.id, key, 'spell');
       final updated = [...state!.spellKeys];
       final index = updated.indexOf(key);
       if (index != -1) {
         updated.removeAt(index);
         state = state!.copyWith(spellKeys: updated);
-        await _persist();
       }
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
     }
   }
 
   Future<void> setSpellKeys(List<String> keys) async {
     if (state != null) {
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.setCompanionAbilities(state!.id, state!.rangerId, 'spell', keys);
       state = state!.copyWith(spellKeys: keys);
-      await _persist();
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
     }
-  }
-
-  Future<void> addStatusEffect(String effectKey) async {
-    if (state == null) return;
-    if (state!.statusEffects.contains(effectKey)) return;
-    state = state!.copyWith(
-      statusEffects: [...state!.statusEffects, effectKey],
-    );
-    await _persist();
-  }
-
-  Future<void> removeStatusEffect(String effectKey) async {
-    if (state == null) return;
-    state = state!.copyWith(
-      statusEffects: state!.statusEffects.where((k) => k != effectKey).toList(),
-    );
-    await _persist();
   }
 }
 
@@ -339,7 +262,7 @@ extension CompanionDataCopy on CompanionData {
     Map<String, int>? customSkills,
     bool? isActive,
     DateTime? createdAt,
-    List<String>? claimedProgressionRewards,
+    Set<int>? claimedProgressionRewards,
     bool? hasUsedRecruitmentBonus,
     int? bonusHealth,
     List<String>? heroicAbilityKeys,
