@@ -52,6 +52,7 @@ windows/build/
 # IDE
 .idea/
 .vscode/
+.opencode
 *.code-workspace
 *.iml
 

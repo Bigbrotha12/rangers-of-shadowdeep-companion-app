@@ -6,6 +6,7 @@ import 'package:rangers_mobile/ui/features/session/view_models/session_provider.
 import 'package:rangers_mobile/ui/features/session/widgets/creature_card.dart';
 import 'package:rangers_mobile/ui/features/session/widgets/dice_roller_sheet.dart';
 import 'package:rangers_mobile/ui/features/session/widgets/party_member_card.dart';
+import 'package:rangers_mobile/ui/features/session/widgets/session_models.dart';
 import 'package:rangers_mobile/ui/features/session/widgets/session_widgets.dart';
 
 class SessionActiveView extends ConsumerStatefulWidget {
@@ -84,7 +85,10 @@ class _SessionActiveViewState extends ConsumerState<SessionActiveView> {
                 PartyPanel(session: session),
                 const SizedBox(height: 16),
 
-                CreaturePanel(session: session),
+                CreaturePanel(
+                  session: session,
+                  onAddCreature: () => _showAddCreatureDialog(context, ref),
+                ),
                 const SizedBox(height: 16),
 
                 EventLog(session: session),
@@ -338,40 +342,8 @@ class _CreaturePickerState extends State<_CreaturePicker> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              ..._filtered.map((creature) => ListTile(
-                    dense: true,
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: theme.colorScheme.errorContainer,
-                      child: Text(
-                        '${creature.move}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      creature.name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      'HP ${creature.health}  ·  XP ${creature.xpValue}${creature.notes.isNotEmpty ? '  ·  ${creature.notes}' : ''}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Text(
-                      'M${creature.move} F${creature.fight} S${creature.shoot} A${creature.armour} W${creature.will} H${creature.health}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
+              ..._filtered.map((creature) => _CreatureTile(
+                    creature: creature,
                     onTap: () => widget.onSelect(creature),
                   )),
               const Divider(),
@@ -399,6 +371,89 @@ class _CreaturePickerState extends State<_CreaturePicker> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CreatureTile extends StatelessWidget {
+  const _CreatureTile({required this.creature, required this.onTap});
+
+  final CreatureDefinition creature;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    child: Text(
+                      '${creature.move}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      creature.name,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    'XP ${creature.xpValue}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              StatTable(
+                stats: StatRow(
+                  move: creature.move,
+                  fight: creature.fight,
+                  shoot: creature.shoot,
+                  armour: creature.armour,
+                  will: creature.will,
+                  health: creature.health,
+                ),
+              ),
+              if (creature.notes.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  creature.notes,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

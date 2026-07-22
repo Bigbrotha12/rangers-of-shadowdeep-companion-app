@@ -27,14 +27,6 @@ class CompanionEquipmentTab extends ConsumerStatefulWidget {
 }
 
 class CompanionEquipmentTabState extends ConsumerState<CompanionEquipmentTab> {
-  String _safeDbKey(EquipmentData e) {
-    try {
-      return e.itemKey;
-    } on Exception catch (_) {
-      return '';
-    }
-  }
-
   bool _canCompanionEquip(String itemKey, String category) {
     if (itemKey.isEmpty) return false;
     final type = widget.type;
@@ -57,7 +49,7 @@ class CompanionEquipmentTabState extends ConsumerState<CompanionEquipmentTab> {
     final equipment = await repo.getEquipmentById(item.equipmentId);
     if (equipment == null) return;
 
-    final itemKey = _safeDbKey(equipment);
+    final itemKey = _safeItemKey(equipment);
     if (itemKey.isEmpty) return;
     if (!_canCompanionEquip(itemKey, equipment.category)) return;
 

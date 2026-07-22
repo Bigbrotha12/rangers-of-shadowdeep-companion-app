@@ -143,12 +143,13 @@ class _CreatureCardState extends ConsumerState<CreatureCard> {
                           ),
                           onPressed: () => setState(() => _isExpanded = !_isExpanded),
                         ),
+                      ] else ...[
+                        IconButton(
+                          icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                          onPressed: () => ref.read(activeSessionProvider.notifier).removeCreature(creature.id),
+                          tooltip: 'Remove',
+                        ),
                       ],
-                      IconButton(
-                        icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-                        onPressed: () => ref.read(activeSessionProvider.notifier).removeCreature(creature.id),
-                        tooltip: 'Remove',
-                      ),
                     ],
                   ),
 
@@ -250,6 +251,31 @@ class _CreatureCardState extends ConsumerState<CreatureCard> {
                         ),
                       ),
                     ],
+
+                    // Delete
+                    const SizedBox(height: 12),
+                    Card(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => ref.read(activeSessionProvider.notifier).removeCreature(creature.id),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Remove Creature',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               );
@@ -264,9 +290,10 @@ class _CreatureCardState extends ConsumerState<CreatureCard> {
 // ── Creature Panel ──
 
 class CreaturePanel extends StatelessWidget {
-  const CreaturePanel({required this.session, super.key});
+  const CreaturePanel({required this.session, required this.onAddCreature, super.key});
 
   final ActiveSessionState session;
+  final VoidCallback onAddCreature;
 
   @override
   Widget build(BuildContext context) {
@@ -309,6 +336,14 @@ class CreaturePanel extends StatelessWidget {
           )
         else
           ...session.creatures.map((creature) => CreatureCard(creature: creature)),
+        const SizedBox(height: 8),
+        Center(
+          child: FilledButton.tonalIcon(
+            onPressed: onAddCreature,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Creature'),
+          ),
+        ),
       ],
     );
   }

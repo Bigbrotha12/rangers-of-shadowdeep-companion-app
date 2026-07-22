@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rangers_mobile/data/database/app_database.dart';
 import 'package:rangers_mobile/data/repositories/companion_repository_provider.dart';
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
+import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
 import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeStatPenalty;
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
@@ -164,6 +165,39 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       skills[skillKey] = value;
       state = state!.copyWith(customSkills: skills);
     }
+  }
+
+  Future<void> addPermanentInjury(String injuryKey) async {
+    if (state != null) {
+      if (!canApplyInjury(state!.permanentInjuries, injuryKey)) return;
+      final repo = _ref.read(companionRepositoryProvider);
+      await repo.addCompanionInjury(state!.id, injuryKey);
+      state = state!.copyWith(
+        permanentInjuries: [...state!.permanentInjuries, injuryKey],
+      );
+      _ref.invalidate(rangerDetailProvider(state!.rangerId));
+    }
+  }
+
+  Future<void> addStatusEffect(String effectKey) async {
+    if (state == null) return;
+    if (state!.statusEffects.contains(effectKey)) return;
+    final repo = _ref.read(companionRepositoryProvider);
+    await repo.setCompanionStatusEffects(
+      state!.id,
+      [...state!.statusEffects, effectKey],
+    );
+    state = state!.copyWith(
+      statusEffects: [...state!.statusEffects, effectKey],
+    );
+  }
+
+  Future<void> removeStatusEffect(String effectKey) async {
+    if (state == null) return;
+    final updated = state!.statusEffects.where((k) => k != effectKey).toList();
+    final repo = _ref.read(companionRepositoryProvider);
+    await repo.setCompanionStatusEffects(state!.id, updated);
+    state = state!.copyWith(statusEffects: updated);
   }
 
   Future<void> addBonusHealth(int amount) async {

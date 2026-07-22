@@ -63,7 +63,6 @@ class ReferenceFavoritesNotifier extends StateNotifier<Set<String>> {
     }
   }
 
-  bool isFavorite(String entryId) => state.contains(entryId);
 }
 
 final favoriteEntriesProvider = Provider<List<ReferenceEntry>>((ref) {

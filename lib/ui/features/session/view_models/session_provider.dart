@@ -678,13 +678,6 @@ final sessionHistoryProvider = FutureProvider<List<Session>>((ref) async {
   final repo = ref.watch(sessionRepositoryProvider);
   return await repo.getAllSessions();
 });
-
-// Provider for a specific session's details
-final sessionDetailProvider = FutureProvider.family<Session?, int>((ref, sessionId) async {
-  final repo = ref.watch(sessionRepositoryProvider);
-  return await repo.getSessionById(sessionId);
-});
-
 Future<void> deleteSession(WidgetRef ref, int sessionId) async {
   final repo = ref.read(sessionRepositoryProvider);
   ref.invalidate(sessionHistoryProvider);

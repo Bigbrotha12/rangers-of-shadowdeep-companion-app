@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' show Value;
+import 'package:rangers_mobile/data/database/app_database.dart';
 import 'package:rangers_mobile/domain/constants/permanent_injuries.dart';
 import 'package:rangers_mobile/domain/constants/status_effects.dart';
 import 'package:rangers_mobile/domain/services/stat_calculation_service.dart';
+import 'package:rangers_mobile/data/repositories/ranger_repository_provider.dart';
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
-class RangerInjuriesTab extends ConsumerWidget {
+class RangerInjuriesTab extends ConsumerStatefulWidget {
   const RangerInjuriesTab({
     required this.ranger,
     required this.rangerId,
@@ -17,18 +20,34 @@ class RangerInjuriesTab extends ConsumerWidget {
   final int rangerId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RangerInjuriesTab> createState() => _RangerInjuriesTabState();
+}
+
+class _RangerInjuriesTabState extends ConsumerState<RangerInjuriesTab> {
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final injuryKeys = ranger.permanentInjuryKeys;
-    final statusEffectKeys = ranger.statusEffects;
+    final injuryKeys = widget.ranger.permanentInjuryKeys;
+    final statusEffectKeys = widget.ranger.statusEffects;
 
     return ListView(
       padding: const EdgeInsets.all(Spacing.lg),
       children: [
-        Text('Permanent Injuries',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Row(
+          children: [
+            Expanded(
+              child: Text('Permanent Injuries',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add Permanent Injury',
+              onPressed: () => _showAddInjurySheet(context),
+            ),
+          ],
+        ),
         const SizedBox(height: Spacing.sm),
-        if (injuryKeys.isEmpty && !ranger.ranger.notes.contains('[Injury]'))
+        if (injuryKeys.isEmpty && !widget.ranger.ranger.notes.contains('[Injury]'))
           Card(child: Padding(
             padding: const EdgeInsets.all(Spacing.lg),
             child: Row(children: [
@@ -46,10 +65,15 @@ class RangerInjuriesTab extends ConsumerWidget {
                 leading: Icon(Icons.warning_amber, color: theme.colorScheme.error),
                 title: Text(injury?.name ?? key.replaceAll('_', ' ')),
                 subtitle: Text(injury?.effect ?? ''),
+                trailing: IconButton(
+                  icon: Icon(Icons.close, color: theme.colorScheme.error),
+                  tooltip: 'Remove Injury',
+                  onPressed: () => _removeInjury(key),
+                ),
               ),
             );
           }),
-          if (ranger.ranger.notes.isNotEmpty) ...[
+          if (widget.ranger.ranger.notes.isNotEmpty) ...[
             const SizedBox(height: Spacing.sm),
             Card(
               child: Padding(
@@ -62,7 +86,7 @@ class RangerInjuriesTab extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                     )),
                     const SizedBox(height: Spacing.xs),
-                    Text(ranger.ranger.notes, style: theme.textTheme.bodySmall),
+                    Text(widget.ranger.ranger.notes, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -72,8 +96,19 @@ class RangerInjuriesTab extends ConsumerWidget {
 
         const Divider(height: 32),
 
-        Text('Active Status Effects',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Row(
+          children: [
+            Expanded(
+              child: Text('Active Status Effects',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add Status Effect',
+              onPressed: () => _showAddStatusEffectSheet(context),
+            ),
+          ],
+        ),
         const SizedBox(height: Spacing.sm),
         if (statusEffectKeys.isEmpty)
           Card(child: Padding(
@@ -96,6 +131,11 @@ class RangerInjuriesTab extends ConsumerWidget {
                 ),
                 title: Text(effect?.name ?? key),
                 subtitle: Text(effect?.description ?? ''),
+                trailing: IconButton(
+                  icon: Icon(Icons.close, color: theme.colorScheme.error),
+                  tooltip: 'Remove Status Effect',
+                  onPressed: () => _removeStatusEffect(key),
+                ),
               ),
             );
           }),
@@ -168,6 +208,117 @@ class RangerInjuriesTab extends ConsumerWidget {
         }),
       ],
     );
+  }
+
+  void _showAddInjurySheet(BuildContext context) {
+    final injuryKeys = widget.ranger.permanentInjuryKeys;
+    final available = permanentInjuries
+        .where((i) => canApplyInjury(injuryKeys, i.key))
+        .toList();
+
+    if (available.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All permanent injuries already applied.')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(Spacing.lg),
+        children: [
+          Text('Add Permanent Injury',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ...available.map((injury) => ListTile(
+            leading: Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.error),
+            title: Text(injury.name),
+            subtitle: Text(injury.effect),
+            onTap: () {
+              Navigator.pop(ctx);
+              _addInjury(injury.key);
+            },
+          )),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addInjury(String injuryKey) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final notes = widget.ranger.ranger.notes;
+    final updatedNotes = notes.isEmpty
+        ? '[Injury] $injuryKey'
+        : '$notes\n[Injury] $injuryKey';
+    await repo.updateRangerFields(widget.rangerId, RangersCompanion(
+      notes: Value(updatedNotes),
+      updatedAt: Value(DateTime.now()),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _removeInjury(String injuryKey) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final notes = widget.ranger.ranger.notes;
+    final updatedNotes = notes
+        .replaceAll('[Injury] $injuryKey', '')
+        .replaceAll('\n\n', '\n')
+        .trim();
+    await repo.updateRangerFields(widget.rangerId, RangersCompanion(
+      notes: Value(updatedNotes),
+      updatedAt: Value(DateTime.now()),
+    ));
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  void _showAddStatusEffectSheet(BuildContext context) {
+    final currentKeys = widget.ranger.statusEffects;
+    final available = statusEffects
+        .where((e) => !currentKeys.contains(e.key))
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(Spacing.lg),
+        children: [
+          Text('Add Status Effect',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ...available.map((effect) => ListTile(
+            leading: Icon(
+              effect.category == StatusEffectCategory.positive
+                ? Icons.arrow_upward : Icons.arrow_downward,
+              color: effect.category == StatusEffectCategory.positive
+                ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.error,
+            ),
+            title: Text(effect.name),
+            subtitle: Text(effect.description),
+            onTap: () {
+              Navigator.pop(ctx);
+              _addStatusEffect(effect.key);
+            },
+          )),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addStatusEffect(String effectKey) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final current = widget.ranger.statusEffects;
+    await repo.setRangerStatusEffects(widget.rangerId, [...current, effectKey]);
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
+  }
+
+  Future<void> _removeStatusEffect(String effectKey) async {
+    final repo = ref.read(rangerRepositoryProvider);
+    final updated = widget.ranger.statusEffects.where((k) => k != effectKey).toList();
+    await repo.setRangerStatusEffects(widget.rangerId, updated);
+    ref.invalidate(rangerDetailProvider(widget.rangerId));
   }
 }
 

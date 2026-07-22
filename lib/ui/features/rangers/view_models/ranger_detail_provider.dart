@@ -33,7 +33,6 @@ class RangerDetail {
   final List<RangerCompanion> companions;
   final Map<int, List<String>> companionInjuryKeys;
   final Map<int, List<String>> companionHeroicAbilityKeys;
-  final Map<int, List<String>> companionSpellKeys;
   final Map<int, List<RangerAbility>> companionSpellAbilities;
   final Map<int, Map<String, int>> companionCustomSkills;
   final List<String> statusEffects;
@@ -47,7 +46,6 @@ class RangerDetail {
     required this.companions,
     this.companionInjuryKeys = const {},
     this.companionHeroicAbilityKeys = const {},
-    this.companionSpellKeys = const {},
     this.companionSpellAbilities = const {},
     this.companionCustomSkills = const {},
     this.statusEffects = const [],
@@ -92,11 +90,9 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
 
   // Load companion ability keys from shared ranger_abilities table
   final companionHeroicAbilityKeys = <int, List<String>>{};
-  final companionSpellKeys = <int, List<String>>{};
   final companionSpellAbilities = <int, List<RangerAbility>>{};
   for (final comp in companions) {
     companionHeroicAbilityKeys[comp.id] = await companionRepo.getCompanionHeroicAbilityKeys(comp.id);
-    companionSpellKeys[comp.id] = await companionRepo.getCompanionSpellKeys(comp.id);
     companionSpellAbilities[comp.id] = await companionRepo.getCompanionSpellAbilities(comp.id);
   }
 
@@ -150,8 +146,7 @@ final rangerDetailProvider = FutureProvider.family<RangerDetail?, int>((ref, ran
     companions: companions,
     companionInjuryKeys: companionInjuryKeys,
     companionHeroicAbilityKeys: companionHeroicAbilityKeys,
-companionSpellKeys: companionSpellKeys,
-      companionSpellAbilities: companionSpellAbilities,
+    companionSpellAbilities: companionSpellAbilities,
       companionCustomSkills: companionCustomSkills,
     statusEffects: statusEffects,
     permanentInjuryKeys: permanentInjuryKeys,

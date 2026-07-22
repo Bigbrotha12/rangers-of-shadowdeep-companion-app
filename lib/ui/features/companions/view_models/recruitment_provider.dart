@@ -157,7 +157,6 @@ class RecruitmentNotifier extends StateNotifier<RecruitmentState> {
       companionTypeId: _typeKeyToId(type.key),
       name: type.name,
       rpCost: type.rpCost,
-      hasPurchasedThirdSpell: type.key == 'conjuror' ? false : false,
     );
 
     state = RecruitmentState(
