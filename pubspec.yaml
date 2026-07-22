@@ -1,7 +1,7 @@
 name: rangers_mobile
 description: "Companion app for Rangers of Shadow Deep"
 publish_to: 'none'
-version: 1.1.0+1 # Sync with lib/version.dart
+version: 1.1.1+1 # Sync with lib/version.dart
 
 environment:
   sdk: ^3.12.2
