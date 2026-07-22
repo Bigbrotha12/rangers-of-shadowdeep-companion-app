@@ -6,6 +6,7 @@ import 'package:rangers_mobile/data/repositories/companion_repository_provider.d
 import 'package:rangers_mobile/domain/constants/companion_types.dart';
 import 'package:rangers_mobile/domain/constants/permanent_injuries.dart' show canApplyInjury;
 import 'package:rangers_mobile/domain/services/stat_calculation_service.dart' show computeStatPenalty;
+import 'package:rangers_mobile/ui/features/rangers/view_models/ranger_detail_provider.dart';
 
 class CompanionData {
   final int id;
@@ -271,6 +272,7 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
       spellKeys: Value(jsonEncode(state!.spellKeys)),
       statusEffects: Value(jsonEncode(state!.statusEffects)),
     ));
+    _ref.invalidate(rangerDetailProvider(state!.rangerId));
   }
 
   Future<void> updateHeroicAbilityKeys(List<String> keys) async {
@@ -290,9 +292,13 @@ class CompanionNotifier extends StateNotifier<CompanionData?> {
 
   Future<void> removeSpellKey(String key) async {
     if (state != null) {
-      final updated = state!.spellKeys.where((k) => k != key).toList();
-      state = state!.copyWith(spellKeys: updated);
-      await _persist();
+      final updated = [...state!.spellKeys];
+      final index = updated.indexOf(key);
+      if (index != -1) {
+        updated.removeAt(index);
+        state = state!.copyWith(spellKeys: updated);
+        await _persist();
+      }
     }
   }
 

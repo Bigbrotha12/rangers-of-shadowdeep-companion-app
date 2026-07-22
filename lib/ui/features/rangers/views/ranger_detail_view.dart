@@ -128,9 +128,9 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                   labelPadding: EdgeInsets.only(left: 8, right: 16),
                   tabs: [
                     Tab(text: 'Stats'),
-                    Tab(text: 'Injuries'),
                     Tab(text: 'Abilities'),
                     Tab(text: 'Skills'),
+                    Tab(text: 'Injuries'),
                     Tab(text: 'Equipment'),
                     Tab(text: 'Companions'),
                   ],
@@ -143,9 +143,9 @@ class _RangerDetailViewState extends ConsumerState<RangerDetailView> {
                         statModifiers: computeEquipmentModifiers(ranger.equipment, equippedOnly: true),
                         onEditNotes: () => _showNotesDialog(context, ref, ranger),
                       ),
-                      RangerInjuriesTab(ranger: ranger, rangerId: widget.rangerId),
                       RangerAbilitiesTab(ranger: ranger),
                       RangerSkillsTab(ranger: ranger),
+                      RangerInjuriesTab(ranger: ranger, rangerId: widget.rangerId),
                       RangerEquipmentTab(
                         ranger: ranger,
                         rangerId: widget.rangerId,

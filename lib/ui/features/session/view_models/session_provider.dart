@@ -226,6 +226,8 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     // Load the event
     final events = await repo.getEventsBySession(sessionId);
 
+    _ref.invalidate(sessionHistoryProvider);
+
     state = ActiveSessionState(
       sessionId: sessionId,
       rangerId: rangerId,
@@ -554,6 +556,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionState> {
     if (rangerMember != null) {
       await repo.updateRangerCurrentHealth(state.rangerId, rangerMember.currentHealth);
     }
+    _ref.invalidate(sessionHistoryProvider);
   }
 
   // End session
@@ -636,6 +639,6 @@ final sessionDetailProvider = FutureProvider.family<Session?, int>((ref, session
 
 Future<void> deleteSession(WidgetRef ref, int sessionId) async {
   final repo = ref.read(sessionRepositoryProvider);
-  await repo.deleteSession(sessionId);
   ref.invalidate(sessionHistoryProvider);
+  await repo.deleteSession(sessionId);
 }

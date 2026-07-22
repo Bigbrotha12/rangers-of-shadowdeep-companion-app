@@ -134,9 +134,6 @@ class _DefaultContent extends StatelessWidget {
   }
 
   String? _subtitle() {
-    if (entry.metadata.containsKey('max_uses')) {
-      return '${entry.metadata['max_uses']} uses';
-    }
     if (entry.metadata.containsKey('table_data')) {
       return entry.metadata['table_data']!.split('\n').first;
     }

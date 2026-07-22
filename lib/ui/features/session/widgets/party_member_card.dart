@@ -172,7 +172,7 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
               (sp) => sp.key == s.abilityKey,
               orElse: () => spells.first,
             );
-            return NamedAbility(key: s.abilityKey, name: data.name, description: data.description);
+            return NamedAbility(key: s.abilityKey, name: data.name, description: data.description, abilityId: s.id);
           }).toList();
 
           memberSkills = ranger.skillBonuses
@@ -546,7 +546,14 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                           fontWeight: FontWeight.w600,
                         )),
                         const SizedBox(height: 4),
-                        ...memberSpells.map((spell) {
+                        ...memberSpells.asMap().entries.map((entry) {
+                          final spell = entry.value;
+                          final index = entry.key;
+                          // Use DB abilityId for ranger spells, list index for companion spells
+                          final uniqueKey = spell.abilityId != null
+                              ? 'spell:${spell.abilityId}'
+                              : 'spell:${member.id}:$index:${spell.key}';
+                          final isUsed = member.usedAbilities[uniqueKey] ?? false;
                           return Card(
                             margin: const EdgeInsets.only(bottom: 4),
                             child: InkWell(
@@ -579,6 +586,16 @@ class _PartyMemberCardState extends ConsumerState<PartyMemberCard> {
                                           ),
                                         ],
                                       ),
+                                    ),
+                                    Checkbox(
+                                      value: isUsed,
+                                      onChanged: (_) => ref.read(activeSessionProvider.notifier).toggleAbilityUsed(
+                                        member.id,
+                                        member.type,
+                                        uniqueKey,
+                                      ),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
                                     ),
                                   ],
                                 ),

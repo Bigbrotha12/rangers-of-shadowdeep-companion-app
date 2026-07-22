@@ -149,7 +149,8 @@ class PostGameNotifier extends StateNotifier<PostGameState?> {
   Set<int> _parseClaimedRewards(String? raw) {
     if (raw == null || raw.isEmpty) return {};
     try {
-      return Set<int>.from(jsonDecode(raw) as List);
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => e is int ? e : int.parse(e as String)).toSet();
     } on FormatException catch (_) {
       return {};
     }

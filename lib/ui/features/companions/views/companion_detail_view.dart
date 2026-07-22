@@ -109,8 +109,8 @@ class CompanionDetailView extends ConsumerWidget {
               labelPadding: EdgeInsets.only(left: 8, right: 16),
               tabs: [
                 Tab(text: 'Stats'),
-                Tab(text: 'Skills'),
                 Tab(text: 'Abilities'),
+                Tab(text: 'Skills'),
                 Tab(text: 'Injuries'),
                 Tab(text: 'Info'),
                 Tab(text: 'Equipment'),
@@ -125,12 +125,12 @@ class CompanionDetailView extends ConsumerWidget {
                     rangerId: rangerId,
                     companionId: companionId,
                   ),
-                  CompanionSkillsTab(companion: companion, type: type),
                   CompanionAbilitiesTab(
                     companion: companion,
                     type: type,
                     rangerId: rangerId,
                   ),
+                  CompanionSkillsTab(companion: companion, type: type),
                   CompanionInjuriesTab(companion: companion),
                   CompanionInfoTab(companion: companion, type: type),
                   type.isAnimal

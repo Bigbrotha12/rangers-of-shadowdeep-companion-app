@@ -88,7 +88,7 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'When to Use',
               content: entry.metadata['when_to_use']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
         ];
 
@@ -98,13 +98,13 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Target',
             content: entry.metadata['target_type']?.replaceAll('_', ' ') ?? 'N/A',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
           if (entry.metadata.containsKey('will_roll_tn'))
             _InfoBlock(
               label: 'Will Roll to Resist',
               content: 'TN ${entry.metadata['will_roll_tn']}',
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
         ];
 
@@ -140,27 +140,27 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Recruitment Points',
               content: entry.metadata['rp_cost']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           _EquipmentBlock(entry: entry),
           if (entry.metadata['is_animal'] == 'true')
             _InfoBlock(
               label: 'Animal',
               content: 'Cannot carry treasure or items. Limited skill rolls.',
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           if (entry.metadata.containsKey('base_skills') &&
               entry.metadata['base_skills']!.isNotEmpty)
             _InfoBlock(
               label: 'Base Skills',
               content: entry.metadata['base_skills']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           if (entry.detailedDescription != null)
             _InfoBlock(
               label: 'Special Rules',
               content: entry.detailedDescription!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
         ];
 
@@ -170,19 +170,19 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
           if (entry.metadata['two_handed'] == 'true')
             _InfoBlock(
               label: 'Two-Handed',
               content: 'Cannot be used with a shield.',
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           if (entry.metadata['light'] == 'true')
             _InfoBlock(
               label: 'Light Armour',
               content: 'Made of non-metal materials.',
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
         ];
 
@@ -193,12 +193,12 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Uses',
               content: entry.metadata['max_uses']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           _InfoBlock(
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
         ];
 
@@ -208,7 +208,7 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Type',
             content: 'Herb / Potion',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
         ];
 
@@ -221,7 +221,7 @@ class ReferenceDetailView extends ConsumerWidget {
           _InfoBlock(
             label: 'Effect',
             content: entry.metadata['effect'] ?? '',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
           _InfoBlock(
             label: 'Cumulative',
@@ -229,7 +229,7 @@ class ReferenceDetailView extends ConsumerWidget {
                 ? 'Affects ${entry.metadata['affected_stat']!.replaceAll('_', ' ')}. '
                     'Max ${entry.metadata['max_times']} times.'
                 : 'Max ${entry.metadata['max_times']} time(s).',
-            color: theme.colorScheme.onSecondaryContainer,
+            color: theme.colorScheme.primaryContainer,
           ),
         ];
 
@@ -260,20 +260,20 @@ class ReferenceDetailView extends ConsumerWidget {
             _InfoBlock(
               label: 'Experience Points',
               content: entry.metadata['xp_value']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
           if (entry.metadata.containsKey('notes') && entry.metadata['notes']!.isNotEmpty)
             _InfoBlock(
               label: 'Notes', 
               content: entry.metadata['notes']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
               ),
           if (entry.metadata.containsKey('special_rules') &&
               entry.metadata['special_rules']!.isNotEmpty)
             _InfoBlock(
               label: 'Special Rules',
               content: entry.metadata['special_rules']!,
-              color: theme.colorScheme.onSecondaryContainer,
+              color: theme.colorScheme.primaryContainer,
             ),
         ];
 
@@ -404,7 +404,7 @@ class _EquipmentBlock extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSecondaryContainer,
+          color: theme.colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(

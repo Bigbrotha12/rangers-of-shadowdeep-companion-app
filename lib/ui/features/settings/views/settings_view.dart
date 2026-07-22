@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:rangers_mobile/data/services/backup_service_provider.dart';
 import 'package:rangers_mobile/ui/core/theme/preferences.dart';
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
+import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
 import 'package:rangers_mobile/version.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -289,7 +290,10 @@ class SettingsView extends ConsumerWidget {
               ),
             );
             Future.delayed(const Duration(milliseconds: 1500), () {
-              if (context.mounted) context.go('/rangers');
+              if (context.mounted) {
+                ref.invalidate(rangersListProvider);
+                context.go('/rangers');
+              }
             });
           }
         } else {

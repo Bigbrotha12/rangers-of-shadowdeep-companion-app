@@ -28,7 +28,8 @@ class NamedAbility {
   final String key;
   final String name;
   final String description;
-  const NamedAbility({required this.key, required this.name, required this.description});
+  final int? abilityId; // DB RangerAbility.id for per-copy tracking
+  const NamedAbility({required this.key, required this.name, required this.description, this.abilityId});
 }
 
 class NamedSkill {

@@ -104,77 +104,7 @@ class CompanionAbilitiesTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            if (companion.spellKeys.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'No spells selected.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              )
-            else
-              ...companion.spellKeys.map((key) {
-                final data = spells.firstWhere(
-                  (s) => s.key == key,
-                  orElse: () => spells.first,
-                );
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  child: ListTile(
-                    leading: Icon(Icons.auto_awesome, color: theme.colorScheme.tertiary),
-                    title: Text(data.name),
-                    subtitle: Text(
-                      data.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.open_in_new, size: 18),
-                          onPressed: () => context.push(
-                            '/reference/spells/$key',
-                          ),
-                          tooltip: 'View details',
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.remove_circle_outline,
-                            size: 20,
-                            color: theme.colorScheme.error,
-                          ),
-                          onPressed: () {
-                            ref.read(companionProvider(companion.id).notifier)
-                                .removeSpellKey(key);
-                          },
-                          tooltip: 'Remove spell',
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            const SizedBox(height: 8),
-            if (companion.spellKeys.length < maxSpells!)
-              OutlinedButton.icon(
-                onPressed: () => _showSpellPicker(context, ref),
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(
-                  'Select Spell (${companion.spellKeys.length}/$maxSpells)',
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Conjuror can select up to $maxSpells spell${maxSpells == 1 ? '' : 's'}.',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
+            _buildSpellsList(context, ref, companion, maxSpells!, theme),
             const SizedBox(height: 16),
           ],
 
@@ -214,65 +144,244 @@ class CompanionAbilitiesTab extends ConsumerWidget {
     );
   }
 
+  Widget _buildSpellsList(
+    BuildContext context,
+    WidgetRef ref,
+    CompanionData companion,
+    int maxSpells,
+    ThemeData theme,
+  ) {
+    final spellCounts = <String, int>{};
+    for (final key in companion.spellKeys) {
+      spellCounts[key] = (spellCounts[key] ?? 0) + 1;
+    }
+    final totalSpells = companion.spellKeys.length;
+    final canAddMore = totalSpells < maxSpells;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (spellCounts.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'No spells selected.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          )
+        else
+          ...spellCounts.entries.map((entry) {
+            final key = entry.key;
+            final count = entry.value;
+            final data = spells.firstWhere(
+              (s) => s.key == key,
+              orElse: () => spells.first,
+            );
+            return Card(
+              margin: const EdgeInsets.only(bottom: 6),
+              child: ListTile(
+                leading: Icon(Icons.auto_awesome, color: theme.colorScheme.tertiary),
+                title: Text(data.name),
+                subtitle: Text(
+                  data.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (count > 1)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2,
+                        ),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${count}x',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      onPressed: () => context.push(
+                        '/reference/spells/$key',
+                      ),
+                      tooltip: 'View details',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, size: 20),
+                      onPressed: () {
+                        ref.read(companionProvider(companion.id).notifier)
+                            .removeSpellKey(key);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, size: 20),
+                      onPressed: canAddMore
+                          ? () {
+                              ref.read(companionProvider(companion.id).notifier)
+                                  .addSpellKey(key);
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        const SizedBox(height: 8),
+        if (canAddMore)
+          OutlinedButton.icon(
+            onPressed: () => _showSpellPicker(context, ref),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(
+              'Select Spell ($totalSpells/$maxSpells)',
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            'Conjuror can select up to $maxSpells spell${maxSpells == 1 ? '' : 's'}.',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showSpellPicker(BuildContext context, WidgetRef ref) {
-    final existing = [...companion.spellKeys];
-    final selected = Set<String>.from(existing);
+    final counts = <String, int>{};
+    for (final key in companion.spellKeys) {
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    const maxSpells = 3;
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: const Text('Select Spells (max 3)'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: spells.length,
-              itemBuilder: (ctx, i) {
-                final spell = spells[i];
-                final isSelected = selected.contains(spell.key);
-                final atMax = selected.length >= 3 && !isSelected;
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            final total = counts.values.fold(0, (a, b) => a + b);
+            final canAddMore = total < maxSpells;
 
-                return CheckboxListTile(
-                  value: isSelected,
-                  onChanged: atMax
-                      ? null
-                      : (checked) {
-                          setState(() {
-                            if (checked == true) {
-                              selected.add(spell.key);
-                            } else {
-                              selected.remove(spell.key);
-                            }
-                          });
-                        },
-                  title: Text(spell.name),
-                  subtitle: Text(
-                    spell.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                ref.read(companionProvider(companion.id).notifier)
-                    .setSpellKeys(selected.toList());
-                Navigator.of(ctx).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      ),
+            return AlertDialog(
+              title: const Text('Select Spells (max 3)'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: spells.length,
+                  itemBuilder: (ctx, i) {
+                    final spell = spells[i];
+                    final count = counts[spell.key] ?? 0;
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 2),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    spell.name,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    spell.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (count > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2,
+                                ),
+                                margin: const EdgeInsets.only(right: 4),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${count}x',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: count > 0
+                                  ? () => setState(() {
+                                        counts[spell.key] = count - 1;
+                                        if (counts[spell.key] == 0) {
+                                          counts.remove(spell.key);
+                                        }
+                                      })
+                                  : null,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              onPressed: canAddMore
+                                  ? () => setState(() {
+                                        counts[spell.key] = (counts[spell.key] ?? 0) + 1;
+                                      })
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final expanded = <String>[];
+                    for (final entry in counts.entries) {
+                      for (int i = 0; i < entry.value; i++) {
+                        expanded.add(entry.key);
+                      }
+                    }
+                    ref.read(companionProvider(companion.id).notifier)
+                        .setSpellKeys(expanded);
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
