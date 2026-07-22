@@ -68,6 +68,7 @@ coverage/
 
 # Reference material
 references/
+scripts/
 
 # AI tool configs
 opencode.json

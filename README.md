@@ -1,6 +1,6 @@
 # Rangers of Shadow Deep — Companion App
 
-A companion app for [Rangers of Shadow Deep](https://onepage_rules.com/collections/rangers-of-shadow-deep), a solo/co-op tabletop miniatures game. Manage your rangers, track companions, record sessions, and browse rules reference — all from your phone.
+A companion app for Rangers of Shadow Deep, a solo/co-op tabletop miniatures game. Manage your rangers, track companions, record sessions, and browse rules reference — all from your phone.
 
 ## Features
 
@@ -39,20 +39,6 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
-### Using the dev scripts
-
-Two convenience scripts run the app inside a Podman container with an Android emulator:
-
-```bash
-# One-shot: starts emulator, runs app, exits
-./scripts/dev.sh
-
-# Compose-based: keeps container running
-./scripts/dev-compose.sh
-```
-
-Both scripts require KVM access (`/dev/kvm`) and an X11 socket for the emulator GUI.
-
 ## Project Structure
 
 ```
@@ -78,8 +64,6 @@ lib/
 
 ## Building
 
-### Direct (Flutter installed locally)
-
 ```bash
 # Android APK
 flutter build apk --release
@@ -88,20 +72,8 @@ flutter build apk --release
 flutter build appbundle --release
 ```
 
-### Via Podman container
-
-The project includes a `flutter-dev` container for environments without a local Flutter SDK. Use these scripts or the equivalent `podman` commands:
-
-```bash
-# Build APK
-./scripts/build-apk.sh
-
-# Build App Bundle
-./scripts/build-aab.sh
-```
-
-These scripts mount the project and a persistent pub cache volume into the `flutter-dev` container, then run the equivalent `flutter build` commands. APK/AAB output lands in `build/app/outputs/flutter-apk/` or `build/app/outputs/bundle/` respectively.
-
 ## License
 
-Private — not affiliated with One Page Rules.
+MIT — see [LICENSE](LICENSE).  
+
+This project is not affiliated with One Page Rules.
