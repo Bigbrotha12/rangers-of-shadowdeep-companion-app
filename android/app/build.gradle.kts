@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.rangerssd.rangers_mobile"
+    namespace = "com.fire_chain.rangers_of_shadow_deep_companion"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -15,21 +15,26 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.rangerssd.rangers_mobile"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.fire_chain.rangers_of_shadow_deep_companion"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "upload"
+            keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+            storeFile = System.getenv("ANDROID_STORE_FILE")?.let { file(it) }
+                ?: file(System.getProperty("user.home") + "/upload-keystore.jks").takeIf { it.exists() }
+            storePassword = System.getenv("ANDROID_STORE_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

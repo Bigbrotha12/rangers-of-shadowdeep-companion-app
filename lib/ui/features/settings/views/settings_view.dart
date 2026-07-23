@@ -7,6 +7,7 @@ import 'package:rangers_mobile/ui/core/theme/preferences.dart';
 import 'package:rangers_mobile/ui/core/theme/spacing.dart';
 import 'package:rangers_mobile/ui/features/rangers/view_models/rangers_provider.dart';
 import 'package:rangers_mobile/ui/features/settings/widgets/bug_report_dialog.dart';
+import 'package:rangers_mobile/ui/features/settings/widgets/legal_dialog.dart';
 import 'package:rangers_mobile/version.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -93,6 +94,34 @@ class SettingsView extends ConsumerWidget {
               title: const Text('Report a Bug'),
               subtitle: const Text('Submit a bug report or feature request'),
               onTap: () => showBugReportDialog(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _sectionHeader(context, 'Legal'),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.privacy_tip, color: theme.colorScheme.secondary),
+                  title: const Text('Privacy Policy'),
+                  subtitle: const Text('How your data is handled'),
+                  onTap: () => showLegalDialog(context, 'Privacy Policy', privacyPolicyContent),
+                ),
+                const Divider(height: 1, indent: 72),
+                ListTile(
+                  leading: Icon(Icons.description, color: theme.colorScheme.secondary),
+                  title: const Text('Terms & Conditions'),
+                  subtitle: const Text('Rules for using the app'),
+                  onTap: () => showLegalDialog(context, 'Terms & Conditions', termsContent),
+                ),
+                const Divider(height: 1, indent: 72),
+                ListTile(
+                  leading: Icon(Icons.article, color: theme.colorScheme.secondary),
+                  title: const Text('License'),
+                  subtitle: const Text('MIT open source license'),
+                  onTap: () => showLegalDialog(context, 'License', licenseContent),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
