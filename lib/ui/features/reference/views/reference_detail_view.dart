@@ -89,6 +89,7 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'When to Use',
               content: entry.metadata['when_to_use']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
         ];
 
@@ -99,12 +100,14 @@ class ReferenceDetailView extends ConsumerWidget {
             label: 'Target',
             content: entry.metadata['target_type']?.replaceAll('_', ' ') ?? 'N/A',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
           if (entry.metadata.containsKey('will_roll_tn'))
             _InfoBlock(
               label: 'Will Roll to Resist',
               content: 'TN ${entry.metadata['will_roll_tn']}',
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
         ];
 
@@ -141,6 +144,7 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Recruitment Points',
               content: entry.metadata['rp_cost']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           _EquipmentBlock(entry: entry),
           if (entry.metadata['is_animal'] == 'true')
@@ -148,6 +152,7 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Animal',
               content: 'Cannot carry treasure or items. Limited skill rolls.',
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           if (entry.metadata.containsKey('base_skills') &&
               entry.metadata['base_skills']!.isNotEmpty)
@@ -155,12 +160,14 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Base Skills',
               content: entry.metadata['base_skills']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           if (entry.detailedDescription != null)
             _InfoBlock(
               label: 'Special Rules',
               content: entry.detailedDescription!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
         ];
 
@@ -171,18 +178,21 @@ class ReferenceDetailView extends ConsumerWidget {
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
           if (entry.metadata['two_handed'] == 'true')
             _InfoBlock(
               label: 'Two-Handed',
               content: 'Cannot be used with a shield.',
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           if (entry.metadata['light'] == 'true')
             _InfoBlock(
               label: 'Light Armour',
               content: 'Made of non-metal materials.',
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
         ];
 
@@ -194,11 +204,13 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Uses',
               content: entry.metadata['max_uses']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           _InfoBlock(
             label: 'Type',
             content: entry.metadata['category_type']?.replaceAll('_', ' ') ?? '',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
         ];
 
@@ -209,6 +221,7 @@ class ReferenceDetailView extends ConsumerWidget {
             label: 'Type',
             content: 'Herb / Potion',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
         ];
 
@@ -222,6 +235,7 @@ class ReferenceDetailView extends ConsumerWidget {
             label: 'Effect',
             content: entry.metadata['effect'] ?? '',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
           _InfoBlock(
             label: 'Cumulative',
@@ -230,6 +244,7 @@ class ReferenceDetailView extends ConsumerWidget {
                     'Max ${entry.metadata['max_times']} times.'
                 : 'Max ${entry.metadata['max_times']} time(s).',
             color: theme.colorScheme.primaryContainer,
+            textColor: theme.colorScheme.onPrimaryContainer,
           ),
         ];
 
@@ -261,12 +276,14 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Experience Points',
               content: entry.metadata['xp_value']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
           if (entry.metadata.containsKey('notes') && entry.metadata['notes']!.isNotEmpty)
             _InfoBlock(
               label: 'Notes', 
               content: entry.metadata['notes']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
               ),
           if (entry.metadata.containsKey('special_rules') &&
               entry.metadata['special_rules']!.isNotEmpty)
@@ -274,6 +291,7 @@ class ReferenceDetailView extends ConsumerWidget {
               label: 'Special Rules',
               content: entry.metadata['special_rules']!,
               color: theme.colorScheme.primaryContainer,
+              textColor: theme.colorScheme.onPrimaryContainer,
             ),
         ];
 
@@ -333,11 +351,13 @@ class _InfoBlock extends StatelessWidget {
     required this.label,
     required this.content,
     this.color,
+    this.textColor,
   });
 
   final String label;
   final String content;
   final Color? color;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -360,14 +380,14 @@ class _InfoBlock extends StatelessWidget {
               label,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
+                color: textColor ?? theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               content,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
+                color: textColor ?? theme.colorScheme.onSurface,
               ),
             ),
           ],
@@ -414,6 +434,7 @@ class _EquipmentBlock extends StatelessWidget {
               'Equipment',
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onPrimaryContainer,
               ),
             ),
             const SizedBox(height: 8),
@@ -421,7 +442,7 @@ class _EquipmentBlock extends StatelessWidget {
                 ? Text(
                     'No equipment',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: theme.colorScheme.onPrimaryContainer,
                       fontStyle: FontStyle.italic,
                     ),
                   )
